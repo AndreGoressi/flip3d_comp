@@ -50,7 +50,6 @@ std::vector<HWND> Flip3DCompApp::EnumerateWindows()
 
 // ============================================================================
 // Flip3DCompApp::ApplyFullscreenLayout
-// uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
 // ============================================================================
 void Flip3DCompApp::ApplyFullscreenLayout()
 {
@@ -62,7 +61,8 @@ void Flip3DCompApp::ApplyFullscreenLayout()
     const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
-    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
+    SetWindowPos(m_hwnd, HWND_NOTOPMOST, x, y, w, h, SWP_SHOWWINDOW);
+    SetWindowPos(m_hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
     RECT client = {};
     if (GetClientRect(m_hwnd, &client))
@@ -76,7 +76,6 @@ void Flip3DCompApp::ApplyFullscreenLayout()
 
 // ============================================================================
 // Flip3DCompApp::CreateAppWindow
-// uDWM Flip3D input window: borderless popup, topmost, full virtual desktop.
 // ============================================================================
 bool Flip3DCompApp::CreateAppWindow()
 {
@@ -100,7 +99,7 @@ bool Flip3DCompApp::CreateAppWindow()
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
     m_hwnd = CreateWindowExW(
-        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
+        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW,
         L"Flip3DCompClass",
         L"",
         WS_POPUP,
