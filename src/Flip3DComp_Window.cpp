@@ -100,7 +100,7 @@ bool Flip3DCompApp::CreateAppWindow()
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
     m_hwnd = CreateWindowExW(
-        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
+        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW,
         L"Flip3DCompClass",
         L"",
         WS_POPUP,
