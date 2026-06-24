@@ -102,7 +102,7 @@ bool Flip3DCompApp::CreateAppWindow()
     HWND shellTray = FindWindowW(L"Shell_TrayWnd", nullptr);
 
     m_hwnd = CreateWindowExW(
-        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW | WS_EX_LAYERED,
+        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW,
         L"Flip3DCompClass",
         L"",
         WS_POPUP | WS_VISIBLE,
