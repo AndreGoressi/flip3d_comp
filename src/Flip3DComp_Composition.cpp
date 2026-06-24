@@ -103,6 +103,31 @@ HRESULT Flip3DCompApp::InitComposition()
     m_rootVisual = root;
     m_dcompTarget->SetRoot(root.Get());
 
+    {
+        MONITORINFO mi = { sizeof(mi) };
+        HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+        if (GetMonitorInfoW(hMon, &mi))
+        {
+            const int vx = GetSystemMetrics(SM_XVIRTUALSCREEN);
+            const int vy = GetSystemMetrics(SM_YVIRTUALSCREEN);
+
+            const float clipX = (float)(mi.rcWork.left   - vx);
+            const float clipY = (float)(mi.rcWork.top    - vy);
+            const float clipW = (float)(mi.rcWork.right  - mi.rcWork.left);
+            const float clipH = (float)(mi.rcWork.bottom - mi.rcWork.top);
+
+            ComPtr<IDCompositionRectangleClip> clip;
+            if (SUCCEEDED(m_dcompDevice->CreateRectangleClip(&clip)))
+            {
+                clip->SetLeft(clipX);
+                clip->SetTop(clipY);
+                clip->SetRight(clipX + clipW);
+                clip->SetBottom(clipY + clipH);
+                root->SetClip(clip.Get());
+            }
+        }
+    }
+
     ComPtr<IDCompositionVisual2> sceneBase;
     hr = m_dcompDevice->CreateVisual(&sceneBase);
     if (FAILED(hr))
