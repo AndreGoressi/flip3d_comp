@@ -95,21 +95,6 @@ HRESULT Flip3DCompApp::InitComposition()
     hr = m_dcompDevice->CreateTargetForHwnd(m_hwnd, TRUE, &m_dcompTarget);
     if (FAILED(hr))
         return hr;
-    {
-        MONITORINFO mi = { sizeof(mi) };
-        HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
-        if (GetMonitorInfoW(hMon, &mi))
-        {
-            const int vx = GetSystemMetrics(SM_XVIRTUALSCREEN);
-            const int vy = GetSystemMetrics(SM_YVIRTUALSCREEN);
-            const int rx = mi.rcWork.left   - vx;
-            const int ry = mi.rcWork.top    - vy;
-            const int rw = mi.rcWork.right  - mi.rcWork.left;
-            const int rh = mi.rcWork.bottom - mi.rcWork.top;
-            HRGN rgn = CreateRectRgn(rx, ry, rx + rw, ry + rh);
-            SetWindowRgn(m_hwnd, rgn, FALSE);
-        }
-    }
 
     ComPtr<IDCompositionVisual2> root;
     hr = m_dcompDevice->CreateVisual(&root);
@@ -117,30 +102,6 @@ HRESULT Flip3DCompApp::InitComposition()
         return hr;
     m_rootVisual = root;
     m_dcompTarget->SetRoot(root.Get());
-    {
-        MONITORINFO mi = { sizeof(mi) };
-        HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
-        if (GetMonitorInfoW(hMon, &mi))
-        {
-            const int vx = GetSystemMetrics(SM_XVIRTUALSCREEN);
-            const int vy = GetSystemMetrics(SM_YVIRTUALSCREEN);
-
-            const float clipX = (float)(mi.rcWork.left   - vx);
-            const float clipY = (float)(mi.rcWork.top    - vy);
-            const float clipW = (float)(mi.rcWork.right  - mi.rcWork.left);
-            const float clipH = (float)(mi.rcWork.bottom - mi.rcWork.top);
-
-            ComPtr<IDCompositionRectangleClip> clip;
-            if (SUCCEEDED(m_dcompDevice->CreateRectangleClip(&clip)))
-            {
-                clip->SetLeft(clipX);
-                clip->SetTop(clipY);
-                clip->SetRight(clipX + clipW);
-                clip->SetBottom(clipY + clipH);
-                root->SetClip(clip.Get());
-            }
-        }
-    }
 
     ComPtr<IDCompositionVisual2> sceneBase;
     hr = m_dcompDevice->CreateVisual(&sceneBase);

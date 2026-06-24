@@ -50,6 +50,7 @@ std::vector<HWND> Flip3DCompApp::EnumerateWindows()
 
 // ============================================================================
 // Flip3DCompApp::ApplyFullscreenLayout
+// uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
 // ============================================================================
 void Flip3DCompApp::ApplyFullscreenLayout()
 {
@@ -75,6 +76,7 @@ void Flip3DCompApp::ApplyFullscreenLayout()
 
 // ============================================================================
 // Flip3DCompApp::CreateAppWindow
+// uDWM Flip3D input window: borderless popup, topmost, full virtual desktop.
 // ============================================================================
 bool Flip3DCompApp::CreateAppWindow()
 {
