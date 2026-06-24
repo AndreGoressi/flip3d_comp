@@ -161,6 +161,10 @@ bool Flip3DCompApp::CreateAppWindow()
 
     if (!m_hwnd)
         return false;
+    
+    BOOL exclude = TRUE;
+    DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
+    DrawAcrylic(m_hwnd);
 
     m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
 
