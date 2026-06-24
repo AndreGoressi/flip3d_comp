@@ -102,10 +102,10 @@ bool Flip3DCompApp::CreateAppWindow()
     HWND shellTray = FindWindowW(L"Shell_TrayWnd", nullptr);
 
     m_hwnd = CreateWindowExW(
-        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
+        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW | WS_EX_LAYERED,
         L"Flip3DCompClass",
         L"",
-        WS_POPUP,
+        WS_POPUP | WS_VISIBLE,
         x, y, w, h,
         shellTray, 
         nullptr,
@@ -123,6 +123,6 @@ bool Flip3DCompApp::CreateAppWindow()
         m_width  = std::max(1u, (UINT)(client.right  - client.left));
         m_height = std::max(1u, (UINT)(client.bottom - client.top));
     }
-
-    return true;
+    
+    return m_hwnd != nullptr;
 }
