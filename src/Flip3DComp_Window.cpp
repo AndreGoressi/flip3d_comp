@@ -74,6 +74,32 @@ void Flip3DCompApp::ApplyFullscreenLayout()
     UpdateMonitorRect();
 }
 
+enum ACCENT_STATE {
+    ACCENT_DISABLED = 0,
+    ACCENT_ENABLE_GRADIENT = 1,
+    ACCENT_ENABLE_TRANSPARENTGRADIENT = 2,
+    ACCENT_ENABLE_BLURBEHIND = 3,
+    ACCENT_ENABLE_ACRYLICBLURBEHIND = 4,
+    ACCENT_INVALID_STATE = 5
+};
+
+struct ACCENT_POLICY {
+    int AccentState;
+    int AccentFlags;
+    unsigned int GradientColor;
+    int AnimationId;
+};
+
+enum WINDOWCOMPOSITIONATTRIB {
+    WCA_ACCENT_POLICY = 19
+};
+
+struct WINDOWCOMPOSITIONATTRIBDATA {
+    WINDOWCOMPOSITIONATTRIB Attrib;
+    void* pvData;
+    size_t cbData;
+};
+
 typedef BOOL (WINAPI* SetWindowCompositionAttribute_t)(HWND, WINDOWCOMPOSITIONATTRIBDATA*);
 bool DrawAcrylic(HWND hwnd)
 {
