@@ -143,16 +143,20 @@ bool Flip3DCompApp::CreateAppWindow()
     };
     RegisterClassExW(&wc);
 
-    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
-    const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    MONITORINFO mi = { sizeof(mi) };
+    HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+    GetMonitorInfoW(hMon, &mi);
+
+    const int x = mi.rcMonitor.left;
+    const int y = mi.rcMonitor.top;
+    const int w = mi.rcMonitor.right - mi.rcMonitor.left;
+    const int h = mi.rcMonitor.bottom - mi.rcMonitor.top;
 
     m_hwnd = CreateWindowExW(
-        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST |WS_EX_TOOLWINDOW,
+        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_LAYERED,
         L"Flip3DCompClass",
         L"",
-        WS_POPUP,
+        WS_POPUP | WS_VISIBLE,
         x, y, w, h,
         nullptr, 
         nullptr,
@@ -164,7 +168,12 @@ bool Flip3DCompApp::CreateAppWindow()
     
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
+
+    BOOL fAllowNcPaint = TRUE;
+    DwmSetWindowAttribute(m_hwnd, DWMWA_ALLOW_NCPAINT, &fAllowNcPaint, sizeof(fAllowNcPaint));
+
     DrawAcrylic(m_hwnd);
+    RedrawWindow(m_hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_UPDATENOW);
 
     m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
 
