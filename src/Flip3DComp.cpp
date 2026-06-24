@@ -179,6 +179,19 @@ LRESULT Flip3DCompApp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
             return 0;
         break;
 
+    case WM_NCHITTEST:
+    {
+        MONITORINFO mi = { sizeof(mi) };
+        HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+        if (GetMonitorInfoW(hMon, &mi))
+        {
+            POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+            if (!PtInRect(&mi.rcWork, pt))
+                return HTTRANSPARENT;
+        }
+        return HTCLIENT;
+    }
+
     case WM_ACTIVATE:
         if (LOWORD(wParam) == WA_INACTIVE)
         {
