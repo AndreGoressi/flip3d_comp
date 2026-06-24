@@ -99,15 +99,13 @@ bool Flip3DCompApp::CreateAppWindow()
     const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
-    HWND shellTray = FindWindowW(L"Shell_TrayWnd", nullptr);
-
     m_hwnd = CreateWindowExW(
-        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW,
+        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST |WS_EX_TOOLWINDOW,
         L"Flip3DCompClass",
         L"",
         WS_POPUP,
         x, y, w, h,
-        shellTray, 
+        FindWindowW(L"Shell_TrayWnd", nullptr), 
         nullptr,
         m_hInstance,
         this);
