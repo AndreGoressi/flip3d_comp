@@ -74,6 +74,29 @@ void Flip3DCompApp::ApplyFullscreenLayout()
     UpdateMonitorRect();
 }
 
+typedef BOOL (WINAPI* SetWindowCompositionAttribute_t)(HWND, WINDOWCOMPOSITIONATTRIBDATA*);
+bool DrawAcrylic(HWND hwnd)
+{
+    HMODULE user32 = GetModuleHandleW(L"user32.dll");
+    if (!user32) return false;
+
+    auto SetWCA = reinterpret_cast<SetWindowCompositionAttribute_t>(
+        GetProcAddress(user32, "SetWindowCompositionAttribute"));
+    if (!SetWCA) return false;
+
+    ACCENT_POLICY accent = {};
+    accent.AccentState = ACCENT_ENABLE_ACRYLICBLURBEHIND;
+    accent.AccentFlags = 0;
+    accent.GradientColor = 0x73190F0F; 
+
+    WINDOWCOMPOSITIONATTRIBDATA data = {};
+    data.Attrib = WCA_ACCENT_POLICY;
+    data.pvData = &accent;
+    data.cbData = sizeof(accent);
+
+    return SetWCA(hwnd, &data) != FALSE;
+}
+
 // ============================================================================
 // Flip3DCompApp::CreateAppWindow
 // uDWM Flip3D input window: borderless popup, topmost, full virtual desktop.
