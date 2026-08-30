@@ -213,6 +213,17 @@ HRESULT Flip3DCompApp::CreateCardVisual(CardModel& card)
     if (FAILED(hr))
         return hr;
 
+    // Antialiasing für die 3D-Rotation: ohne diese beiden Zeilen komponiert
+    // DirectComposition rotierte Bitmaps standardmäßig mit BORDER_MODE_HARD
+    // und BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR -> harte, treppige Kanten.
+    card.m_containerVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+    card.m_containerVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+
+    // Optional, aber meist sinnvoll: auch das innere Thumbnail-Visual selbst
+    // weich rendern, falls es zusätzlich eigene (Sub-)Transforms bekommt.
+    card.m_visual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+    card.m_visual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+
     hr = m_sceneVisual->AddVisual(container.Get(), TRUE, nullptr);
     return hr;
 }
