@@ -110,6 +110,11 @@ HRESULT Flip3DCompApp::InitComposition()
     sceneBase.As(&m_sceneVisual);
     m_sceneVisual->SetDepthMode(DCOMPOSITION_DEPTH_MODE_TREE);
 
+    // Required for the supersampling downscale in UpdateCamera() to actually
+    // smooth edges instead of just nearest-neighbor-snapping them back down.
+    m_sceneVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+    m_sceneVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+
     ComPtr<IDCompositionVisual> rootBase;
     root.As(&rootBase);
     rootBase->AddVisual(m_sceneVisual.Get(), FALSE, nullptr);
@@ -333,7 +338,7 @@ bool Flip3DCompApp::RebuildMonitorBackdropsIfNeeded()
         if (FAILED(hr))
             continue;
 
-        /*ComPtr<IDCompositionVisual2> washVis;
+        ComPtr<IDCompositionVisual2> washVis;
         hr = m_dcompDevice->CreateVisual(&washVis);
         if (FAILED(hr))
             continue;
@@ -342,11 +347,11 @@ bool Flip3DCompApp::RebuildMonitorBackdropsIfNeeded()
             continue;
         hr = washVis.As(&mon.washVisual);
         if (FAILED(hr))
-            continue;*/
+            continue;
 
         // Z-order back→front: shell desktop, wash, then scene (added first in InitComposition).
         rootBase->AddVisual(mon.shellContainer.Get(), FALSE, m_sceneVisual.Get());
-        //rootBase->AddVisual(mon.washVisual.Get(), FALSE, m_sceneVisual.Get());
+        rootBase->AddVisual(mon.washVisual.Get(), FALSE, m_sceneVisual.Get());
 
         mon.shellContainer->SetOpacity(1.0f);
         m_monitorBackdrops.push_back(std::move(mon));
