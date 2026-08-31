@@ -672,7 +672,12 @@ void Flip3DCompApp::UpdateCamera(float /*enterProgress*/)
     if (!m_sceneVisual)
         return;
 
-    m_sceneVisual->SetTransform(Math::Identity());
+    // Compensates the kCardSupersample up-scale baked into each card's
+    // container transform below (see the SetTransform call in UpdateCards) —
+    // shrinks the oversized render back down to real screen size, with
+    // linear filtering doing genuine supersampled edge antialiasing.
+    const float inv = 1.0f / kCardSupersample;
+    m_sceneVisual->SetTransform(Math::Scale(inv, inv, 1.0f));
 }
 
 float Flip3DCompApp::ComputeFlatDepthRank(float slot, float enterProgress,
@@ -844,6 +849,13 @@ void Flip3DCompApp::UpdateCards(float enterProgress)
         m_lastPaintOrder = std::move(paintOrder);
     }
 
+    // Blow the card up to kCardSupersample× its real on-screen size here;
+    // m_sceneVisual (UpdateCamera) scales the whole subtree back down with
+    // linear filtering, giving supersampled edges on the rotated cards.
+    // Purely a rendering-space trick — camera/hit-testing math above is
+    // untouched, so mouse picking still works in real screen pixels.
+    const auto ssScale = Math::Scale(kCardSupersample, kCardSupersample, 1.0f);
+
     IDCompositionVisual* prevVis = nullptr;
     for (auto& d : draws)
     {
@@ -853,7 +865,7 @@ void Flip3DCompApp::UpdateCards(float enterProgress)
         const float t = ComputeCarouselBezierT(d.slot);
         const float flatRank = ComputeFlatDepthRank(d.slot, p, d.listIndex);
         auto model = BuildModelMatrix(*d.card, t, p, flatRank);
-        d.card->m_containerVisual->SetTransform(Math::Multiply(model, camera));
+        d.card->m_containerVisual->SetTransform(Math::Multiply(Math::Multiply(model, camera), ssScale));
 
         if (orderChanged)
         {
