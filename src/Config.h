@@ -48,6 +48,11 @@ constexpr float  kNearPlaneDistance        = 1.0f;     // near plane Z distance
 constexpr int    kMaxVisibleCards          = 10;       // max simultaneously visible cards
 constexpr int    kMaxCards                 = 24;       // absolute max cards in carousel
 
+// Card carousel is rendered into a virtual canvas kCardSupersample× larger,
+// then m_sceneVisual scales it back down with linear filtering — free edge AA
+// on the 3D-rotated cards without touching hit-testing/input math.
+constexpr float  kCardSupersample          = 2.0f;
+
 // Pre-computed camera poses (radians)
 constexpr float kCameraFinalTranslateX = -1.1f;
 constexpr float kCameraFinalTranslateY =  0.35f;   // uDWM InitializeModelAndCamera
