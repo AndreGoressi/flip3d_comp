@@ -28,11 +28,12 @@ bool Flip3DCompApp::Initialize(HINSTANCE hInstance)
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
     // Stage 2 needs Windows.Graphics.Capture (WinRT), which requires the
-    // calling thread to be WinRT-initialized. APARTMENTTHREADED matches the
-    // STA that Flip3DComp_Accessible.cpp's later CoInitializeEx also uses —
-    // calling CoInitializeEx again on an already-STA thread just increments
-    // a refcount (S_FALSE), so this doesn't conflict with accessibility.
-    m_roInitialized = SUCCEEDED(RoInitialize(RO_INIT_APARTMENTTHREADED));
+    // calling thread to be WinRT-initialized. RO_INIT_SINGLETHREADED is the
+    // STA mode (RoInitialize only has SINGLETHREADED/MULTITHREADED, unlike
+    // classic COM's COINIT_* names) — matches the STA that Flip3DComp_
+    // Accessible.cpp's later CoInitializeEx also uses, so that call just
+    // increments a refcount (S_FALSE) instead of conflicting.
+    m_roInitialized = SUCCEEDED(RoInitialize(RO_INIT_SINGLETHREADED));
 
     if (!LoadThumbApi())
         return false;

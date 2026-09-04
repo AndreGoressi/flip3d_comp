@@ -105,16 +105,12 @@ WindowCapture& WindowCapture::operator=(WindowCapture&& other) noexcept
 // ---------------------------------------------------------------------------
 void WindowCapture::Release()
 {
-    if (m_session)
-    {
-        m_session->Close();
-        m_session.Reset();
-    }
-    if (m_framePool)
-    {
-        m_framePool->Close();
-        m_framePool.Reset();
-    }
+    // Note: IGraphicsCaptureSession/IDirect3D11CaptureFramePool's Close() is
+    // reached via IClosable, not exposed directly on the ABI interface — just
+    // Reset() the ComPtrs (matches flip3d's original WindowCapture::Release,
+    // which relies on COM refcounting to tear the session down).
+    m_session.Reset();
+    m_framePool.Reset();
     m_captureItem.Reset();
     m_thumbVisual.Reset();
     if (m_hThumbnail)
