@@ -18,6 +18,7 @@ add_executable(Flip3DComp WIN32
     src/Flip3DComp_Accessible.cpp
     src/Flip3DAccessible.cpp
     src/Timeline.cpp
+    src/WindowCapture.cpp   # Stage 2: WGC capture bridge (D3D11 card rendering)
 )
 
 target_include_directories(Flip3DComp PRIVATE src)
@@ -25,7 +26,11 @@ target_link_libraries(Flip3DComp
     dwmapi
     dcomp
     dxgi
-    d3d11         # DComp interop surface creation — no D3D rendering
+    d3d11         # Stage 2: now also does real MSAA card rendering, not just DComp interop surfaces
+    d3dcompiler   # Stage 2: HLSL shader compilation
+    d2d1          # Stage 2: WindowCapture's InteropCompositor bridge
+    runtimeobject # Stage 2: RoInitialize / RoGetActivationFactory
+    windowsapp    # Stage 2: WinRT projected ABI (Windows.Graphics.Capture)
     user32
     gdi32
     oleacc
