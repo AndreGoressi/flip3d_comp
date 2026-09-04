@@ -270,7 +270,7 @@ void Flip3DCompApp::BuildCards()
             nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
             D3D11_CREATE_DEVICE_BGRA_SUPPORT,
             &fl, 1, D3D11_SDK_VERSION,
-            &m_d3dDevice, nullptr, nullptr);
+            &m_d3dDevice, nullptr, &m_d3dContext);
 
         if (FAILED(hr))
         {
@@ -278,7 +278,7 @@ void Flip3DCompApp::BuildCards()
                 nullptr, D3D_DRIVER_TYPE_WARP, nullptr,
                 D3D11_CREATE_DEVICE_BGRA_SUPPORT,
                 &fl, 1, D3D11_SDK_VERSION,
-                &m_d3dDevice, nullptr, nullptr);
+                &m_d3dDevice, nullptr, &m_d3dContext);
         }
     }
 

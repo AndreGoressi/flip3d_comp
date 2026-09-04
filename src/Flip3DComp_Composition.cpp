@@ -122,7 +122,123 @@ HRESULT Flip3DCompApp::InitComposition()
     if (m_d3dDevice)
         CreateSharedWashSurface(m_d3dDevice.Get(), m_dcompDevice.Get(), m_washSurface);
 
+    // Stage 1 of the D3D11 card-rendering migration (see conversation notes):
+    // stand up an own-device MSAA render target presented through a second
+    // composition swapchain, layered on top of everything else, purely to
+    // prove the pipeline before any card geometry moves onto it.
+    InitMsaaTestLayer();
+
     return m_dcompDevice->Commit();
+}
+
+// ============================================================================
+// Flip3DCompApp::InitMsaaTestLayer
+// Stage 1 test rig: own D3D11 device (already created in BuildCards) +
+// 4x MSAA render target + a composition swapchain on top of m_rootVisual.
+// Draws nothing yet — RenderMsaaTestFrame() just tints the whole overlay so
+// you can SEE the resolve+present path is actually working end to end.
+// ============================================================================
+HRESULT Flip3DCompApp::InitMsaaTestLayer()
+{
+    if (!m_d3dDevice || !m_d3dContext || !m_dcompDevice || !m_rootVisual)
+        return E_FAIL;
+
+    ComPtr<IDXGIDevice> dxgiDevice;
+    HRESULT hr = m_d3dDevice.As(&dxgiDevice);
+    if (FAILED(hr))
+        return hr;
+
+    ComPtr<IDXGIAdapter> adapter;
+    hr = dxgiDevice->GetAdapter(&adapter);
+    if (FAILED(hr))
+        return hr;
+
+    ComPtr<IDXGIFactory2> factory;
+    hr = adapter->GetParent(IID_PPV_ARGS(&factory));
+    if (FAILED(hr))
+        return hr;
+
+    DXGI_SWAP_CHAIN_DESC1 desc = {};
+    desc.Width              = m_width;
+    desc.Height             = m_height;
+    desc.Format             = DXGI_FORMAT_B8G8R8A8_UNORM;
+    desc.SampleDesc.Count   = 1;   // flip-model swapchains can't be MSAA directly
+    desc.BufferUsage        = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    desc.BufferCount        = 2;
+    desc.SwapEffect         = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+    desc.Scaling            = DXGI_SCALING_STRETCH;
+    desc.AlphaMode          = DXGI_ALPHA_MODE_PREMULTIPLIED;
+
+    hr = factory->CreateSwapChainForComposition(m_d3dDevice.Get(), &desc, nullptr, &m_msaaSwapChain);
+    if (FAILED(hr))
+        return hr;
+
+    hr = m_dcompDevice->CreateVisual(&m_msaaVisual);
+    if (FAILED(hr))
+        return hr;
+    hr = m_msaaVisual->SetContent(m_msaaSwapChain.Get());
+    if (FAILED(hr))
+        return hr;
+
+    // Explicitly placed directly above m_sceneVisual (not just FALSE/nullptr,
+    // whose bottom-vs-top semantics we don't want to rely on here) so the
+    // test tint is unmistakably visible over the carousel.
+    ComPtr<IDCompositionVisual> rootBase;
+    m_rootVisual.As(&rootBase);
+    ComPtr<IDCompositionVisual> sceneBaseVisual;
+    m_sceneVisual.As(&sceneBaseVisual);
+    rootBase->AddVisual(m_msaaVisual.Get(), TRUE, sceneBaseVisual.Get());
+
+    D3D11_TEXTURE2D_DESC msaaDesc = {};
+    msaaDesc.Width          = m_width;
+    msaaDesc.Height         = m_height;
+    msaaDesc.MipLevels      = 1;
+    msaaDesc.ArraySize      = 1;
+    msaaDesc.Format         = DXGI_FORMAT_B8G8R8A8_UNORM;
+    msaaDesc.SampleDesc.Count = 4;
+    msaaDesc.Usage          = D3D11_USAGE_DEFAULT;
+    msaaDesc.BindFlags      = D3D11_BIND_RENDER_TARGET;
+    hr = m_d3dDevice->CreateTexture2D(&msaaDesc, nullptr, &m_msaaRenderTarget);
+    if (FAILED(hr))
+        return hr;
+
+    D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+    rtvDesc.Format        = DXGI_FORMAT_B8G8R8A8_UNORM;
+    rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
+    hr = m_d3dDevice->CreateRenderTargetView(m_msaaRenderTarget.Get(), &rtvDesc, &m_msaaRTV);
+    if (FAILED(hr))
+        return hr;
+
+    return S_OK;
+}
+
+// ============================================================================
+// Flip3DCompApp::RenderMsaaTestFrame
+// Called once per Update() tick. Clears the MSAA target to a translucent
+// magenta tint and resolves+presents it — if you see a faint magenta wash
+// over the whole carousel, the own-device D3D11 -> MSAA -> resolve ->
+// composition-swapchain path works and Stage 2 (real card geometry) can
+// build on top of it.
+// ============================================================================
+void Flip3DCompApp::RenderMsaaTestFrame()
+{
+    if (!m_msaaSwapChain || !m_msaaRTV || !m_d3dContext)
+        return;
+
+    // Premultiplied alpha: (r*a, g*a, b*a, a).
+    const float kTestTint[4] = { 0.08f, 0.0f, 0.08f, 0.15f };
+    m_d3dContext->ClearRenderTargetView(m_msaaRTV.Get(), kTestTint);
+
+    ComPtr<ID3D11Texture2D> backBuffer;
+    HRESULT hr = m_msaaSwapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
+    if (FAILED(hr))
+        return;
+
+    m_d3dContext->ResolveSubresource(backBuffer.Get(), 0,
+                                      m_msaaRenderTarget.Get(), 0,
+                                      DXGI_FORMAT_B8G8R8A8_UNORM);
+
+    m_msaaSwapChain->Present(1, 0);
 }
 
 // ============================================================================

@@ -634,6 +634,10 @@ void Flip3DCompApp::Update(float dtSeconds)
     UpdateCamera(enterProgress);
     UpdateCards(enterProgress);
 
+    // Stage 1 test rig — see InitMsaaTestLayer(). Remove once card rendering
+    // has actually moved onto this pipeline in Stage 3.
+    RenderMsaaTestFrame();
+
     if (m_dcompDevice)
         m_dcompDevice->Commit();
 
