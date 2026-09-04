@@ -42,6 +42,7 @@
 #include "FlipMath.h"
 #include "Timeline.h"
 #include "CardModel.h"
+#include "WindowCapture.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -103,6 +104,15 @@ private:
     // ========================================================================
     HRESULT InitMsaaTestLayer();
     void    RenderMsaaTestFrame();
+
+    // ========================================================================
+    // Stage 2: real WGC-captured card drawn as a D3D11 quad (proves the
+    // capture -> texture -> shader -> MSAA path with real content, still as
+    // a fixed on-screen quad — not yet wired to the carousel's own matrices).
+    // ========================================================================
+    HRESULT InitCardRenderPipeline();
+    HRESULT InitTestCardCapture();
+    void    RenderTestCard();
 
     // ========================================================================
     // Window enumeration
@@ -325,6 +335,21 @@ private:
     ComPtr<IDXGISwapChain1>           m_msaaSwapChain;
     ComPtr<ID3D11Texture2D>           m_msaaRenderTarget;
     ComPtr<ID3D11RenderTargetView>    m_msaaRTV;
+
+    // ---- Stage 2: card render pipeline + one test capture ----
+    ComPtr<ID3D11VertexShader>        m_cardVertexShader;
+    ComPtr<ID3D11PixelShader>         m_cardPixelShader;
+    ComPtr<ID3D11InputLayout>         m_cardInputLayout;
+    ComPtr<ID3D11Buffer>              m_cardVertexBuffer;
+    ComPtr<ID3D11Buffer>              m_cardIndexBuffer;
+    ComPtr<ID3D11Buffer>              m_frameConstantsBuffer;
+    ComPtr<ID3D11Buffer>              m_objectConstantsBuffer;
+    ComPtr<ID3D11RasterizerState>     m_cardRasterizerState;
+    ComPtr<ID3D11BlendState>          m_cardBlendState;
+    ComPtr<ID3D11SamplerState>        m_cardSampler;
+    WindowCapture                     m_testCapture;
+    bool                              m_testCaptureReady = false;
+    bool                              m_roInitialized     = false;
 
     // ---- DirectComposition resources ----
     ComPtr<IDCompositionDesktopDevice>  m_dcompDevice;

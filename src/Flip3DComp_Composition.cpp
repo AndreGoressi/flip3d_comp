@@ -2,9 +2,13 @@
 // Flip3DComp_Composition.cpp — DirectComposition device init, desktop wash
 // ============================================================================
 #include "Flip3DComp.h"
+#include "Shaders.h"
 
 #include <algorithm>
 #include <vector>
+#include <cstring>
+#include <cstdint>
+#include <d3dcompiler.h>
 
 namespace {
 
@@ -128,6 +132,12 @@ HRESULT Flip3DCompApp::InitComposition()
     // prove the pipeline before any card geometry moves onto it.
     InitMsaaTestLayer();
 
+    // Stage 2: real WGC-captured card, drawn as an actual D3D11 quad into
+    // the same MSAA target — proves capture + shader + texture binding with
+    // real window content, as a fixed on-screen quad for now.
+    InitCardRenderPipeline();
+    InitTestCardCapture();
+
     return m_dcompDevice->Commit();
 }
 
@@ -214,11 +224,10 @@ HRESULT Flip3DCompApp::InitMsaaTestLayer()
 
 // ============================================================================
 // Flip3DCompApp::RenderMsaaTestFrame
-// Called once per Update() tick. Clears the MSAA target to a translucent
-// magenta tint and resolves+presents it — if you see a faint magenta wash
-// over the whole carousel, the own-device D3D11 -> MSAA -> resolve ->
-// composition-swapchain path works and Stage 2 (real card geometry) can
-// build on top of it.
+// Called once per Update() tick. Clears the MSAA target, draws the Stage 2
+// test card (if ready), resolves+presents. If you see a faint magenta wash
+// PLUS one real, MSAA-antialiased captured window rendered as a fixed quad
+// in the top-left corner, both Stage 1 and Stage 2 are working.
 // ============================================================================
 void Flip3DCompApp::RenderMsaaTestFrame()
 {
@@ -228,6 +237,8 @@ void Flip3DCompApp::RenderMsaaTestFrame()
     // Premultiplied alpha: (r*a, g*a, b*a, a).
     const float kTestTint[4] = { 0.08f, 0.0f, 0.08f, 0.15f };
     m_d3dContext->ClearRenderTargetView(m_msaaRTV.Get(), kTestTint);
+
+    RenderTestCard();
 
     ComPtr<ID3D11Texture2D> backBuffer;
     HRESULT hr = m_msaaSwapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
@@ -488,4 +499,217 @@ HRESULT Flip3DCompApp::CreateShellBackdrop()
             return E_FAIL;
     }
     return S_OK;
+}
+
+// ============================================================================
+// Stage 2: card render pipeline (shaders, quad geometry, states) + one
+// real WGC-captured test card, drawn as a fixed on-screen quad.
+// ============================================================================
+namespace {
+
+struct TestVertex
+{
+    float x, y, z;
+    float u, v;
+};
+
+// Layout must match Shaders.h's row_major float4x4 cbuffers exactly.
+struct TestFrameConstants  { Matrix4x4 viewProj; };
+struct TestObjectConstants { Matrix4x4 world; };
+
+HRESULT CompileShaderSource(const char* source, const char* entryPoint,
+                             const char* target, ComPtr<ID3DBlob>& outBlob)
+{
+    UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
+#if defined(_DEBUG)
+    flags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+    ComPtr<ID3DBlob> errors;
+    HRESULT hr = D3DCompile(source, std::strlen(source), nullptr, nullptr, nullptr,
+                             entryPoint, target, flags, 0, &outBlob, &errors);
+    if (FAILED(hr) && errors)
+        OutputDebugStringA((const char*)errors->GetBufferPointer());
+    return hr;
+}
+
+} // namespace
+
+// ============================================================================
+// Flip3DCompApp::InitCardRenderPipeline
+// ============================================================================
+HRESULT Flip3DCompApp::InitCardRenderPipeline()
+{
+    if (!m_d3dDevice)
+        return E_FAIL;
+
+    ComPtr<ID3DBlob> cardVS, cardPS;
+    HRESULT hr = CompileShaderSource(kCardVertexShader, "main", "vs_5_0", cardVS);
+    if (FAILED(hr))
+        return hr;
+    hr = CompileShaderSource(kCardPixelShader, "main", "ps_5_0", cardPS);
+    if (FAILED(hr))
+        return hr;
+
+    hr = m_d3dDevice->CreateVertexShader(cardVS->GetBufferPointer(), cardVS->GetBufferSize(),
+                                          nullptr, &m_cardVertexShader);
+    if (FAILED(hr))
+        return hr;
+    hr = m_d3dDevice->CreatePixelShader(cardPS->GetBufferPointer(), cardPS->GetBufferSize(),
+                                         nullptr, &m_cardPixelShader);
+    if (FAILED(hr))
+        return hr;
+
+    static constexpr D3D11_INPUT_ELEMENT_DESC inputLayoutDesc[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+    hr = m_d3dDevice->CreateInputLayout(inputLayoutDesc,
+                                         (UINT)(sizeof(inputLayoutDesc) / sizeof(inputLayoutDesc[0])),
+                                         cardVS->GetBufferPointer(), cardVS->GetBufferSize(),
+                                         &m_cardInputLayout);
+    if (FAILED(hr))
+        return hr;
+
+    // Unit quad (0,0)-(1,1); ObjectCB's "world" matrix positions/sizes it in
+    // pixel space before FrameCB's ortho "viewProj" maps pixels to NDC.
+    static constexpr TestVertex quadVertices[] = {
+        {0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f, 0.0f},
+        {1.0f, 1.0f, 0.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 0.0f, 1.0f},
+    };
+    static constexpr std::uint16_t quadIndices[] = {0, 1, 2, 0, 2, 3};
+
+    D3D11_BUFFER_DESC vbDesc = {};
+    vbDesc.ByteWidth = sizeof(quadVertices);
+    vbDesc.Usage     = D3D11_USAGE_IMMUTABLE;
+    vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    D3D11_SUBRESOURCE_DATA vbData = { quadVertices, 0, 0 };
+    hr = m_d3dDevice->CreateBuffer(&vbDesc, &vbData, &m_cardVertexBuffer);
+    if (FAILED(hr))
+        return hr;
+
+    D3D11_BUFFER_DESC ibDesc = {};
+    ibDesc.ByteWidth = sizeof(quadIndices);
+    ibDesc.Usage     = D3D11_USAGE_IMMUTABLE;
+    ibDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    D3D11_SUBRESOURCE_DATA ibData = { quadIndices, 0, 0 };
+    hr = m_d3dDevice->CreateBuffer(&ibDesc, &ibData, &m_cardIndexBuffer);
+    if (FAILED(hr))
+        return hr;
+
+    D3D11_BUFFER_DESC cbDesc = {};
+    cbDesc.ByteWidth = sizeof(TestFrameConstants);
+    cbDesc.Usage     = D3D11_USAGE_DEFAULT;
+    cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    hr = m_d3dDevice->CreateBuffer(&cbDesc, nullptr, &m_frameConstantsBuffer);
+    if (FAILED(hr))
+        return hr;
+
+    cbDesc.ByteWidth = sizeof(TestObjectConstants);
+    hr = m_d3dDevice->CreateBuffer(&cbDesc, nullptr, &m_objectConstantsBuffer);
+    if (FAILED(hr))
+        return hr;
+
+    D3D11_RASTERIZER_DESC rsDesc = {};
+    rsDesc.FillMode           = D3D11_FILL_SOLID;
+    rsDesc.CullMode           = D3D11_CULL_NONE;
+    rsDesc.DepthClipEnable    = TRUE;
+    rsDesc.MultisampleEnable  = TRUE;   // required for MSAA edge coverage on our own quad
+    hr = m_d3dDevice->CreateRasterizerState(&rsDesc, &m_cardRasterizerState);
+    if (FAILED(hr))
+        return hr;
+
+    D3D11_BLEND_DESC blendDesc = {};
+    blendDesc.RenderTarget[0].BlendEnable           = TRUE;
+    blendDesc.RenderTarget[0].SrcBlend              = D3D11_BLEND_ONE; // content is premultiplied in the PS
+    blendDesc.RenderTarget[0].DestBlend              = D3D11_BLEND_INV_SRC_ALPHA;
+    blendDesc.RenderTarget[0].BlendOp               = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].SrcBlendAlpha         = D3D11_BLEND_ONE;
+    blendDesc.RenderTarget[0].DestBlendAlpha        = D3D11_BLEND_INV_SRC_ALPHA;
+    blendDesc.RenderTarget[0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    hr = m_d3dDevice->CreateBlendState(&blendDesc, &m_cardBlendState);
+    if (FAILED(hr))
+        return hr;
+
+    D3D11_SAMPLER_DESC sampDesc = {};
+    sampDesc.Filter   = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sampDesc.MaxLOD   = D3D11_FLOAT32_MAX;
+    return m_d3dDevice->CreateSamplerState(&sampDesc, &m_cardSampler);
+}
+
+// ============================================================================
+// Flip3DCompApp::InitTestCardCapture
+// Grabs the first enumerated window and starts a WGC capture on it, purely
+// as a Stage 2 test subject.
+// ============================================================================
+HRESULT Flip3DCompApp::InitTestCardCapture()
+{
+    if (m_cards.empty() || !m_d3dDevice || !m_pfnCreateSharedThumbVisual || !m_pfnQueryThumbSize)
+        return E_FAIL;
+
+    HRESULT hr = m_testCapture.Initialize(
+        m_cards[0].m_hwnd, m_hwnd, m_d3dDevice.Get(),
+        m_pfnCreateSharedThumbVisual, m_pfnQueryThumbSize);
+
+    m_testCaptureReady = SUCCEEDED(hr);
+    return hr;
+}
+
+// ============================================================================
+// Flip3DCompApp::RenderTestCard
+// Draws the captured test window as a fixed 480x320 quad at (80, 80) in
+// screen pixels, into whatever render target is currently bound (the MSAA
+// target — see RenderMsaaTestFrame). Not yet driven by carousel rotation.
+// ============================================================================
+void Flip3DCompApp::RenderTestCard()
+{
+    if (!m_testCaptureReady || !m_testCapture.IsValid() || !m_cardVertexShader)
+        return;
+
+    m_testCapture.PollFrame();
+
+    // Pixel-space ortho projection: NDC_x = px*(2/w)-1, NDC_y = 1-py*(2/h).
+    TestFrameConstants frameCB{};
+    frameCB.viewProj = Math::Multiply(
+        Math::Scale(2.0f / (float)m_width, -2.0f / (float)m_height, 1.0f),
+        Math::Translation(-1.0f, 1.0f, 0.0f));
+    m_d3dContext->UpdateSubresource(m_frameConstantsBuffer.Get(), 0, nullptr, &frameCB, 0, 0);
+
+    TestObjectConstants objectCB{};
+    objectCB.world = Math::Multiply(Math::Scale(480.0f, 320.0f, 1.0f),
+                                     Math::Translation(80.0f, 80.0f, 0.0f));
+    m_d3dContext->UpdateSubresource(m_objectConstantsBuffer.Get(), 0, nullptr, &objectCB, 0, 0);
+
+    D3D11_VIEWPORT vp = { 0.0f, 0.0f, (float)m_width, (float)m_height, 0.0f, 1.0f };
+    m_d3dContext->RSSetViewports(1, &vp);
+    m_d3dContext->OMSetRenderTargets(1, m_msaaRTV.GetAddressOf(), nullptr);
+
+    const float blendFactor[4] = { 0, 0, 0, 0 };
+    m_d3dContext->OMSetBlendState(m_cardBlendState.Get(), blendFactor, 0xFFFFFFFF);
+    m_d3dContext->RSSetState(m_cardRasterizerState.Get());
+
+    m_d3dContext->IASetInputLayout(m_cardInputLayout.Get());
+    m_d3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    const UINT stride = sizeof(TestVertex), offset = 0;
+    m_d3dContext->IASetVertexBuffers(0, 1, m_cardVertexBuffer.GetAddressOf(), &stride, &offset);
+    m_d3dContext->IASetIndexBuffer(m_cardIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+
+    m_d3dContext->VSSetShader(m_cardVertexShader.Get(), nullptr, 0);
+    ID3D11Buffer* vsCBs[] = { m_frameConstantsBuffer.Get(), m_objectConstantsBuffer.Get() };
+    m_d3dContext->VSSetConstantBuffers(0, 2, vsCBs);
+
+    m_d3dContext->PSSetShader(m_cardPixelShader.Get(), nullptr, 0);
+    ID3D11ShaderResourceView* srv = m_testCapture.GetSRV();
+    m_d3dContext->PSSetShaderResources(0, 1, &srv);
+    m_d3dContext->PSSetSamplers(0, 1, m_cardSampler.GetAddressOf());
+
+    m_d3dContext->DrawIndexed(6, 0, 0);
+
+    // Unbind SRV — it may still be bound as the DWM-thumbnail-visual's
+    // implicit source elsewhere; avoid dangling state across frames.
+    ID3D11ShaderResourceView* nullSRV = nullptr;
+    m_d3dContext->PSSetShaderResources(0, 1, &nullSRV);
 }

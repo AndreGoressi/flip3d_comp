@@ -5,6 +5,7 @@
 #include "Flip3DAccessible.h"
 
 #include <windowsx.h>
+#include <roapi.h>
 
 #pragma comment(lib, "dwmapi.lib")
 #pragma comment(lib, "dcomp.lib")
@@ -12,6 +13,10 @@
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "gdi32.lib")
+#pragma comment(lib, "d3dcompiler.lib")   // Stage 2: card shader compilation
+#pragma comment(lib, "d2d1.lib")          // Stage 2: WindowCapture's InteropCompositor bridge
+#pragma comment(lib, "runtimeobject.lib") // Stage 2: RoInitialize/RoGetActivationFactory
+#pragma comment(lib, "windowsapp.lib")    // Stage 2: WinRT projected ABI (Windows.Graphics.Capture)
 
 // ============================================================================
 // Flip3DCompApp::Initialize
@@ -21,6 +26,13 @@ bool Flip3DCompApp::Initialize(HINSTANCE hInstance)
     m_hInstance = hInstance;
 
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+
+    // Stage 2 needs Windows.Graphics.Capture (WinRT), which requires the
+    // calling thread to be WinRT-initialized. APARTMENTTHREADED matches the
+    // STA that Flip3DComp_Accessible.cpp's later CoInitializeEx also uses —
+    // calling CoInitializeEx again on an already-STA thread just increments
+    // a refcount (S_FALSE), so this doesn't conflict with accessibility.
+    m_roInitialized = SUCCEEDED(RoInitialize(RO_INIT_APARTMENTTHREADED));
 
     if (!LoadThumbApi())
         return false;
@@ -103,6 +115,13 @@ int Flip3DCompApp::Run()
     }
 
     UnloadThumbApi();
+
+    if (m_roInitialized)
+    {
+        RoUninitialize();
+        m_roInitialized = false;
+    }
+
     return (int)msg.wParam;
 }
 
@@ -178,31 +197,6 @@ LRESULT Flip3DCompApp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         if (OnKey(true, (UINT)wParam))
             return 0;
         break;
-
-    case WM_NCHITTEST:
-    {
-        MONITORINFO mi = { sizeof(mi) };
-        HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
-        if (GetMonitorInfoW(hMon, &mi))
-        {
-            POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-            if (!PtInRect(&mi.rcWork, pt))
-                return HTTRANSPARENT;
-        }
-        return HTCLIENT;
-    }
-
-    case WM_ACTIVATE:
-        if (LOWORD(wParam) == WA_INACTIVE)
-        {
-            if (m_state != ViewState::Exit &&
-                m_state != ViewState::ExitRepeatedRotate &&
-                m_state != ViewState::Inactive)
-            {
-                ExitView();
-            }
-        }
-        return 0;
 
     case WM_CLOSE:
         if (m_state == ViewState::Exit ||
