@@ -234,9 +234,10 @@ void Flip3DCompApp::RenderMsaaTestFrame()
     if (!m_msaaSwapChain || !m_msaaRTV || !m_d3dContext)
         return;
 
-    // Premultiplied alpha: (r*a, g*a, b*a, a).
-    const float kTestTint[4] = { 0.08f, 0.0f, 0.08f, 0.15f };
-    m_d3dContext->ClearRenderTargetView(m_msaaRTV.Get(), kTestTint);
+    // Fully transparent — the magenta test tint from earlier was just to
+    // prove the pipeline was live; gone now that the real card is drawn.
+    const float kClear[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    m_d3dContext->ClearRenderTargetView(m_msaaRTV.Get(), kClear);
 
     RenderTestCard();
 
@@ -514,8 +515,22 @@ struct TestVertex
 };
 
 // Layout must match Shaders.h's row_major float4x4 cbuffers exactly.
-struct TestFrameConstants  { Matrix4x4 viewProj; };
-struct TestObjectConstants { Matrix4x4 world; };
+// Layout must match Shaders.h's row_major float4x4 cbuffers exactly —
+// now the fuller layout (washParams/viewport/color/accent/flags) since we
+// switched to the version with real SDF-based edge antialiasing.
+struct TestFrameConstants
+{
+    Matrix4x4 viewProj;
+    float     washParams[4];
+    float     viewport[4];
+};
+struct TestObjectConstants
+{
+    Matrix4x4 world;
+    float     color[4];
+    float     accent[4];
+    float     flags[4];
+};
 
 HRESULT CompileShaderSource(const char* source, const char* entryPoint,
                              const char* target, ComPtr<ID3DBlob>& outBlob)
@@ -676,11 +691,18 @@ void Flip3DCompApp::RenderTestCard()
     frameCB.viewProj = Math::Multiply(
         Math::Scale(2.0f / (float)m_width, -2.0f / (float)m_height, 1.0f),
         Math::Translation(-1.0f, 1.0f, 0.0f));
+    frameCB.washParams[0] = 0.0f;
+    frameCB.washParams[1] = 0.0f;
+    frameCB.washParams[2] = 0.0f;
+    frameCB.washParams[3] = 1.0f; // brightness multiplier used by the PS ("lit = rgb * washParams.w")
     m_d3dContext->UpdateSubresource(m_frameConstantsBuffer.Get(), 0, nullptr, &frameCB, 0, 0);
 
     TestObjectConstants objectCB{};
     objectCB.world = Math::Multiply(Math::Scale(480.0f, 320.0f, 1.0f),
                                      Math::Translation(80.0f, 80.0f, 0.0f));
+    objectCB.color[0] = objectCB.color[1] = objectCB.color[2] = objectCB.color[3] = 1.0f; // color.a = opacity
+    objectCB.accent[0] = 16.0f; // corner radius in texels, read by the PS's SDF edge AA
+    objectCB.flags[0]  = 0.0f;  // >0.5 would dim the card (e.g. for a minimized/inactive state)
     m_d3dContext->UpdateSubresource(m_objectConstantsBuffer.Get(), 0, nullptr, &objectCB, 0, 0);
 
     D3D11_VIEWPORT vp = { 0.0f, 0.0f, (float)m_width, (float)m_height, 0.0f, 1.0f };
@@ -698,10 +720,14 @@ void Flip3DCompApp::RenderTestCard()
     m_d3dContext->IASetIndexBuffer(m_cardIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
 
     m_d3dContext->VSSetShader(m_cardVertexShader.Get(), nullptr, 0);
-    ID3D11Buffer* vsCBs[] = { m_frameConstantsBuffer.Get(), m_objectConstantsBuffer.Get() };
-    m_d3dContext->VSSetConstantBuffers(0, 2, vsCBs);
+    ID3D11Buffer* cbs[] = { m_frameConstantsBuffer.Get(), m_objectConstantsBuffer.Get() };
+    m_d3dContext->VSSetConstantBuffers(0, 2, cbs);
 
     m_d3dContext->PSSetShader(m_cardPixelShader.Get(), nullptr, 0);
+    // The fuller Shaders.h reads FrameCB/ObjectCB in the pixel shader too
+    // (SDF edge AA needs accent.x, lighting needs washParams.w) — bind here
+    // as well, not just on the vertex stage.
+    m_d3dContext->PSSetConstantBuffers(0, 2, cbs);
     ID3D11ShaderResourceView* srv = m_testCapture.GetSRV();
     m_d3dContext->PSSetShaderResources(0, 1, &srv);
     m_d3dContext->PSSetSamplers(0, 1, m_cardSampler.GetAddressOf());
