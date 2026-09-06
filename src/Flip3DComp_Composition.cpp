@@ -239,7 +239,10 @@ void Flip3DCompApp::RenderMsaaTestFrame()
     const float kClear[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     m_d3dContext->ClearRenderTargetView(m_msaaRTV.Get(), kClear);
 
-    RenderTestCard();
+    // Stage 2 test card draw call removed — it was only ever meant to prove
+    // capture+shader+MSAA works, not to stay on screen. Stage 3 will draw
+    // the real carousel cards through this same pipeline instead.
+    // RenderTestCard();
 
     ComPtr<ID3D11Texture2D> backBuffer;
     HRESULT hr = m_msaaSwapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
