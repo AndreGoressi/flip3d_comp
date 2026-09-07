@@ -474,24 +474,16 @@ bool Flip3DCompApp::RebuildMonitorBackdropsIfNeeded()
         if (FAILED(hr))
             continue;
 
-        // Real Gaussian blur on the desktop thumbnail itself — this is what
-        // was missing; previously the "blur" was just a flat 50%-opacity
-        // dark rectangle (the wash), which only dims, never blurs. Applying
-        // it to shellContainer (rcWork-sized, taskbar already excluded)
-        // means the taskbar is automatically never blurred either.
-        {
-            ComPtr<IDCompositionDevice3> dcompDevice3;
-            if (SUCCEEDED(m_dcompDevice.As(&dcompDevice3)))
-            {
-                ComPtr<IDCompositionGaussianBlurEffect> blur;
-                if (SUCCEEDED(dcompDevice3->CreateGaussianBlurEffect(&blur)))
-                {
-                    blur->SetStandardDeviation(20.0f);
-                    blur->SetBorderMode(D2D1_BORDER_MODE_SOFT);
-                    mon.shellContainer->SetEffect(blur.Get());
-                }
-            }
-        }
+        // NOTE: Real DirectComposition Gaussian blur (IDCompositionGaussianBlurEffect
+        // via SetEffect) was tried here and pulled back out — applying SetEffect
+        // to a visual backed by a *live DWM thumbnail* caused a real positioning
+        // bug (content shifted down, clipped near the taskbar). DWM thumbnails are
+        // continuously updated out-of-process by dwm.exe, not a normal app-owned
+        // bitmap, and DirectComposition's implicit offscreen-surface step for
+        // effects doesn't seem to handle that combination correctly. Real blur
+        // needs to go through our own D3D11 capture (reusing WindowCapture, the
+        // same WGC pipeline already built for cards) instead of SetEffect on a
+        // thumbnail visual directly — separate follow-up, not a quick patch here.
 
         ComPtr<IDCompositionVisual2> washVis;
         hr = m_dcompDevice->CreateVisual(&washVis);
