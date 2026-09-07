@@ -9,6 +9,7 @@
 #include <cstring>
 #include <cstdint>
 #include <d3dcompiler.h>
+#include <d2d1_1.h>   // D2D1_BORDER_MODE, used by IDCompositionGaussianBlurEffect::SetBorderMode
 
 namespace {
 
@@ -304,10 +305,14 @@ void Flip3DCompApp::UpdateBackdropLayout()
 
     for (auto& mon : m_monitorBackdrops)
     {
-        const LONG washW = mon.rcMonitor.right - mon.rcMonitor.left;
-        const LONG washH = mon.rcMonitor.bottom - mon.rcMonitor.top;
-        const float washX = (float)(mon.rcMonitor.left - vx);
-        const float washY = (float)(mon.rcMonitor.top  - vy);
+        // Was mon.rcMonitor (full monitor, INCLUDING the taskbar) — that's
+        // exactly why the taskbar was getting darkened while the shell
+        // thumbnail below it only ever covered rcWork. Match rcWork here so
+        // the wash never touches the taskbar at all; it stays fully native.
+        const LONG washW = mon.rcWork.right - mon.rcWork.left;
+        const LONG washH = mon.rcWork.bottom - mon.rcWork.top;
+        const float washX = (float)(mon.rcWork.left - vx);
+        const float washY = (float)(mon.rcWork.top  - vy);
 
         if (mon.washVisual)
         {
@@ -468,6 +473,25 @@ bool Flip3DCompApp::RebuildMonitorBackdropsIfNeeded()
         hr = mon.shellContainer->AddVisual(mon.shellThumb.Get(), FALSE, nullptr);
         if (FAILED(hr))
             continue;
+
+        // Real Gaussian blur on the desktop thumbnail itself — this is what
+        // was missing; previously the "blur" was just a flat 50%-opacity
+        // dark rectangle (the wash), which only dims, never blurs. Applying
+        // it to shellContainer (rcWork-sized, taskbar already excluded)
+        // means the taskbar is automatically never blurred either.
+        {
+            ComPtr<IDCompositionDevice3> dcompDevice3;
+            if (SUCCEEDED(m_dcompDevice.As(&dcompDevice3)))
+            {
+                ComPtr<IDCompositionGaussianBlurEffect> blur;
+                if (SUCCEEDED(dcompDevice3->CreateGaussianBlurEffect(&blur)))
+                {
+                    blur->SetStandardDeviation(20.0f);
+                    blur->SetBorderMode(D2D1_BORDER_MODE_SOFT);
+                    mon.shellContainer->SetEffect(blur.Get());
+                }
+            }
+        }
 
         ComPtr<IDCompositionVisual2> washVis;
         hr = m_dcompDevice->CreateVisual(&washVis);
