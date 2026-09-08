@@ -43,8 +43,8 @@ struct CardModel
     int                 m_srcWidth     = 400;        // thumbnail source width (pixels)
     int                 m_srcHeight    = 300;        // thumbnail source height (pixels)
     //
-    int                 m_thumbTexWidth  = 400;
-    int                 m_thumbTexHeight = 300;
+    //int                 m_thumbTexWidth  = 400;
+    //int                 m_thumbTexHeight = 300;
     bool                m_isMinimized  = false;      // window is iconic
     bool                m_isShellDesktop = false;    // Progman / GetShellWindow()
 
