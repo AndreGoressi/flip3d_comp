@@ -174,8 +174,8 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
     
 
 
-    float maxResW = normMonW * 0.5f;
-    float maxResH = normMonH * 0.5f;
+    float maxResW = normMonW; //* 0.5f;
+    float maxResH = normMonH; //* 0.5f;
     float scale = std::min(maxResW / thumbW, maxResH / thumbH);
     scale = std::min(scale, 1.0f); 
 
