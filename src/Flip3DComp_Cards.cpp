@@ -197,11 +197,6 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
     const float thumbAspect = thumbH / thumbW;
     // ---------------------------------------------------------------
 
-    if (thumbW < 1.0f) thumbW = 100.0f;
-    if (thumbH < 1.0f) thumbH = 100.0f;
-
-    const float thumbAspect = thumbH / thumbW;
-
     RECT flatBounds = {};
 
     if (c.m_isShellDesktop)
