@@ -110,7 +110,7 @@ bool Flip3DCompApp::CreateAppWindow()
         x, y, 
         w, h,
         hTaskbar,      //nullptr
-        (HMENU)1,      //nullptr       
+        nullptr,      //nullptr       
         m_hInstance,
         this);
 
