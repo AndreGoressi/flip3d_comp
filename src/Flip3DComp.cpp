@@ -180,26 +180,6 @@ LRESULT Flip3DCompApp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         break;
         
     //new
-    case WM_NCHITTEST:
-    {
-        POINT pt = { (short)LOWORD(lParam), (short)HIWORD(lParam) };
-        
-        HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
-        RECT tbRect = {};
-        if (taskbar && GetWindowRect(taskbar, &tbRect) && PtInRect(&tbRect, pt))
-        {
-            return HTTRANSPARENT;
-        }
-        
-        HWND secTaskbar = FindWindowW(L"Shell_SecondaryTrayWnd", nullptr);
-        if (secTaskbar && GetWindowRect(secTaskbar, &tbRect) && PtInRect(&tbRect, pt))
-        {
-            return HTTRANSPARENT;
-        }
-
-        break;
-    }
-
     case WM_ACTIVATE:
         if (LOWORD(wParam) == WA_INACTIVE)
         {
