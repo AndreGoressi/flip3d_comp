@@ -143,10 +143,10 @@ HWND Flip3DCompApp::HitTest3DScene(LONG screenX, LONG screenY) const
         const float flatRank = ComputeFlatDepthRank(slot, p, ki);
         auto  MVP = Math::Multiply(BuildModelMatrix(c, t, p, flatRank), cam);
 
-        //float sw = (float)std::max(c.m_srcWidth,  1);
-        //float sh = (float)std::max(c.m_srcHeight, 1);
-        float sw = (float)std::max(c.m_thumbTexWidth,  1);
-        float sh = (float)std::max(c.m_thumbTexHeight, 1);
+        float sw = (float)std::max(c.m_srcWidth,  1);
+        float sh = (float)std::max(c.m_srcHeight, 1);
+        //float sw = (float)std::max(c.m_thumbTexWidth,  1);
+        //float sh = (float)std::max(c.m_thumbTexHeight, 1);
         
 
         auto project = [&](float px, float py) -> Vec2
