@@ -203,8 +203,11 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
     float scale = std::min(maxResW / thumbW, maxResH / thumbH);
     scale = std::min(scale, 1.0f); 
 
-    c.m_thumbTexWidth  = std::max(1, (int)(thumbW * scale));
-    c.m_thumbTexHeight = std::max(1, (int)(thumbH * scale));
+    //c.m_thumbTexWidth  = std::max(1, (int)(thumbW * scale));
+    //c.m_thumbTexHeight = std::max(1, (int)(thumbH * scale));
+
+    c.m_srcWidth  = std::max(1, (int)(thumbW * scale));
+    c.m_srcHeight = std::max(1, (int)(thumbH * scale));
 
     // targetSize / occupancy = 3D carousel (uDWM finalSize).
     Math::WorldSizesFromThumbPixels(
