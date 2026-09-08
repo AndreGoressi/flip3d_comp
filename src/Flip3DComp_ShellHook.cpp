@@ -175,15 +175,18 @@ HRESULT Flip3DCompApp::CreateCardVisual(CardModel& card)
     if (!m_dcompDevice || !m_sceneVisual || !card.m_hwnd)
         return E_INVALIDARG;
 
-    LONG targetW = (LONG)std::max(1.0f, std::abs(card.m_targetSize.x) * m_monW);
-    LONG targetH = (LONG)std::max(1.0f, std::abs(card.m_targetSize.y) * m_monH);
-
-    DWM_THUMBNAIL_PROPERTIES tp = {};
+    /*DWM_THUMBNAIL_PROPERTIES tp = {};
     tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | 
                    DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
     tp.fVisible  = TRUE;
     tp.rcDestination = { 0, 0, targetW, targetH };
-    //tp.rcDestination = { 0, 0, card.m_srcWidth, card.m_srcHeight };
+    tp.rcDestination = { 0, 0, card.m_srcWidth, card.m_srcHeight };*/
+
+    DWM_THUMBNAIL_PROPERTIES tp = {};
+    tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
+                 | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI; 
+    tp.fVisible  = TRUE;
+    tp.rcDestination = { 0, 0, card.m_thumbTexWidth, card.m_thumbTexHeight };
 
     void* pv = nullptr;
     HRESULT hr = m_pfnCreateSharedThumbVisual(
