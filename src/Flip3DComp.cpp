@@ -178,6 +178,18 @@ LRESULT Flip3DCompApp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         if (OnKey(true, (UINT)wParam))
             return 0;
         break;
+        
+    // new
+    case WM_ACTIVATE:
+        if (LOWORD(wParam) == WA_INACTIVE)
+        {
+            if (m_state != ViewState::Exit && m_state != ViewState::ExitRepeatedRotate)
+            {
+                ExitView();
+            }
+        }
+        return 0;
+    //close_if_focus_lost
 
     case WM_CLOSE:
         if (m_state == ViewState::Exit ||
