@@ -333,8 +333,8 @@ void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
         return;
 
     DWM_THUMBNAIL_PROPERTIES tp = {};
-    tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
-                    | DWM_TNP_ENABLE3D | DWM_TNP_DISABLEFORCECVI;
+    tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | 
+                   DWM_TNP_ENABLE3D | DWM_TNP_DISABLEFORCECVI;
     tp.fVisible  = TRUE;
     tp.rcDestination   = { 0, 0, card.m_srcWidth, card.m_srcHeight };
     DwmUpdateThumbnailProperties(card.m_hThumb, &tp);
