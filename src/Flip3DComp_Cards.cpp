@@ -136,35 +136,13 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
     else
         mi = QueryPrimaryMonitor();
 
-    /*SIZE srcSize = {};
+    SIZE srcSize = {};
     if (FAILED(m_pfnQueryThumbSize(h, FALSE, &srcSize))
         || srcSize.cx < 1 || srcSize.cy < 1)
         return;
 
     float thumbW = (float)srcSize.cx;
     float thumbH = (float)srcSize.cy;
-    const float thumbAspect = thumbH / thumbW;*/
-
-    SIZE srcSize = {};
-    bool queryOk = SUCCEEDED(m_pfnQueryThumbSize(h, FALSE, &srcSize)) && srcSize.cx >= 1 && srcSize.cy >= 1;
-
-    float thumbW = queryOk ? (float)srcSize.cx : 0.0f;
-    float thumbH = queryOk ? (float)srcSize.cy : 0.0f;
-
-    if (!queryOk || (selectedRestore && IsIconic(h)))
-    {
-        RECT rcWin = {};
-        if (GetWindowRect(h, &rcWin))
-        {
-            thumbW = (float)std::max(100L, rcWin.right - rcWin.left);
-            thumbH = (float)std::max(100L, rcWin.bottom - rcWin.top);
-        }
-    }
-
-    if (thumbW < 1.0f) thumbW = 100.0f;
-    if (thumbH < 1.0f) thumbH = 100.0f;
-    //
-
     const float thumbAspect = thumbH / thumbW;
 
     RECT flatBounds = {};
