@@ -145,7 +145,7 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
     float thumbH = (float)srcSize.cy;
     const float thumbAspect = thumbH / thumbW;*/
 
-    SIZE srcSize = {};
+    /*SIZE srcSize = {};
     bool queryOk = SUCCEEDED(m_pfnQueryThumbSize(h, FALSE, &srcSize)) && srcSize.cx > 10 && srcSize.cy > 10;
 
     float thumbW = queryOk ? (float)srcSize.cx : 0.0f;
@@ -164,7 +164,37 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
                 thumbH = winH;
             }
         }
+    }*/
+
+    //
+    SIZE srcSize = {};
+    bool queryOk = SUCCEEDED(m_pfnQueryThumbSize(h, FALSE, &srcSize)) && srcSize.cx > 10 && srcSize.cy > 10;
+
+    float thumbW = queryOk ? (float)srcSize.cx : 0.0f;
+    float thumbH = queryOk ? (float)srcSize.cy : 0.0f;
+
+    if (selectedRestore || !queryOk || thumbW < 50.0f || thumbH < 50.0f)
+    {
+        RECT rcWin = {};
+        if (FAILED(DwmGetWindowAttribute(h, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
+        {
+            GetWindowRect(h, &rcWin); 
+        }
+
+        float winW = (float)(rcWin.right - rcWin.left);
+        float winH = (float)(rcWin.bottom - rcWin.top);
+        if (winW > 50.0f && winH > 50.0f)
+        {
+            thumbW = winW;
+            thumbH = winH;
+        }
     }
+    //
+
+    if (thumbW < 1.0f) thumbW = 100.0f;
+    if (thumbH < 1.0f) thumbH = 100.0f;
+
+    const float thumbAspect = thumbH / thumbW;
     // ---------------------------------------------------------------
 
     if (thumbW < 1.0f) thumbW = 100.0f;
@@ -195,7 +225,7 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
     if (IsRectEmpty(&flatBounds))
         flatBounds = mi.rcWork;
 
-    /*c.m_srcWidth  = (int)thumbW;
+    c.m_srcWidth  = (int)thumbW;
     c.m_srcHeight = (int)thumbH;
 
     float maxResW = normMonW * 0.5f;
@@ -207,22 +237,7 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
     //c.m_thumbTexHeight = std::max(1, (int)(thumbH * scale));
 
     c.m_srcWidth  = std::max(1, (int)(thumbW * scale));
-    c.m_srcHeight = std::max(1, (int)(thumbH * scale));*/
-
-    //
-    c.m_srcWidth  = (int)thumbW;
-    c.m_srcHeight = (int)thumbH;
-
-    float maxResW = normMonW * 0.5f;
-    float maxResH = normMonH * 0.5f;
-    
-    float scale = std::min(maxResW / thumbW, maxResH / thumbH);
-    
-    scale = std::clamp(scale, 0.1f, 1.5f); 
-
-    c.m_srcWidth  = std::max(100, (int)(thumbW * scale));
-    c.m_srcHeight = std::max(100, (int)(thumbH * scale));
-    //
+    c.m_srcHeight = std::max(1, (int)(thumbH * scale));
 
     // targetSize / occupancy = 3D carousel (uDWM finalSize).
     Math::WorldSizesFromThumbPixels(
