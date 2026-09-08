@@ -106,7 +106,7 @@ bool Flip3DCompApp::CreateAppWindow()
         WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
         L"Flip3DCompClass",
         L"",
-        WS_POPUP | WS_CHILD, 
+        WS_POPUP, 
         x, y, 
         w, h,
         hTaskbar,      //nullptr
