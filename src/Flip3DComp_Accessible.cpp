@@ -129,10 +129,10 @@ bool Flip3DCompApp::AccessibleCardScreenRect(int index, long* pxLeft, long* pyTo
     const auto  model    = BuildModelMatrix(c, t, p, flatRank);
     const auto  mvp      = Math::Multiply(model, camera);
 
-    //const float sw = (float)std::max(c.m_srcWidth,  1);
-    //const float sh = (float)std::max(c.m_srcHeight, 1);
-    const float sw = (float)std::max(c.m_thumbTexWidth,  1);
-    const float sh = (float)std::max(c.m_thumbTexHeight, 1);
+    const float sw = (float)std::max(c.m_srcWidth,  1);
+    const float sh = (float)std::max(c.m_srcHeight, 1);
+    //const float sw = (float)std::max(c.m_thumbTexWidth,  1);
+    //const float sh = (float)std::max(c.m_thumbTexHeight, 1);
 
     auto project = [&](float px, float py) -> Vec2
     {
