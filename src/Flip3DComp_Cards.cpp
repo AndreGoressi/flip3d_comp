@@ -135,67 +135,16 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
         GetMonitorInfoW(mon, &mi);
     else
         mi = QueryPrimaryMonitor();
+    
 
-    /*SIZE srcSize = {};
+    SIZE srcSize = {};
     if (FAILED(m_pfnQueryThumbSize(h, FALSE, &srcSize))
         || srcSize.cx < 1 || srcSize.cy < 1)
         return;
 
     float thumbW = (float)srcSize.cx;
     float thumbH = (float)srcSize.cy;
-    const float thumbAspect = thumbH / thumbW;*/
-
-    /*SIZE srcSize = {};
-    bool queryOk = SUCCEEDED(m_pfnQueryThumbSize(h, FALSE, &srcSize)) && srcSize.cx > 10 && srcSize.cy > 10;
-
-    float thumbW = queryOk ? (float)srcSize.cx : 0.0f;
-    float thumbH = queryOk ? (float)srcSize.cy : 0.0f;
-
-    if (selectedRestore || !queryOk || thumbW < 50.0f || thumbH < 50.0f)
-    {
-        RECT rcWin = {};
-        if (GetWindowRect(h, &rcWin))
-        {
-            float winW = (float)(rcWin.right - rcWin.left);
-            float winH = (float)(rcWin.bottom - rcWin.top);
-            if (winW > 50.0f && winH > 50.0f)
-            {
-                thumbW = winW;
-                thumbH = winH;
-            }
-        }
-    }*/
-
-    //
-    SIZE srcSize = {};
-    bool queryOk = SUCCEEDED(m_pfnQueryThumbSize(h, FALSE, &srcSize)) && srcSize.cx > 10 && srcSize.cy > 10;
-
-    float thumbW = queryOk ? (float)srcSize.cx : 0.0f;
-    float thumbH = queryOk ? (float)srcSize.cy : 0.0f;
-
-    if (selectedRestore || !queryOk || thumbW < 50.0f || thumbH < 50.0f)
-    {
-        RECT rcWin = {};
-        if (FAILED(DwmGetWindowAttribute(h, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
-        {
-            GetWindowRect(h, &rcWin); 
-        }
-
-        float winW = (float)(rcWin.right - rcWin.left);
-        float winH = (float)(rcWin.bottom - rcWin.top);
-        if (winW > 50.0f && winH > 50.0f)
-        {
-            thumbW = winW;
-            thumbH = winH;
-        }
-    }
-    //
-
-    if (thumbW < 1.0f) thumbW = 100.0f;
-    if (thumbH < 1.0f) thumbH = 100.0f;
-
     const float thumbAspect = thumbH / thumbW;
-    // ---------------------------------------------------------------
 
     RECT flatBounds = {};
 
