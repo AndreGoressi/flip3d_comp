@@ -104,8 +104,10 @@ bool Flip3DCompApp::CreateAppWindow()
         L"Flip3DCompClass",
         L"",
         WS_POPUP,
-        x, y, w, h,
-        nullptr, nullptr,
+        x, y, 
+        w, h,
+        nullptr, 
+        FindWindowW(L"Shell_TrayWnd", nullptr), //FindWindowW(L"Shell_SecondaryTrayWnd", nullptr) //;
         m_hInstance,
         this);
 
