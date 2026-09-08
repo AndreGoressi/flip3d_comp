@@ -233,13 +233,10 @@ void Flip3DCompApp::UpdateMonitorRect()
     if (!GetMonitorInfoW(hMon, &mi))
         return;
 
-    /*const int vx = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    const int vx = GetSystemMetrics(SM_XVIRTUALSCREEN);
     const int vy = GetSystemMetrics(SM_YVIRTUALSCREEN);
     m_viewX = (float)(mi.rcWork.left - vx);
-    m_viewY = (float)(mi.rcWork.top  - vy);*/
-
-    m_viewX = 0.0f;
-    m_viewY = 0.0f;
+    m_viewY = (float)(mi.rcWork.top  - vy);
 
     const float newMonW     = (float)std::max(1L, mi.rcWork.right  - mi.rcWork.left);
     const float newMonH     = (float)std::max(1L, mi.rcWork.bottom - mi.rcWork.top);
@@ -338,7 +335,7 @@ HRESULT Flip3DCompApp::CreateCardVisuals()
 // Flip3DCompApp::UpdateCardThumbnailDest
 // Sync DWM thumbnail rcDestination to the current source pixel size.
 // ============================================================================
-/*void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
+void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
 {
     if (!card.m_hThumb || card.m_srcWidth <= 0 || card.m_srcHeight <= 0)
         return;
@@ -348,19 +345,6 @@ HRESULT Flip3DCompApp::CreateCardVisuals()
                    DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
     tp.fVisible  = TRUE;
     tp.rcDestination   = { 0, 0, card.m_srcWidth, card.m_srcHeight };
-    DwmUpdateThumbnailProperties(card.m_hThumb, &tp);
-}*/
-
-void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
-{
-    if (!card.m_hThumb || card.m_thumbTexWidth <= 0 || card.m_thumbTexHeight <= 0)
-        return;
-
-    DWM_THUMBNAIL_PROPERTIES tp = {};
-    tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
-                 | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI; 
-    tp.fVisible  = TRUE;
-    tp.rcDestination = { 0, 0, card.m_thumbTexWidth, card.m_thumbTexHeight };
     DwmUpdateThumbnailProperties(card.m_hThumb, &tp);
 }
 
