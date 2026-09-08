@@ -233,10 +233,13 @@ void Flip3DCompApp::UpdateMonitorRect()
     if (!GetMonitorInfoW(hMon, &mi))
         return;
 
-    const int vx = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    /*const int vx = GetSystemMetrics(SM_XVIRTUALSCREEN);
     const int vy = GetSystemMetrics(SM_YVIRTUALSCREEN);
     m_viewX = (float)(mi.rcWork.left - vx);
-    m_viewY = (float)(mi.rcWork.top  - vy);
+    m_viewY = (float)(mi.rcWork.top  - vy);*/
+
+    m_viewX = 0.0f;
+    m_viewY = 0.0f;
 
     const float newMonW     = (float)std::max(1L, mi.rcWork.right  - mi.rcWork.left);
     const float newMonH     = (float)std::max(1L, mi.rcWork.bottom - mi.rcWork.top);
