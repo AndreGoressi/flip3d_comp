@@ -57,10 +57,19 @@ void Flip3DCompApp::ApplyFullscreenLayout()
     if (!m_hwnd)
         return;
 
-    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    /*const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
     const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
     const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);*/
+    
+    MONITORINFO mi = { sizeof(mi) };
+    HMONITOR hPrimary = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+    GetMonitorInfoW(hPrimary, &mi);
+
+    const int x = mi.rcWork.left;
+    const int y = mi.rcWork.top;
+    const int w = mi.rcWork.right - mi.rcWork.left;
+    const int h = mi.rcWork.bottom - mi.rcWork.top;
 
     SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
 
