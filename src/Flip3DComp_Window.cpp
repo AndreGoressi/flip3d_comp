@@ -99,6 +99,8 @@ bool Flip3DCompApp::CreateAppWindow()
     const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
+    HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
+    //
     m_hwnd = CreateWindowExW(
         WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
         L"Flip3DCompClass",
@@ -107,7 +109,7 @@ bool Flip3DCompApp::CreateAppWindow()
         x, y, 
         w, h,
         nullptr, 
-        FindWindowW(L"Shell_TrayWnd", nullptr), //FindWindowW(L"Shell_SecondaryTrayWnd", nullptr) //;
+        taskbar, //FindWindowW(L"Shell_SecondaryTrayWnd", nullptr) //;
         m_hInstance,
         this);
 
