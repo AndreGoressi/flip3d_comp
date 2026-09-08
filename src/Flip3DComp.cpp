@@ -5,7 +5,6 @@
 #include "Flip3DAccessible.h"
 
 #include <windowsx.h>
-#include <roapi.h>
 
 #pragma comment(lib, "dwmapi.lib")
 #pragma comment(lib, "dcomp.lib")
@@ -13,10 +12,6 @@
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "gdi32.lib")
-#pragma comment(lib, "d3dcompiler.lib")   // Stage 2: card shader compilation
-#pragma comment(lib, "d2d1.lib")          // Stage 2: WindowCapture's InteropCompositor bridge
-#pragma comment(lib, "runtimeobject.lib") // Stage 2: RoInitialize/RoGetActivationFactory
-#pragma comment(lib, "windowsapp.lib")    // Stage 2: WinRT projected ABI (Windows.Graphics.Capture)
 
 // ============================================================================
 // Flip3DCompApp::Initialize
@@ -26,14 +21,6 @@ bool Flip3DCompApp::Initialize(HINSTANCE hInstance)
     m_hInstance = hInstance;
 
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-
-    // Stage 2 needs Windows.Graphics.Capture (WinRT), which requires the
-    // calling thread to be WinRT-initialized. RO_INIT_SINGLETHREADED is the
-    // STA mode (RoInitialize only has SINGLETHREADED/MULTITHREADED, unlike
-    // classic COM's COINIT_* names) — matches the STA that Flip3DComp_
-    // Accessible.cpp's later CoInitializeEx also uses, so that call just
-    // increments a refcount (S_FALSE) instead of conflicting.
-    m_roInitialized = SUCCEEDED(RoInitialize(RO_INIT_SINGLETHREADED));
 
     if (!LoadThumbApi())
         return false;
@@ -116,13 +103,6 @@ int Flip3DCompApp::Run()
     }
 
     UnloadThumbApi();
-
-    if (m_roInitialized)
-    {
-        RoUninitialize();
-        m_roInitialized = false;
-    }
-
     return (int)msg.wParam;
 }
 

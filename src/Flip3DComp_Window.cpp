@@ -74,55 +74,6 @@ void Flip3DCompApp::ApplyFullscreenLayout()
     UpdateMonitorRect();
 }
 
-enum ACCENT_STATE {
-    ACCENT_DISABLED = 0,
-    ACCENT_ENABLE_GRADIENT = 1,
-    ACCENT_ENABLE_TRANSPARENTGRADIENT = 2,
-    ACCENT_ENABLE_BLURBEHIND = 3,
-    ACCENT_ENABLE_ACRYLICBLURBEHIND = 4,
-    ACCENT_INVALID_STATE = 5
-};
-
-struct ACCENT_POLICY {
-    int AccentState;
-    int AccentFlags;
-    unsigned int GradientColor;
-    int AnimationId;
-};
-
-enum WINDOWCOMPOSITIONATTRIB {
-    WCA_ACCENT_POLICY = 19
-};
-
-struct WINDOWCOMPOSITIONATTRIBDATA {
-    WINDOWCOMPOSITIONATTRIB Attrib;
-    void* pvData;
-    size_t cbData;
-};
-
-typedef BOOL (WINAPI* SetWindowCompositionAttribute_t)(HWND, WINDOWCOMPOSITIONATTRIBDATA*);
-bool DrawAcrylic(HWND hwnd)
-{
-    HMODULE user32 = GetModuleHandleW(L"user32.dll");
-    if (!user32) return false;
-
-    auto SetWCA = reinterpret_cast<SetWindowCompositionAttribute_t>(
-        GetProcAddress(user32, "SetWindowCompositionAttribute"));
-    if (!SetWCA) return false;
-
-    ACCENT_POLICY accent = {};
-    accent.AccentState = ACCENT_ENABLE_ACRYLICBLURBEHIND;
-    accent.AccentFlags = 0;
-    accent.GradientColor = 0x73190F0F; 
-
-    WINDOWCOMPOSITIONATTRIBDATA data = {};
-    data.Attrib = WCA_ACCENT_POLICY;
-    data.pvData = &accent;
-    data.cbData = sizeof(accent);
-
-    return SetWCA(hwnd, &data) != FALSE;
-}
-
 // ============================================================================
 // Flip3DCompApp::CreateAppWindow
 // uDWM Flip3D input window: borderless popup, topmost, full virtual desktop.
@@ -143,37 +94,23 @@ bool Flip3DCompApp::CreateAppWindow()
     };
     RegisterClassExW(&wc);
 
-    MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
-    GetMonitorInfoW(hMon, &mi);
-
-    const int x = mi.rcMonitor.left;
-    const int y = mi.rcMonitor.top;
-    const int w = mi.rcMonitor.right - mi.rcMonitor.left;
-    const int h = mi.rcMonitor.bottom - mi.rcMonitor.top;
+    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
     m_hwnd = CreateWindowExW(
-        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_LAYERED,
+        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
         L"Flip3DCompClass",
         L"",
-        WS_POPUP | WS_VISIBLE,
+        WS_POPUP,
         x, y, w, h,
-        nullptr, 
-        nullptr,
+        nullptr, nullptr,
         m_hInstance,
         this);
 
     if (!m_hwnd)
         return false;
-    
-    BOOL exclude = TRUE;
-    DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
-
-    BOOL fAllowNcPaint = TRUE;
-    DwmSetWindowAttribute(m_hwnd, DWMWA_ALLOW_NCPAINT, &fAllowNcPaint, sizeof(fAllowNcPaint));
-
-    DrawAcrylic(m_hwnd);
-    RedrawWindow(m_hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_UPDATENOW);
 
     m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
 
@@ -183,6 +120,6 @@ bool Flip3DCompApp::CreateAppWindow()
         m_width  = std::max(1u, (UINT)(client.right  - client.left));
         m_height = std::max(1u, (UINT)(client.bottom - client.top));
     }
-    
-    return m_hwnd != nullptr;
+
+    return true;
 }
