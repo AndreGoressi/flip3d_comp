@@ -176,8 +176,16 @@ HRESULT Flip3DCompApp::CreateCardVisual(CardModel& card)
         return E_INVALIDARG;
 
     DWM_THUMBNAIL_PROPERTIES tp = {};
+    // Same fix as UpdateCardThumbnailDest, and actually the more important
+    // one: this is where every card's thumbnail is FIRST registered, at
+    // Flip3D startup or whenever Shell-Hook adds a new window. Source size
+    // rarely changes mid-session, so UpdateCardThumbnailDest (which only
+    // runs on a size-change event) may never even fire again after this —
+    // meaning DISABLEFORCECVI here was the real, persistent cause, not just
+    // a secondary path. FORCECVI is what makes DWM actually re-filter the
+    // thumbnail to the reduced rcDestination for live/active window content.
     tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
-                 | DWM_TNP_ENABLE3D | DWM_TNP_DISABLEFORCECVI;
+                 | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
     tp.fVisible  = TRUE;
     tp.rcDestination = { 0, 0, card.m_srcWidth, card.m_srcHeight };
 
