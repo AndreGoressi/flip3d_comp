@@ -52,7 +52,9 @@ std::vector<HWND> Flip3DCompApp::EnumerateWindows()
 // Flip3DCompApp::ApplyFullscreenLayout
 // uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
 // ============================================================================
-void Flip3DCompApp::ApplyFullscreenLayout()
+
+
+/*void Flip3DCompApp::ApplyFullscreenLayout()
 {
     if (!m_hwnd)
         return;
@@ -72,47 +74,23 @@ void Flip3DCompApp::ApplyFullscreenLayout()
     }
 
     UpdateMonitorRect();
-}
+}*/
 
-// ============================================================================
-// Flip3DCompApp::CreateAppWindow
-// uDWM Flip3D input window: borderless popup, topmost, full virtual desktop.
-// ============================================================================
-/*bool Flip3DCompApp::CreateAppWindow()
+void Flip3DCompApp::ApplyFullscreenLayout()
 {
-    WNDCLASSEXW wc = {
-        sizeof(wc),
-        CS_HREDRAW | CS_VREDRAW,
-        &Flip3DCompApp::WndProc,
-        0, 0,
-        m_hInstance,
-        nullptr,
-        LoadCursorW(nullptr, IDC_ARROW),
-        nullptr, nullptr,
-        L"Flip3DCompClass",
-        nullptr,
-    };
-    RegisterClassExW(&wc);
+    if (!m_hwnd)
+        return;
 
     const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
     const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
     const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
-    m_hwnd = CreateWindowExW(
-        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
-        L"Flip3DCompClass",
-        L"",
-        WS_POPUP,
+    SetWindowPos(
+        m_hwnd,
+        HWND_TOP,
         x, y, w, h,
-        nullptr, nullptr,
-        m_hInstance,
-        this);
-
-    if (!m_hwnd)
-        return false;
-
-    m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
+        SWP_SHOWWINDOW);
 
     RECT client = {};
     if (GetClientRect(m_hwnd, &client))
@@ -121,9 +99,13 @@ void Flip3DCompApp::ApplyFullscreenLayout()
         m_height = std::max(1u, (UINT)(client.bottom - client.top));
     }
 
-    return true;
-}*/
+    UpdateMonitorRect();
+}
 
+// ============================================================================
+// Flip3DCompApp::CreateAppWindow
+// uDWM Flip3D input window: borderless popup, topmost, full virtual desktop.
+// ============================================================================
 bool Flip3DCompApp::CreateAppWindow()
 {
     WNDCLASSEXW wc = {
@@ -140,42 +122,23 @@ bool Flip3DCompApp::CreateAppWindow()
     };
     RegisterClassExW(&wc);
 
-    MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hPrimary = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
-    GetMonitorInfoW(hPrimary, &mi);
-
     const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
     const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
     const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
     m_hwnd = CreateWindowExW(
-        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
+        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW,
         L"Flip3DCompClass",
         L"",
-        WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+        WS_POPUP,
         x, y, w, h,
         nullptr, nullptr,
         m_hInstance,
         this);
 
-
     if (!m_hwnd)
         return false;
-
-    HWND hTaskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
-    if (hTaskbar)
-    {
-        ShowWindow(hTaskbar, SW_SHOW);
-        SetWindowPos(hTaskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-        
-        HWND hSecondaryTray = FindWindowW(L"Shell_SecondaryTrayWnd", nullptr);
-        if (hSecondaryTray)
-        {
-            ShowWindow(hSecondaryTray, SW_SHOW);
-            SetWindowPos(hSecondaryTray, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-        }
-    }
 
     m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
 
