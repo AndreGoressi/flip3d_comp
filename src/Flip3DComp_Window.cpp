@@ -158,28 +158,36 @@ bool Flip3DCompApp::CreateAppWindow()
     if (!m_hwnd)
         return false;
 
+    MONITORINFO mi = { sizeof(mi) };
+    HMONITOR hPrimary = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+    GetMonitorInfoW(hPrimary, &mi);
+
+    HWND hTaskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     APPBARDATA abd = {};
     abd.cbSize = sizeof(APPBARDATA);
     UINT appBarState = static_cast<UINT>(SHAppBarMessage(ABM_GETSTATE, &abd));
     bool taskbarAutoHide = (appBarState & ABS_AUTOHIDE) != 0;
 
-    if (!taskbarAutoHide)
-    {
-        HWND hTaskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
-        if (hTaskbar)
-        {
-            ShowWindow(hTaskbar, SW_SHOW);
-            SetWindowPos(hTaskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+    int x, y, w, h;
 
-            HWND hSecondaryTray = FindWindowW(L"Shell_SecondaryTrayWnd", nullptr);
-            if (hSecondaryTray)
-            {
-                ShowWindow(hSecondaryTray, SW_SHOW);
-                SetWindowPos(hSecondaryTray, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-            }
-        }
+    if (hTaskbar && !taskbarAutoHide)
+    {
+        ShowWindow(hTaskbar, SW_SHOW);
+
+        x = mi.rcWork.left;
+        y = mi.rcWork.top;
+        w = mi.rcWork.right - mi.rcWork.left;
+        h = mi.rcWork.bottom - mi.rcWork.top;
     }
-    // -------------------------------------------------------------------------
+    else
+    {
+        x = mi.rcMonitor.left;
+        y = mi.rcMonitor.top;
+        w = mi.rcMonitor.right - mi.rcMonitor.left;
+        h = mi.rcMonitor.bottom - mi.rcMonitor.top;
+    }
+    
+    DwmFlush();
 
     m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
 
