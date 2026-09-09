@@ -168,23 +168,23 @@ bool Flip3DCompApp::CreateAppWindow()
     UINT appBarState = static_cast<UINT>(SHAppBarMessage(ABM_GETSTATE, &abd));
     bool taskbarAutoHide = (appBarState & ABS_AUTOHIDE) != 0;
 
-    int x, y, w, h;
+    int _x, _y, _w, _h;
 
     if (hTaskbar && !taskbarAutoHide)
     {
         ShowWindow(hTaskbar, SW_SHOW);
 
-        x = mi.rcWork.left;
-        y = mi.rcWork.top;
-        w = mi.rcWork.right - mi.rcWork.left;
-        h = mi.rcWork.bottom - mi.rcWork.top;
+        _x = mi.rcWork.left;
+        _y = mi.rcWork.top;
+        _w = mi.rcWork.right - mi.rcWork.left;
+        _h = mi.rcWork.bottom - mi.rcWork.top;
     }
     else
     {
-        x = mi.rcMonitor.left;
-        y = mi.rcMonitor.top;
-        w = mi.rcMonitor.right - mi.rcMonitor.left;
-        h = mi.rcMonitor.bottom - mi.rcMonitor.top;
+        _x = mi.rcMonitor.left;
+        _y = mi.rcMonitor.top;
+        _w = mi.rcMonitor.right - mi.rcMonitor.left;
+        _h = mi.rcMonitor.bottom - mi.rcMonitor.top;
     }
     
     DwmFlush();
