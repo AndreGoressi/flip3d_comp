@@ -140,10 +140,40 @@ bool Flip3DCompApp::CreateAppWindow()
     };
     RegisterClassExW(&wc);
 
-    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
-    const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    MONITORINFO mi = { sizeof(mi) };
+    HMONITOR hPrimary = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+    GetMonitorInfoW(hPrimary, &mi);
+
+    int x = mi.rcMonitor.left;
+    int y = mi.rcMonitor.top;
+    int w = mi.rcMonitor.right - mi.rcMonitor.left;
+    int h = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+    HWND hTaskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
+    if (hTaskbar && IsWindowVisible(hTaskbar))
+    {
+        RECT rcTaskbar = {};
+        GetWindowRect(hTaskbar, &rcTaskbar);
+
+        if (rcTaskbar.top >= mi.rcMonitor.bottom - 100)
+        {
+            h = (rcTaskbar.top - mi.rcMonitor.top);
+        }
+        else if (rcTaskbar.bottom <= mi.rcMonitor.top + 100)
+        {
+            y = rcTaskbar.bottom;
+            h = (mi.rcMonitor.bottom - rcTaskbar.bottom);
+        }
+        else if (rcTaskbar.right <= mi.rcMonitor.left + 100)
+        {
+            x = rcTaskbar.right;
+            w = (mi.rcMonitor.right - rcTaskbar.right);
+        }
+        else if (rcTaskbar.left >= mi.rcMonitor.right - 100)
+        {
+            w = (rcTaskbar.left - mi.rcMonitor.left);
+        }
+    }
 
     m_hwnd = CreateWindowExW(
         WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
@@ -158,37 +188,6 @@ bool Flip3DCompApp::CreateAppWindow()
     if (!m_hwnd)
         return false;
 
-    MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hPrimary = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
-    GetMonitorInfoW(hPrimary, &mi);
-
-    HWND hTaskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
-    APPBARDATA abd = {};
-    abd.cbSize = sizeof(APPBARDATA);
-    UINT appBarState = static_cast<UINT>(SHAppBarMessage(ABM_GETSTATE, &abd));
-    bool taskbarAutoHide = (appBarState & ABS_AUTOHIDE) != 0;
-
-    int _x, _y, _w, _h;
-
-    if (hTaskbar && !taskbarAutoHide)
-    {
-        ShowWindow(hTaskbar, SW_SHOW);
-
-        _x = mi.rcWork.left;
-        _y = mi.rcWork.top;
-        _w = mi.rcWork.right - mi.rcWork.left;
-        _h = mi.rcWork.bottom - mi.rcWork.top;
-    }
-    else
-    {
-        _x = mi.rcMonitor.left;
-        _y = mi.rcMonitor.top;
-        _w = mi.rcMonitor.right - mi.rcMonitor.left;
-        _h = mi.rcMonitor.bottom - mi.rcMonitor.top;
-    }
-    
-    DwmFlush();
-
     m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
 
     RECT client = {};
@@ -200,3 +199,5 @@ bool Flip3DCompApp::CreateAppWindow()
 
     return true;
 }
+
+
