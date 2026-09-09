@@ -48,6 +48,14 @@ constexpr float  kNearPlaneDistance        = 1.0f;     // near plane Z distance
 constexpr int    kMaxVisibleCards          = 10;       // max simultaneously visible cards
 constexpr int    kMaxCards                 = 24;       // absolute max cards in carousel
 
+enum class CardThumbnailQuality
+{
+    Low,MediumLow,Medium,MediumHigh,High,
+};
+
+constexpr CardThumbnailQuality kCardThumbnailQuality = CardThumbnailQuality::Medium; 
+// This controls the DWM thumbnail resolution used by 3D window cards. By default Windows Vista & 7 have it set to a Medium value (0.50f)
+
 // Pre-computed camera poses (radians)
 constexpr float kCameraFinalTranslateX = -1.1f;
 constexpr float kCameraFinalTranslateY =  0.35f;   // uDWM InitializeModelAndCamera
@@ -63,8 +71,24 @@ constexpr float kBezierControls[3][3] = {
     { -1.45f, -0.1f,   -0.3f  },
 };
 
+constexpr float CardThumbnailQualityScale()
+{
+    switch (kCardThumbnailQuality)
+    {
+    case CardThumbnailQuality::Low:    return 0.10f;
+    case CardThumbnailQuality::MediumLow:    return 0.25f;
+    case CardThumbnailQuality::Medium: return 0.50f;
+    case CardThumbnailQuality::MediumHigh:    return 0.75f;
+    case CardThumbnailQuality::High:   return 1.00f;
+    }
+    return 1.00f;
+}
+
 // Normalization Bezier coefficients (quadratic)
 constexpr float kNormalizationBezier[3] = { 1.0f, 0.85f, 0.75f };
+
+// uDWM c_dFlipRotationPercent — steady desktop wash while Flip3D is open
+constexpr float kDesktopWashOpacityScale = 0.55f;
 
 // uDWM c_dFlipRotationPercent — steady desktop wash while Flip3D is open
 constexpr float kDesktopWashOpacityScale = 0.5f;
