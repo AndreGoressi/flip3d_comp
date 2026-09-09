@@ -338,8 +338,15 @@ void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
         return;
 
     DWM_THUMBNAIL_PROPERTIES tp = {};
+    // Was DWM_TNP_DISABLEFORCECVI — that's what let staircase edges creep
+    // back in for every window that isn't minimized/frozen (Steam, AdGuard,
+    // Scooby Loader, even the desktop itself, which is *always* "live" and
+    // can never be minimized). FORCECVI is what actually made DWM properly
+    // re-filter the thumbnail to match the reduced rcDestination for
+    // actively-updating content — DISABLEFORCECVI apparently only behaves
+    // acceptably for already-frozen/iconic (minimized) source bitmaps.
     tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
-                    | DWM_TNP_ENABLE3D | DWM_TNP_DISABLEFORCECVI;
+                    | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
     tp.fVisible  = TRUE;
     tp.rcDestination   = { 0, 0, card.m_srcWidth, card.m_srcHeight };
     DwmUpdateThumbnailProperties(card.m_hThumb, &tp);
