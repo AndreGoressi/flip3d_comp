@@ -144,42 +144,16 @@ bool Flip3DCompApp::CreateAppWindow()
     HMONITOR hPrimary = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
     GetMonitorInfoW(hPrimary, &mi);
 
-    int x = mi.rcMonitor.left;
-    int y = mi.rcMonitor.top;
-    int w = mi.rcMonitor.right - mi.rcMonitor.left;
-    int h = mi.rcMonitor.bottom - mi.rcMonitor.top;
-
-    HWND hTaskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
-    if (hTaskbar && IsWindowVisible(hTaskbar))
-    {
-        RECT rcTaskbar = {};
-        GetWindowRect(hTaskbar, &rcTaskbar);
-
-        if (rcTaskbar.top >= mi.rcMonitor.bottom - 100)
-        {
-            h = (rcTaskbar.top - mi.rcMonitor.top);
-        }
-        else if (rcTaskbar.bottom <= mi.rcMonitor.top + 100)
-        {
-            y = rcTaskbar.bottom;
-            h = (mi.rcMonitor.bottom - rcTaskbar.bottom);
-        }
-        else if (rcTaskbar.right <= mi.rcMonitor.left + 100)
-        {
-            x = rcTaskbar.right;
-            w = (mi.rcMonitor.right - rcTaskbar.right);
-        }
-        else if (rcTaskbar.left >= mi.rcMonitor.right - 100)
-        {
-            w = (rcTaskbar.left - mi.rcMonitor.left);
-        }
-    }
+    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
     m_hwnd = CreateWindowExW(
-        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
+        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW,
         L"Flip3DCompClass",
         L"",
-        WS_POPUP,
+        WS_POPUP | WS_VISIBLE,
         x, y, w, h,
         nullptr, nullptr,
         m_hInstance,
@@ -187,6 +161,13 @@ bool Flip3DCompApp::CreateAppWindow()
 
     if (!m_hwnd)
         return false;
+
+    HWND hTaskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
+    if (hTaskbar)
+    {
+        ShowWindow(hTaskbar, SW_SHOW);
+        SetWindowPos(hTaskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+    }
 
     m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
 
