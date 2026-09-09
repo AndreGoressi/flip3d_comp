@@ -169,14 +169,17 @@ bool Flip3DCompApp::CreateAppWindow()
         if (hTaskbar)
         {
             ShowWindow(hTaskbar, SW_SHOW);
+            SetWindowPos(hTaskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+
             HWND hSecondaryTray = FindWindowW(L"Shell_SecondaryTrayWnd", nullptr);
             if (hSecondaryTray)
             {
                 ShowWindow(hSecondaryTray, SW_SHOW);
+                SetWindowPos(hSecondaryTray, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
             }
         }
     }
-    // ---------------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
     m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
 
