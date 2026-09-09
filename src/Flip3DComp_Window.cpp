@@ -144,10 +144,14 @@ bool Flip3DCompApp::CreateAppWindow()
     HMONITOR hPrimary = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
     GetMonitorInfoW(hPrimary, &mi);
 
-    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    /*const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
     const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
     const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);*/
+    const int x = mi.rcMonitor.left;
+    const int y = mi.rcMonitor.top;
+    const int w = mi.rcMonitor.right - mi.rcMonitor.left;
+    const int h = mi.rcMonitor.bottom - mi.rcMonitor.top;
 
     m_hwnd = CreateWindowExW(
         WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW,
