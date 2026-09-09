@@ -176,17 +176,10 @@ HRESULT Flip3DCompApp::CreateCardVisual(CardModel& card)
         return E_INVALIDARG;
 
     DWM_THUMBNAIL_PROPERTIES tp = {};
-    tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | 
-                   DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
-    tp.fVisible  = TRUE;
-    //tp.rcDestination = { 0, 0, targetW, targetH };
-    tp.rcDestination = { 0, 0, card.m_srcWidth, card.m_srcHeight };
-
-    /*DWM_THUMBNAIL_PROPERTIES tp = {};
     tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
-                 | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI; 
+                 | DWM_TNP_ENABLE3D | DWM_TNP_DISABLEFORCECVI;
     tp.fVisible  = TRUE;
-    tp.rcDestination = { 0, 0, card.m_thumbTexWidth, card.m_thumbTexHeight };*/
+    tp.rcDestination = { 0, 0, card.m_srcWidth, card.m_srcHeight };
 
     void* pv = nullptr;
     HRESULT hr = m_pfnCreateSharedThumbVisual(
@@ -211,12 +204,6 @@ HRESULT Flip3DCompApp::CreateCardVisual(CardModel& card)
     hr = m_dcompDevice->CreateVisual(&container);
     if (FAILED(hr))
         return hr;
-
-    card.m_visual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-    card.m_visual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-
-    container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-    container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
 
     hr = container->AddVisual(card.m_visual.Get(), FALSE, nullptr);
     if (FAILED(hr))

@@ -135,7 +135,6 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
         GetMonitorInfoW(mon, &mi);
     else
         mi = QueryPrimaryMonitor();
-    
 
     SIZE srcSize = {};
     if (FAILED(m_pfnQueryThumbSize(h, FALSE, &srcSize))
@@ -171,17 +170,6 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
 
     c.m_srcWidth  = (int)thumbW;
     c.m_srcHeight = (int)thumbH;
-
-    float maxResW = normMonW * 0.5f;
-    float maxResH = normMonH * 0.5f;
-    float scale = std::min(maxResW / thumbW, maxResH / thumbH);
-    scale = std::min(scale, 1.0f); 
-
-    //c.m_thumbTexWidth  = std::max(1, (int)(thumbW * scale));
-    //c.m_thumbTexHeight = std::max(1, (int)(thumbH * scale));
-
-    c.m_srcWidth  = std::max(1, (int)(thumbW * scale));
-    c.m_srcHeight = std::max(1, (int)(thumbH * scale));
 
     // targetSize / occupancy = 3D carousel (uDWM finalSize).
     Math::WorldSizesFromThumbPixels(
@@ -345,14 +333,12 @@ void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
         return;
 
     DWM_THUMBNAIL_PROPERTIES tp = {};
-    tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | 
-                   DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
+    tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
+                    | DWM_TNP_ENABLE3D | DWM_TNP_DISABLEFORCECVI;
     tp.fVisible  = TRUE;
     tp.rcDestination   = { 0, 0, card.m_srcWidth, card.m_srcHeight };
     DwmUpdateThumbnailProperties(card.m_hThumb, &tp);
 }
-
-
 
 // ============================================================================
 // Flip3DCompApp::OnThumbnailSourceSizeChanged
@@ -361,7 +347,7 @@ void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
 // card thumbnail posts independently, so the WndProc only sets m_thumbnailsDirty
 // and this runs once per frame, touching cards whose queried source size differs.
 // ============================================================================
-/*void Flip3DCompApp::OnThumbnailSourceSizeChanged()
+void Flip3DCompApp::OnThumbnailSourceSizeChanged()
 {
     m_thumbnailsDirty = false;
 
@@ -384,36 +370,6 @@ void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
         UpdateCardGeometry(card, m_monW, m_monH, selectedRestore);
         UpdateCardThumbnailDest(card);
         anyChange = true;
-    }
-
-    if (anyChange && m_dcompDevice)
-        m_dcompDevice->Commit();
-}*/
-void Flip3DCompApp::OnThumbnailSourceSizeChanged()
-{
-    m_thumbnailsDirty = false;
-
-    bool anyChange = false;
-    for (auto& card : m_cards)
-    {
-        if (!card.m_hwnd)
-            continue;
-
-        SIZE querySize = {};
-        if (FAILED(m_pfnQueryThumbSize(card.m_hwnd, FALSE, &querySize)))
-            continue;
-
-        const int queryW = (int)std::max(0L, querySize.cx);
-        const int queryH = (int)std::max(0L, querySize.cy);
-        
-        const bool selectedRestore = card.m_hwnd == m_selectedHwnd;
-        
-        if (queryW != card.m_srcWidth || queryH != card.m_srcHeight || selectedRestore)
-        {
-            UpdateCardGeometry(card, m_monW, m_monH, selectedRestore);
-            UpdateCardThumbnailDest(card); 
-            anyChange = true;
-        }
     }
 
     if (anyChange && m_dcompDevice)

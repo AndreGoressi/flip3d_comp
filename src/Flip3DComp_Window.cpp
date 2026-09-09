@@ -52,7 +52,7 @@ std::vector<HWND> Flip3DCompApp::EnumerateWindows()
 // Flip3DCompApp::ApplyFullscreenLayout
 // uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
 // ============================================================================
-/*void Flip3DCompApp::ApplyFullscreenLayout()
+void Flip3DCompApp::ApplyFullscreenLayout()
 {
     if (!m_hwnd)
         return;
@@ -61,48 +61,6 @@ std::vector<HWND> Flip3DCompApp::EnumerateWindows()
     const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
     const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-
-    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
-
-    RECT client = {};
-    if (GetClientRect(m_hwnd, &client))
-    {
-        m_width  = std::max(1u, (UINT)(client.right  - client.left));
-        m_height = std::max(1u, (UINT)(client.bottom - client.top));
-    }
-
-    UpdateMonitorRect();
-}*/
-
-void Flip3DCompApp::ApplyFullscreenLayout()
-{
-    if (!m_hwnd)
-        return;
-
-    MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hPrimary = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
-    GetMonitorInfoW(hPrimary, &mi);
-
-    HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
-    bool taskbarVisible = taskbar && IsWindowVisible(taskbar) && 
-                          (mi.rcWork.bottom < mi.rcMonitor.bottom || mi.rcWork.right < mi.rcMonitor.right);
-
-    int x, y, w, h;
-
-    if (taskbarVisible)
-    {
-        x = mi.rcWork.left;
-        y = mi.rcWork.top;
-        w = mi.rcWork.right - mi.rcWork.left;
-        h = mi.rcWork.bottom - mi.rcWork.top;
-    }
-    else
-    {
-        x = GetSystemMetrics(SM_XVIRTUALSCREEN);
-        y = GetSystemMetrics(SM_YVIRTUALSCREEN);
-        w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-        h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-    }
 
     SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
 
@@ -141,18 +99,13 @@ bool Flip3DCompApp::CreateAppWindow()
     const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
-
-    HWND hTaskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
-    //
     m_hwnd = CreateWindowExW(
         WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
         L"Flip3DCompClass",
         L"",
-        WS_POPUP | WS_CHILD,
-        x, y, 
-        w, h,
-        hTaskbar,      //nullptr
-        nullptr,      //nullptr       
+        WS_POPUP,
+        x, y, w, h,
+        nullptr, nullptr,
         m_hInstance,
         this);
 

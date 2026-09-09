@@ -1046,9 +1046,6 @@ Matrix4x4 Flip3DCompApp::BuildModelMatrix(const CardModel& c, float t,
 
     float sx =  worldW / (float)std::max(c.m_srcWidth,  1);
     float sy = -worldH / (float)std::max(c.m_srcHeight, 1);
-    
-    //float sx =  worldW / (float)std::max(c.m_thumbTexWidth,  1);
-    //float sy = -worldH / (float)std::max(c.m_thumbTexHeight, 1);
 
     auto S = Scale(sx, sy, 1.0f);
     auto T = Translation(tx, ty, tz);

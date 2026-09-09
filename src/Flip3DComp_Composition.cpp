@@ -110,9 +110,6 @@ HRESULT Flip3DCompApp::InitComposition()
     sceneBase.As(&m_sceneVisual);
     m_sceneVisual->SetDepthMode(DCOMPOSITION_DEPTH_MODE_TREE);
 
-    m_sceneVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-    m_sceneVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-    
     ComPtr<IDCompositionVisual> rootBase;
     root.As(&rootBase);
     rootBase->AddVisual(m_sceneVisual.Get(), FALSE, nullptr);
@@ -335,9 +332,6 @@ bool Flip3DCompApp::RebuildMonitorBackdropsIfNeeded()
         hr = mon.shellContainer->AddVisual(mon.shellThumb.Get(), FALSE, nullptr);
         if (FAILED(hr))
             continue;
-
-        mon.shellContainer->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-        mon.shellContainer->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
 
         ComPtr<IDCompositionVisual2> washVis;
         hr = m_dcompDevice->CreateVisual(&washVis);
