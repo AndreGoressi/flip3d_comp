@@ -3,8 +3,10 @@
 // ============================================================================
 #include "Flip3DComp.h"
 #include "banding.h"
-
 #include <algorithm>
+#include "WindowBand.h"
+#include <vector>
+#include <Windows.h>
 
 struct Flip3DCompApp::EnumContext
 {
@@ -99,37 +101,26 @@ bool Flip3DCompApp::CreateAppWindow()
         return false;
     }
 
-    DWORD dwError = BandingCheck();
-#if defined(_DEBUG)
-    if (dwError != ERROR_SUCCESS)
-    {
-        printf("BandingCheck error: 0x%08X\n", dwError);
-    }
-#endif
-
-    CreateWindowInBand pCreateWindowInBand = reinterpret_cast<CreateWindowInBand>(
-        GetProcAddress(GetModuleHandleA("user32.dll"), "CreateWindowInBand")
-    );
 
     const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
     const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
     const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
-    if (pCreateWindowInBand)
-    {
-        m_hwnd = pCreateWindowInBand(
-            WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW,
-            (ATOM)(uintptr_t)atom,
-            L"Flip3DCompClass",
-            WS_POPUP | WS_VISIBLE,
-            x, y, w, h,
-            nullptr, nullptr,
-            m_hInstance,
-            this,
-            ZBID_UIACCESS
-        );
-    }
+    m_hwnd = WindowBand::CreateBandWindow(
+        WS_EX_NOREDIRECTIONBITMAP |
+        WS_EX_TOOLWINDOW,
+        atom,
+        L"Flip3DCompClass",
+        WS_POPUP,
+        x,
+        y,
+        w,
+        h,
+        m_hInstance,
+        this,
+        ZBID_SYSTEM_TOOLS
+    );
 
     if (!m_hwnd)
         return false;
