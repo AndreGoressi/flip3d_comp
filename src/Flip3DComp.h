@@ -79,6 +79,16 @@ private:
     bool CreateAppWindow();
     void    ApplyFullscreenLayout();
 
+
+
+    static BOOL CALLBACK DumpBandsEnumProc(
+    HWND hwnd,
+    LPARAM lParam);
+
+    void DumpWindowBands();
+
+
+
     // ========================================================================
     // DWM Thumbnail API (dwmapi.dll ordinals 147, 162)
     // ========================================================================
