@@ -1,8 +1,8 @@
+
 // ============================================================================
 // Flip3DComp_Cards.cpp — Card building + thumbnail visual creation + DWM API
 // ============================================================================
 #include "Flip3DComp.h"
-
 #include <cmath>
 
 namespace {
@@ -170,8 +170,8 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
     if (IsRectEmpty(&flatBounds))
         flatBounds = mi.rcWork;
 
-    c.m_nativeSrcWidth  = (int)thumbW;
-    c.m_nativeSrcHeight = (int)thumbH;
+    c.m_srcWidth  = (int)thumbW;
+    c.m_srcHeight = (int)thumbH;
 
     // targetSize / occupancy = 3D carousel (uDWM finalSize).
     Math::WorldSizesFromThumbPixels(
@@ -339,8 +339,15 @@ void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
         return;
 
     DWM_THUMBNAIL_PROPERTIES tp = {};
+    // Was DWM_TNP_DISABLEFORCECVI — that's what let staircase edges creep
+    // back in for every window that isn't minimized/frozen (Steam, AdGuard,
+    // Scooby Loader, even the desktop itself, which is *always* "live" and
+    // can never be minimized). FORCECVI is what actually made DWM properly
+    // re-filter the thumbnail to match the reduced rcDestination for
+    // actively-updating content — DISABLEFORCECVI apparently only behaves
+    // acceptably for already-frozen/iconic (minimized) source bitmaps.
     tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
-                    | DWM_TNP_ENABLE3D | DWM_TNP_DISABLEFORCECVI;
+                    | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
     tp.fVisible  = TRUE;
     tp.rcDestination   = { 0, 0, card.m_srcWidth, card.m_srcHeight };
     DwmUpdateThumbnailProperties(card.m_hThumb, &tp);
@@ -353,7 +360,7 @@ void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
 // card thumbnail posts independently, so the WndProc only sets m_thumbnailsDirty
 // and this runs once per frame, touching cards whose queried source size differs.
 // ============================================================================
-void Flip3DCompApp::OnThumbnailSourceSizeChanged()
+/*void Flip3DCompApp::OnThumbnailSourceSizeChanged()
 {
     m_thumbnailsDirty = false;
 
@@ -369,11 +376,72 @@ void Flip3DCompApp::OnThumbnailSourceSizeChanged()
 
         const int queryW = (int)std::max(0L, querySize.cx);
         const int queryH = (int)std::max(0L, querySize.cy);
-        if (queryW == card.m_nativeSrcWidth && queryH == card.m_nativeSrcHeight)
+        if (queryW == card.m_srcWidth && queryH == card.m_srcHeight)
             continue;
 
         const bool selectedRestore = card.m_hwnd == m_selectedHwnd;
         UpdateCardGeometry(card, m_monW, m_monH, selectedRestore);
+        UpdateCardThumbnailDest(card);
+        anyChange = true;
+    }
+
+    if (anyChange && m_dcompDevice)
+        m_dcompDevice->Commit();
+}*/
+
+void Flip3DCompApp::RecreateThumbnail(CardModel& card)
+{
+    if (!card.m_hwnd)
+        return;
+    
+    if (card.m_hThumb)
+    {
+        DwmUnregisterThumbnail(card.m_hThumb);
+        card.m_hThumb = nullptr;
+    }
+
+    if (card.m_containerVisual && m_sceneVisual)
+    {
+        ComPtr<IDCompositionVisual> scene;
+
+        if (SUCCEEDED(m_sceneVisual.As(&scene)))
+        {
+            scene->RemoveVisual(
+                card.m_containerVisual.Get());
+        }
+    }
+
+    card.m_visual.Reset();
+    card.m_containerVisual.Reset();
+
+    HRESULT hr = CreateCardVisual(card);
+
+    if (SUCCEEDED(hr))
+    {
+        UpdateCardThumbnailDest(card);
+    }
+}
+
+void Flip3DCompApp::OnThumbnailSourceSizeChanged()
+{
+    m_thumbnailsDirty = false;
+
+    bool anyChange = false;
+
+    for (auto& card : m_cards)
+    {
+        if (!card.m_hwnd)
+            continue;
+
+        const bool selectedRestore =
+            card.m_hwnd == m_selectedHwnd;
+
+        UpdateCardGeometry(
+            card,
+            m_monW,
+            m_monH,
+            selectedRestore);
+
         UpdateCardThumbnailDest(card);
         anyChange = true;
     }

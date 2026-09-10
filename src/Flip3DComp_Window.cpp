@@ -2,8 +2,11 @@
 // Flip3DComp_Window.cpp — Window creation + enumeration
 // ============================================================================
 #include "Flip3DComp.h"
-
+#include "banding.h"
 #include <algorithm>
+#include "WindowBand.h"
+#include <vector>
+#include <Windows.h>
 
 struct Flip3DCompApp::EnumContext
 {
@@ -52,7 +55,7 @@ std::vector<HWND> Flip3DCompApp::EnumerateWindows()
 // Flip3DCompApp::ApplyFullscreenLayout
 // uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
 // ============================================================================
-void Flip3DCompApp::ApplyFullscreenLayout()
+/*void Flip3DCompApp::ApplyFullscreenLayout()
 {
     if (!m_hwnd)
         return;
@@ -69,6 +72,40 @@ void Flip3DCompApp::ApplyFullscreenLayout()
     {
         m_width  = std::max(1u, (UINT)(client.right  - client.left));
         m_height = std::max(1u, (UINT)(client.bottom - client.top));
+    }
+
+    UpdateMonitorRect();
+}*/
+
+void Flip3DCompApp::ApplyFullscreenLayout()
+{
+    if (!m_hwnd)
+        return;
+
+    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
+    SetWindowPos(m_hwnd,
+                 nullptr,
+                 x,
+                 y,
+                 w,
+                 h,
+                 SWP_SHOWWINDOW);
+
+    RECT client = {};
+
+    if (GetClientRect(m_hwnd, &client))
+    {
+        m_width = std::max(1u,
+                          (UINT)(client.right - 
+                           client.left));
+
+        m_height = std::max(1u,
+                           (UINT)(client.bottom - 
+                                  client.top));
     }
 
     UpdateMonitorRect();
@@ -92,23 +129,50 @@ bool Flip3DCompApp::CreateAppWindow()
         L"Flip3DCompClass",
         nullptr,
     };
-    RegisterClassExW(&wc);
+    ATOM atom = RegisterClassExW(&wc);
+    if (!atom)
+    {
+        return false;
+    }
 
     const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
     const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
     const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
-    m_hwnd = CreateWindowExW(
-        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
+    m_hwnd = WindowBand::CreateBandWindow(
+        WS_EX_TOPMOST,
+        atom,
         L"Flip3DCompClass",
-        L"",
         WS_POPUP,
-        x, y, w, h,
-        nullptr, nullptr,
+        x,
+        y,
+        w,
+        h,
         m_hInstance,
-        this);
+        this,
+        ZBID_DESKTOP
+    );
+    //
+    SetWindowLongPtrW(m_hwnd,
+                      GWL_STYLE,
+                      WS_POPUP);
 
+    SetWindowLongPtrW(m_hwnd,
+                      GWL_EXSTYLE,
+                      WS_EX_NOREDIRECTIONBITMAP |
+                      WS_EX_TOOLWINDOW);
+    
+    SetWindowPos(m_hwnd,
+                 nullptr,
+                 x,
+                 y,
+                 w,
+                 h,
+                 SWP_FRAMECHANGED |
+                 SWP_SHOWWINDOW |
+                 SWP_NOZORDER);
+    //
     if (!m_hwnd)
         return false;
 
@@ -123,3 +187,5 @@ bool Flip3DCompApp::CreateAppWindow()
 
     return true;
 }
+
+

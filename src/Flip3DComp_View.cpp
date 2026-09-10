@@ -21,9 +21,7 @@ void Flip3DCompApp::ExitView(bool commitScroll, float exitDurationSec)
     m_state = ViewState::Exit;
     NotifyAccessibilityEvent(EVENT_SYSTEM_DIALOGEND);
     m_animEnter.Restart(EnterProgress(), 0.0f, exitDurationSec,
-                        kEnableAnimationEasing
-                            ? InterpolationMode::CubicBezier
-                            : InterpolationMode::Linear);
+                        InterpolationMode::Linear);
 }
 
 // ============================================================================
@@ -37,9 +35,7 @@ void Flip3DCompApp::BeginExitView()
     m_lastPaintOrder.clear();
     NotifyAccessibilityEvent(EVENT_SYSTEM_DIALOGEND);
     m_animEnter.Restart(EnterProgress(), 0.0f, kExitDurationSec,
-                        kEnableAnimationEasing
-                            ? InterpolationMode::CubicBezier
-                            : InterpolationMode::Linear);
+                        InterpolationMode::Linear);
     m_state = ViewState::Exit;
 }
 
@@ -99,8 +95,24 @@ void Flip3DCompApp::SelectWindow(HWND hwndTarget)
         return;
     }
 
+    //if (m_cards[(size_t)selIdx].m_isMinimized)
+        //UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
+
     if (m_cards[(size_t)selIdx].m_isMinimized)
-        UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
+    {
+        RecreateThumbnail(
+            m_cards[(size_t)selIdx]);
+
+        UpdateCardGeometry(
+            m_cards[(size_t)selIdx],
+            m_monW,
+            m_monH,
+            /*selectedRestore=*/true);
+
+        if (m_dcompDevice)
+            m_dcompDevice->Commit();
+    }
+
 
     m_selectedHwnd = hwndTarget;
     m_lastPaintOrder.clear();
@@ -114,7 +126,6 @@ void Flip3DCompApp::SelectWindow(HWND hwndTarget)
     if (selIdxAfter > 0)
     {
         m_rRepeatedRotateRate = -(kExitDurationSec / (float)selIdxAfter);
-        m_repeatedRotateStepsRemaining = selIdxAfter;
         m_state = ViewState::ExitRepeatedRotate;
         TickRepeatedRotate();
     }
@@ -196,4 +207,3 @@ HWND Flip3DCompApp::HitTest3DScene(LONG screenX, LONG screenY) const
 
     return bestHwnd;
 }
-        
