@@ -25,4 +25,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Flip3DComp-Binary
-        path: build/Release/Flip3DComp.exe
+        path: build/**/Flip3DComp.exe
