@@ -114,7 +114,7 @@ BOOL CALLBACK DumpBandsEnumProc(
     return TRUE;
 }
 
-void Flip3DCompApp::DumpWindowBands()
+void DumpWindowBands()
 {
     std::wofstream file(
         L"WindowBands.txt",
