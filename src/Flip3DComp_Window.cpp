@@ -118,7 +118,7 @@ bool Flip3DCompApp::CreateAppWindow()
         h,
         m_hInstance,
         this,
-        ZBID_IMMERSIVE_MOGO
+        ZBID_DESKTOP
     );
 
     if (!m_hwnd)
