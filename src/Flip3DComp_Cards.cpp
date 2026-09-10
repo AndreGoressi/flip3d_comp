@@ -1,3 +1,4 @@
+
 // ============================================================================
 // Flip3DComp_Cards.cpp — Card building + thumbnail visual creation + DWM API
 // ============================================================================
@@ -387,6 +388,36 @@ void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
     if (anyChange && m_dcompDevice)
         m_dcompDevice->Commit();
 }*/
+
+void Flip3DCompApp::RecreateThumbnail(CardModel& card)
+{
+    if (card.m_hThumb)
+    {
+        DwmUnregisterThumbnail(card.m_hThumb);
+        card.m_hThumb = nullptr;
+    }
+
+    if (card.m_containerVisual && m_sceneVisual)
+    {
+        ComPtr<IDCompositionVisual> scene;
+
+        if (SUCCEEDED(m_sceneVisual.As(&scene)))
+        {
+            scene->RemoveVisual(
+                card.m_containerVisual.Get());
+        }
+    }
+
+    card.m_visual.Reset();
+    card.m_containerVisual.Reset();
+
+    HRESULT hr = CreateCardVisual(card);
+
+    if (SUCCEEDED(hr))
+    {
+        UpdateCardThumbnailDest(card);
+    }
+}
 
 void Flip3DCompApp::OnThumbnailSourceSizeChanged()
 {
