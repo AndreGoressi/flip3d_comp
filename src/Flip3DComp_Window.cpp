@@ -55,7 +55,7 @@ std::vector<HWND> Flip3DCompApp::EnumerateWindows()
 // Flip3DCompApp::ApplyFullscreenLayout
 // uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
 // ============================================================================
-void Flip3DCompApp::ApplyFullscreenLayout()
+/*void Flip3DCompApp::ApplyFullscreenLayout()
 {
     if (!m_hwnd)
         return;
@@ -72,6 +72,39 @@ void Flip3DCompApp::ApplyFullscreenLayout()
     {
         m_width  = std::max(1u, (UINT)(client.right  - client.left));
         m_height = std::max(1u, (UINT)(client.bottom - client.top));
+    }
+
+    UpdateMonitorRect();
+}*/
+void Flip3DCompApp::ApplyFullscreenLayout()
+{
+    if (!m_hwnd)
+        return;
+
+    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
+    SetWindowPos(m_hwnd,
+                 nullptr,
+                 x,
+                 y,
+                 w,
+                 h,
+                 SWP_SHOWWINDOW);
+
+    RECT client = {};
+
+    if (GetClientRect(m_hwnd, &client))
+    {
+        m_width = std::max(1u,
+                          (UINT)(client.right - 
+                           client.left));
+
+        m_height = std::max(1u,
+                           (UINT)(client.bottom - 
+                                  client.top));
     }
 
     UpdateMonitorRect();
