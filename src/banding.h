@@ -29,21 +29,20 @@ enum ZBID
     ZBID_ABOVELOCK_UX = 18
 };
 
-using CreateWindowInBand_t =
-HWND (WINAPI*)(
-    DWORD,
-    ATOM,
-    LPCWSTR,
-    DWORD,
-    int,
-    int,
-    int,
-    int,
-    HWND,
-    HMENU,
-    HINSTANCE,
-    LPVOID,
-    DWORD);
+using CreateWindowInBand_t = HWND (WINAPI*)(
+                                   DWORD,
+                                   ATOM,
+                                   LPCWSTR,
+                                   DWORD,
+                                   int,
+                                   int,
+                                   int,
+                                   int,
+                                   HWND,
+                                   HMENU,
+                                   HINSTANCE,
+                                   LPVOID,
+                                   DWORD);
 
 using GetWindowBand_t =
 BOOL (WINAPI*)(HWND, PDWORD);
