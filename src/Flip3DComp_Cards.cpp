@@ -391,6 +391,9 @@ void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
 
 void Flip3DCompApp::RecreateThumbnail(CardModel& card)
 {
+    if (!card.m_hwnd)
+        return;
+    
     if (card.m_hThumb)
     {
         DwmUnregisterThumbnail(card.m_hThumb);
