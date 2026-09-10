@@ -101,7 +101,6 @@ bool Flip3DCompApp::CreateAppWindow()
         return false;
     }
 
-
     const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
     const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
     const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
@@ -119,7 +118,7 @@ bool Flip3DCompApp::CreateAppWindow()
         h,
         m_hInstance,
         this,
-        ZBID_SYSTEM_TOOLS
+        ZBID_IMMERSIVE_MOGO
     );
 
     if (!m_hwnd)
