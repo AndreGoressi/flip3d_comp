@@ -8,133 +8,6 @@
 #include <vector>
 #include <Windows.h>
 
-
-
-
-#include <fstream>
-#include <iomanip>
-
-#include <Psapi.h>
-
-#pragma comment(lib, "Psapi.lib")
-
-
-BOOL CALLBACK DumpBandsEnumProc(
-    HWND hwnd,
-    LPARAM lParam)
-{
-    auto* file =
-        reinterpret_cast<std::wofstream*>(lParam);
-
-    using GetWindowBand_t =
-        BOOL(WINAPI*)(HWND, PDWORD);
-
-    static auto pGetWindowBand =
-        reinterpret_cast<GetWindowBand_t>(
-            GetProcAddress(
-                GetModuleHandleW(L"user32.dll"),
-                "GetWindowBand"));
-
-    DWORD band = 0;
-
-    if (pGetWindowBand)
-    {
-        pGetWindowBand(hwnd, &band);
-    }
-
-    wchar_t title[512] = {};
-    wchar_t cls[256] = {};
-
-    GetWindowTextW(
-        hwnd,
-        title,
-        _countof(title));
-
-    GetClassNameW(
-        hwnd,
-        cls,
-        _countof(cls));
-
-    DWORD pid = 0;
-
-    GetWindowThreadProcessId(
-        hwnd,
-        &pid);
-
-    wchar_t processName[MAX_PATH] = {};
-
-    HANDLE hProcess =
-        OpenProcess(
-            PROCESS_QUERY_LIMITED_INFORMATION |
-            PROCESS_VM_READ,
-            FALSE,
-            pid);
-
-    if (hProcess)
-    {
-        GetModuleBaseNameW(
-            hProcess,
-            nullptr,
-            processName,
-            MAX_PATH);
-
-        CloseHandle(hProcess);
-    }
-
-    (*file)
-        << L"Band    : "
-        << band
-        << L"\r\n"
-
-        << L"Class   : "
-        << cls
-        << L"\r\n"
-
-        << L"Title   : "
-        << title
-        << L"\r\n"
-
-        << L"Process : "
-        << processName
-        << L"\r\n"
-
-        << L"PID     : "
-        << pid
-        << L"\r\n"
-
-        << L"HWND    : 0x"
-        << std::hex
-        << (UINT_PTR)hwnd
-        << std::dec
-        << L"\r\n"
-
-        << L"------------------------------------------"
-        << L"\r\n";
-
-    return TRUE;
-}
-
-void DumpWindowBands()
-{
-    std::wofstream file(
-        L"WindowBands.txt",
-        std::ios::trunc);
-
-    if (!file.is_open())
-        return;
-
-    file
-        << L"==== Window Band Dump ===="
-        << L"\r\n\r\n";
-
-    EnumWindows(
-        DumpBandsEnumProc,
-        reinterpret_cast<LPARAM>(&file));
-
-    file.close();
-}
-
-
 struct Flip3DCompApp::EnumContext
 {
     Flip3DCompApp*    app;
@@ -203,6 +76,7 @@ std::vector<HWND> Flip3DCompApp::EnumerateWindows()
 
     UpdateMonitorRect();
 }*/
+
 void Flip3DCompApp::ApplyFullscreenLayout()
 {
     if (!m_hwnd)
@@ -267,8 +141,8 @@ bool Flip3DCompApp::CreateAppWindow()
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
     m_hwnd = WindowBand::CreateBandWindow(
-        WS_EX_NOREDIRECTIONBITMAP |
-        WS_EX_TOOLWINDOW,
+        WS_EX_TOPMOST |
+        WS_EX_NOACTIVATE,
         atom,
         L"Flip3DCompClass",
         WS_POPUP,
@@ -280,21 +154,28 @@ bool Flip3DCompApp::CreateAppWindow()
         this,
         ZBID_DESKTOP
     );
+    //
+    SetWindowLongPtrW(m_hwnd,
+                      GWL_STYLE,
+                      WS_POPUP);
 
+    SetWindowLongPtrW(m_hwnd,
+                      GWL_EXSTYLE,
+                      WS_EX_NOREDIRECTIONBITMAP |
+                      WS_EX_TOOLWINDOW);
+    
+    SetWindowPos(m_hwnd,
+                 nullptr,
+                 x,
+                 y,
+                 w,
+                 h,
+                 SWP_FRAMECHANGED |
+                 SWP_SHOWWINDOW |
+                 SWP_NOZORDER);
+    //
     if (!m_hwnd)
         return false;
-
-    if (m_hwnd)
-    {
-        static bool dumped = false;
-    
-        if (!dumped)
-        {
-            DumpWindowBands();
-            dumped = true;
-        }
-    }
-
 
     m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
 
