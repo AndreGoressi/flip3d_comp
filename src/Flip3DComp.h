@@ -129,6 +129,8 @@ private:
     void    OnThumbnailSourceSizeChanged();
     void    UpdateCardThumbnailDest(CardModel& card);
     HRESULT CreateCardVisuals();
+    //new
+    void RecreateThumbnail(CardModel& card);
 
     // ========================================================================
     // Per-frame update

@@ -95,8 +95,24 @@ void Flip3DCompApp::SelectWindow(HWND hwndTarget)
         return;
     }
 
+    //if (m_cards[(size_t)selIdx].m_isMinimized)
+        //UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
+
     if (m_cards[(size_t)selIdx].m_isMinimized)
-        UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
+    {
+        RecreateThumbnail(
+            m_cards[(size_t)selIdx]);
+
+        UpdateCardGeometry(
+            m_cards[(size_t)selIdx],
+            m_monW,
+            m_monH,
+            /*selectedRestore=*/true);
+
+        if (m_dcompDevice)
+            m_dcompDevice->Commit();
+    }
+
 
     m_selectedHwnd = hwndTarget;
     m_lastPaintOrder.clear();
