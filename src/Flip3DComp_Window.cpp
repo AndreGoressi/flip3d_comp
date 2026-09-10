@@ -93,6 +93,7 @@ bool Flip3DCompApp::CreateAppWindow()
         L"Flip3DCompClass",
         nullptr,
     };
+    
     ATOM atom = RegisterClassExW(&wc);
     if (!atom)
     {
@@ -120,20 +121,6 @@ bool Flip3DCompApp::CreateAppWindow()
             m_hInstance,
             this,
             ZBID_UIACCESS
-        );
-    }
-
-    if (!m_hwnd)
-    {
-        m_hwnd = CreateWindowExW(
-            WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
-            L"Flip3DCompClass",
-            L"",
-            WS_POPUP | WS_VISIBLE,
-            x, y, w, h,
-            nullptr, nullptr,
-            m_hInstance,
-            this
         );
     }
 
