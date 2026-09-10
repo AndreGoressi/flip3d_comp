@@ -19,6 +19,7 @@ add_executable(Flip3DComp WIN32
     src/Flip3DAccessible.cpp
     src/Timeline.cpp
     src/WindowCapture.cpp   # Stage 2: WGC capture bridge (D3D11 card rendering)
+    src/WindowBand.cpp 
 )
 
 target_include_directories(Flip3DComp PRIVATE src)
