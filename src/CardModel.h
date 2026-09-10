@@ -40,12 +40,10 @@ struct CardModel
     // ---- Source content ----
     float               m_aspectRatio  = 16.0f / 10.0f;
     float               m_occupancy    = 0.7f;       // normalized occupancy factor
+    int                 m_nativeSrcWidth  = 400;     // queried DWM source width (pixels)
+    int                 m_nativeSrcHeight = 300;     // queried DWM source height (pixels)
     int                 m_srcWidth     = 400;        // thumbnail source width (pixels)
     int                 m_srcHeight    = 300;        // thumbnail source height (pixels)
-
-    //int                 m_nativeSrcWidth  = 400;     // queried DWM source width (pixels)
-    //int                 m_nativeSrcHeight = 300;     // queried DWM source height (pixels)
-
     bool                m_isMinimized  = false;      // window is iconic
     bool                m_isShellDesktop = false;    // Progman / GetShellWindow()
 
@@ -56,4 +54,13 @@ struct CardModel
     bool                m_displaySlotValid = false;
     CarouselWrapPhase   m_wrapPhase     = CarouselWrapPhase::None;
     float               m_wrapFadeStartListSlot = 0.0f; // list slot when EnteringBack began
+    // Progress [0..1] of the wrap fade (entering from back or entering
+    // front). Updated each frame so ComputeUpdateAlpha can drive a smooth
+    // fade-in when a card wraps into view.
+    float               m_wrapProgress = 0.0f;
+    // Actual opacity used while a card is entering through a wrap.
+    float               m_wrapOpacity = 1.0f;
+    bool                m_wrapFadeActive = false;
+    bool                m_opacityInitialized = false;
+    float               m_lastTargetOpacity = 0.0f;
 };
