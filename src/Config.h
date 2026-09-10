@@ -50,7 +50,11 @@ constexpr int    kMaxCards                 = 24;       // absolute max cards in 
 
 enum class CardThumbnailQuality
 {
-    Low,MediumLow,Medium,MediumHigh,High,
+    Low,
+    MediumLow,
+    Medium,
+    MediumHigh,
+    High,
 };
 
 constexpr CardThumbnailQuality kCardThumbnailQuality = CardThumbnailQuality::Medium; 

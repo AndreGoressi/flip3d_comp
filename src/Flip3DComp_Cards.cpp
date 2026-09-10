@@ -169,8 +169,8 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
     if (IsRectEmpty(&flatBounds))
         flatBounds = mi.rcWork;
 
-    c.m_nativeSrcWidth  = (int)thumbW;
-    c.m_nativeSrcHeight = (int)thumbH;
+    c.m_srcWidth  = (int)thumbW;
+    c.m_srcHeight = (int)thumbH;
 
     // targetSize / occupancy = 3D carousel (uDWM finalSize).
     Math::WorldSizesFromThumbPixels(
@@ -375,7 +375,7 @@ void Flip3DCompApp::OnThumbnailSourceSizeChanged()
 
         const int queryW = (int)std::max(0L, querySize.cx);
         const int queryH = (int)std::max(0L, querySize.cy);
-        if (queryW == card.m_nativeSrcWidth && queryH == card.m_nativeSrcHeight)
+        if (queryW == card.m_srcWidth && queryH == card.m_srcHeight)
             continue;
 
         const bool selectedRestore = card.m_hwnd == m_selectedHwnd;

@@ -43,8 +43,8 @@ struct CardModel
     int                 m_srcWidth     = 400;        // thumbnail source width (pixels)
     int                 m_srcHeight    = 300;        // thumbnail source height (pixels)
 
-    int                 m_nativeSrcWidth  = 400;     // queried DWM source width (pixels)
-    int                 m_nativeSrcHeight = 300;     // queried DWM source height (pixels)
+    //int                 m_nativeSrcWidth  = 400;     // queried DWM source width (pixels)
+    //int                 m_nativeSrcHeight = 300;     // queried DWM source height (pixels)
 
     bool                m_isMinimized  = false;      // window is iconic
     bool                m_isShellDesktop = false;    // Progman / GetShellWindow()
