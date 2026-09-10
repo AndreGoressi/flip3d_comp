@@ -93,12 +93,19 @@ bool Flip3DCompApp::CreateAppWindow()
         L"Flip3DCompClass",
         nullptr,
     };
-    
     ATOM atom = RegisterClassExW(&wc);
     if (!atom)
     {
         return false;
     }
+
+    DWORD dwError = BandingCheck();
+#if defined(_DEBUG)
+    if (dwError != ERROR_SUCCESS)
+    {
+        printf("BandingCheck error: 0x%08X\n", dwError);
+    }
+#endif
 
     CreateWindowInBand pCreateWindowInBand = reinterpret_cast<CreateWindowInBand>(
         GetProcAddress(GetModuleHandleA("user32.dll"), "CreateWindowInBand")
