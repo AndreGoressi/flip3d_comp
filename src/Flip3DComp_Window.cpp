@@ -73,6 +73,9 @@ void Flip3DCompApp::ApplyFullscreenLayout()
                  h,
                  SWP_SHOWWINDOW);
 
+    SetWindowPos(m_hwnd, HWND_BOTTOM, x, y, w, h, SWP_NOACTIVATE | SWP_FRAMECHANGED);
+    ShowWindow(hwnd, SW_SHOWNOACTIVATE);
+
     RECT client = {};
 
     if (GetClientRect(m_hwnd, &client))
@@ -132,7 +135,7 @@ bool Flip3DCompApp::CreateAppWindow()
         ZBID_DESKTOP
     );
     //
-    SetWindowPos(m_hwnd,
+    /*SetWindowPos(m_hwnd,
                  nullptr,
                  x,
                  y,
@@ -140,7 +143,7 @@ bool Flip3DCompApp::CreateAppWindow()
                  h,
                  SWP_FRAMECHANGED |
                  SWP_SHOWWINDOW |
-                 SWP_NOZORDER);
+                 SWP_NOZORDER);*/
     //
     if (!m_hwnd)
         return false;
