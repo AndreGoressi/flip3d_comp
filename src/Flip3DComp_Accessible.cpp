@@ -8,9 +8,9 @@
 #include <cmath>
 
 // ============================================================================
-// Flip3DCompApp::InitAccessibility
+// Flip3DComp::InitAccessibility
 // ============================================================================
-bool Flip3DCompApp::InitAccessibility()
+bool Flip3DComp::InitAccessibility()
 {
     if (m_comInitialized)
         return true;
@@ -31,7 +31,7 @@ bool Flip3DCompApp::InitAccessibility()
     return true;
 }
 
-void Flip3DCompApp::ShutdownAccessibility()
+void Flip3DComp::ShutdownAccessibility()
 {
     if (m_pAccessible)
     {
@@ -47,7 +47,7 @@ void Flip3DCompApp::ShutdownAccessibility()
     m_comInitialized = false;
 }
 
-IAccessible* Flip3DCompApp::GetAccessibleObject()
+IAccessible* Flip3DComp::GetAccessibleObject()
 {
     if (!m_pAccessible)
     {
@@ -60,10 +60,10 @@ IAccessible* Flip3DCompApp::GetAccessibleObject()
 }
 
 // ============================================================================
-// Flip3DCompApp::NotifyAccessibilityEvent
+// Flip3DComp::NotifyAccessibilityEvent
 // uDWM: 0x14 dialog start, 0x15 dialog end, 0x8005 focus on front child.
 // ============================================================================
-void Flip3DCompApp::NotifyAccessibilityEvent(DWORD event, LONG childId)
+void Flip3DComp::NotifyAccessibilityEvent(DWORD event, LONG childId)
 {
     if (!m_hwnd)
         return;
@@ -71,24 +71,24 @@ void Flip3DCompApp::NotifyAccessibilityEvent(DWORD event, LONG childId)
     NotifyWinEvent(event, m_hwnd, OBJID_CLIENT, childId);
 }
 
-void Flip3DCompApp::NotifyAccessibilityFocusFront()
+void Flip3DComp::NotifyAccessibilityFocusFront()
 {
     NotifyAccessibilityEvent(EVENT_OBJECT_FOCUS, 1);
 }
 
 // ============================================================================
-// Flip3DCompApp::AccessibleChildCount
+// Flip3DComp::AccessibleChildCount
 // uDWM CFlip3DAccessible::GetChildrenCount — front→back inclusive stack.
 // ============================================================================
-int Flip3DCompApp::AccessibleChildCount() const
+int Flip3DComp::AccessibleChildCount() const
 {
     return (int)m_cards.size();
 }
 
 // ============================================================================
-// Flip3DCompApp::AccessibleWindowName
+// Flip3DComp::AccessibleWindowName
 // ============================================================================
-HRESULT Flip3DCompApp::AccessibleWindowName(int index, BSTR* pszName) const
+HRESULT Flip3DComp::AccessibleWindowName(int index, BSTR* pszName) const
 {
     if (!pszName)
         return E_POINTER;
@@ -108,10 +108,10 @@ HRESULT Flip3DCompApp::AccessibleWindowName(int index, BSTR* pszName) const
 }
 
 // ============================================================================
-// Flip3DCompApp::AccessibleCardScreenRect
+// Flip3DComp::AccessibleCardScreenRect
 // Project the live 3D card quad to screen pixels (uDWM GetFlip3DWindowBoundingBox).
 // ============================================================================
-bool Flip3DCompApp::AccessibleCardScreenRect(int index, long* pxLeft, long* pyTop,
+bool Flip3DComp::AccessibleCardScreenRect(int index, long* pxLeft, long* pyTop,
                                              long* pcxWidth, long* pcyHeight) const
 {
     if (!pxLeft || !pyTop || !pcxWidth || !pcyHeight
@@ -172,10 +172,10 @@ bool Flip3DCompApp::AccessibleCardScreenRect(int index, long* pxLeft, long* pyTo
 }
 
 // ============================================================================
-// Flip3DCompApp::AccessibleHitTest
+// Flip3DComp::AccessibleHitTest
 // Screen coordinates → carousel list index, or -1 if no card.
 // ============================================================================
-int Flip3DCompApp::AccessibleHitTest(long screenX, long screenY) const
+int Flip3DComp::AccessibleHitTest(long screenX, long screenY) const
 {
     POINT pt = { (int)screenX, (int)screenY };
     ScreenToClient(m_hwnd, &pt);
@@ -189,9 +189,9 @@ int Flip3DCompApp::AccessibleHitTest(long screenX, long screenY) const
 }
 
 // ============================================================================
-// Flip3DCompApp::AccessiblePointInView
+// Flip3DComp::AccessiblePointInView
 // ============================================================================
-bool Flip3DCompApp::AccessiblePointInView(POINT screenPt) const
+bool Flip3DComp::AccessiblePointInView(POINT screenPt) const
 {
     RECT rc = {};
     if (!GetWindowRect(m_hwnd, &rc))
@@ -201,10 +201,10 @@ bool Flip3DCompApp::AccessiblePointInView(POINT screenPt) const
 }
 
 // ============================================================================
-// Flip3DCompApp::AccessibleRotateToIndex
+// Flip3DComp::AccessibleRotateToIndex
 // accSelect → smooth scroll the window to the carousel front.
 // ============================================================================
-HRESULT Flip3DCompApp::AccessibleRotateToIndex(int index)
+HRESULT Flip3DComp::AccessibleRotateToIndex(int index)
 {
     if (index < 0 || index >= (int)m_cards.size())
         return E_INVALIDARG;
@@ -217,10 +217,10 @@ HRESULT Flip3DCompApp::AccessibleRotateToIndex(int index)
 }
 
 // ============================================================================
-// Flip3DCompApp::AccessibleSelectIndex
+// Flip3DComp::AccessibleSelectIndex
 // uDWM accDoDefaultAction → SelectWindow.
 // ============================================================================
-HRESULT Flip3DCompApp::AccessibleSelectIndex(int index)
+HRESULT Flip3DComp::AccessibleSelectIndex(int index)
 {
     if (index < 0 || index >= (int)m_cards.size())
         return E_INVALIDARG;

@@ -4,11 +4,11 @@
 #include "Flip3DComp.h"
 
 // ============================================================================
-// Flip3DCompApp::OnWheel
+// Flip3DComp::OnWheel
 // Modern smooth scroll: each WHEEL_DELTA notch nudges the scroll target by one
 // slot. Wheel down (delta < 0) scrolls front→back; wheel up scrolls back→front.
 // ============================================================================
-bool Flip3DCompApp::OnWheel(int wheelDelta)
+bool Flip3DComp::OnWheel(int wheelDelta)
 {
     if (wheelDelta == 0 ||
         m_state == ViewState::Exit ||
@@ -25,9 +25,9 @@ bool Flip3DCompApp::OnWheel(int wheelDelta)
 }
 
 // ============================================================================
-// Flip3DCompApp::OnKey
+// Flip3DComp::OnKey
 // ============================================================================
-bool Flip3DCompApp::OnKey(bool down, UINT vkCode, LPARAM lParam)
+bool Flip3DComp::OnKey(bool down, UINT vkCode, LPARAM lParam)
 {
     /*if (!down ||
         m_state == ViewState::Exit ||
@@ -107,9 +107,9 @@ bool Flip3DCompApp::OnKey(bool down, UINT vkCode, LPARAM lParam)
 }
 
 // ============================================================================
-// Flip3DCompApp::OnMouse
+// Flip3DComp::OnMouse
 // ============================================================================
-bool Flip3DCompApp::OnMouse(LONG x, LONG y, bool pressed)
+bool Flip3DComp::OnMouse(LONG x, LONG y, bool pressed)
 {
     if (!pressed ||
         m_state == ViewState::Exit ||

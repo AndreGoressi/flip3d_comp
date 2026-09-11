@@ -15,17 +15,17 @@
 #include <vector>
 
 // ============================================================================
-// Flip3DCompApp::EnterProgress
+// Flip3DComp::EnterProgress
 // ============================================================================
-float Flip3DCompApp::EnterProgress() const
+float Flip3DComp::EnterProgress() const
 {
     return std::max(std::min(m_animEnter.Value(), 1.0f), 0.0f);
 }
 
 // ============================================================================
-// Flip3DCompApp::ReplayEnterAnimation
+// Flip3DComp::ReplayEnterAnimation
 // ============================================================================
-void Flip3DCompApp::ReplayEnterAnimation()
+void Flip3DComp::ReplayEnterAnimation()
 {
     m_state = ViewState::Enter;
     m_animEnter.Restart(0.0f, 1.0f, kEnterExitDurationSec);
@@ -49,10 +49,10 @@ void Flip3DCompApp::ReplayEnterAnimation()
 
 
 // ============================================================================
-// Flip3DCompApp::RotateListPhysically
+// Flip3DComp::RotateListPhysically
 // List splice when committing fractional scroll to discrete slots (exit only).
 // ============================================================================
-void Flip3DCompApp::RotateListPhysically(bool backward)
+void Flip3DComp::RotateListPhysically(bool backward)
 {
     if (m_cards.size() <= 1)
         return;
@@ -64,12 +64,12 @@ void Flip3DCompApp::RotateListPhysically(bool backward)
 }
 
 // ============================================================================
-// Flip3DCompApp::WrapCarouselScroll
+// Flip3DComp::WrapCarouselScroll
 // Keep scrollPos in (-0.5, 0.5) by rotating the list at integer boundaries.
 // Forward wrap decouples the outgoing card's display slot so it can finish the
 // front-edge opacity ramp (slot in [-1, 0]) without jumping to the back.
 // ============================================================================
-void Flip3DCompApp::WrapCarouselScroll()
+void Flip3DComp::WrapCarouselScroll()
 {
     if (m_cards.size() <= 1)
         return;
@@ -107,12 +107,12 @@ void Flip3DCompApp::WrapCarouselScroll()
 // ============================================================================
 // Display slot helpers — continuous carousel coordinates per card
 // ============================================================================
-float Flip3DCompApp::CardListSlot(int listIndex) const
+float Flip3DComp::CardListSlot(int listIndex) const
 {
     return (float)listIndex - m_scrollPos;
 }
 
-float Flip3DCompApp::CaptureCarouselVisualSlot(int listIndex) const
+float Flip3DComp::CaptureCarouselVisualSlot(int listIndex) const
 {
     if (listIndex < 0 || listIndex >= (int)m_cards.size())
         return 0.0f;
@@ -128,7 +128,7 @@ float Flip3DCompApp::CaptureCarouselVisualSlot(int listIndex) const
     return CardListSlot(listIndex);
 }
 
-float Flip3DCompApp::GetCardDisplaySlot(int listIndex) const
+float Flip3DComp::GetCardDisplaySlot(int listIndex) const
 {
     if (listIndex < 0 || listIndex >= (int)m_cards.size())
         return 0.0f;
@@ -141,7 +141,7 @@ float Flip3DCompApp::GetCardDisplaySlot(int listIndex) const
     return CaptureCarouselVisualSlot(listIndex);
 }
 
-void Flip3DCompApp::FinishWrapPhase(CardModel& card, int listIndex)
+void Flip3DComp::FinishWrapPhase(CardModel& card, int listIndex)
 {
     card.m_wrapPhase              = CarouselWrapPhase::None;
     card.m_wrapFadeStartListSlot  = 0.0f;
@@ -149,7 +149,7 @@ void Flip3DCompApp::FinishWrapPhase(CardModel& card, int listIndex)
     card.m_displaySlotValid       = true;
 }
 
-void Flip3DCompApp::BeginEnteringBackWrap(CardModel& card, int listIndex)
+void Flip3DComp::BeginEnteringBackWrap(CardModel& card, int listIndex)
 {
     card.m_wrapPhase             = CarouselWrapPhase::EnteringBack;
     card.m_wrapFadeStartListSlot = CardListSlot(listIndex);
@@ -157,7 +157,7 @@ void Flip3DCompApp::BeginEnteringBackWrap(CardModel& card, int listIndex)
     card.m_displaySlotValid      = true;
 }
 
-void Flip3DCompApp::StepEnteringBackWrap(CardModel& card, int listIndex)
+void Flip3DComp::StepEnteringBackWrap(CardModel& card, int listIndex)
 {
     const float listSlot  = CardListSlot(listIndex);
     const float span      = CarouselEdgeSpan();
@@ -179,7 +179,7 @@ void Flip3DCompApp::StepEnteringBackWrap(CardModel& card, int listIndex)
         FinishWrapPhase(card, listIndex);
 }
 
-void Flip3DCompApp::SettleWrapDisplaySlots()
+void Flip3DComp::SettleWrapDisplaySlots()
 {
     if (std::abs(m_scrollTarget - m_scrollPos) > kScrollSettleEpsilon)
         return;
@@ -216,13 +216,13 @@ void Flip3DCompApp::SettleWrapDisplaySlots()
     }
 }
 
-float Flip3DCompApp::CarouselEdgeSpan() const
+float Flip3DComp::CarouselEdgeSpan() const
 {
     const int count = (int)m_cards.size();
     return (float)std::min(std::max(count, 2), kMaxVisibleCards);
 }
 
-void Flip3DCompApp::InvalidateDisplaySlots()
+void Flip3DComp::InvalidateDisplaySlots()
 {
     for (auto& c : m_cards)
     {
@@ -231,7 +231,7 @@ void Flip3DCompApp::InvalidateDisplaySlots()
     }
 }
 
-void Flip3DCompApp::SyncDisplaySlotsToList()
+void Flip3DComp::SyncDisplaySlotsToList()
 {
     for (int k = 0; k < (int)m_cards.size(); ++k)
     {
@@ -244,7 +244,7 @@ void Flip3DCompApp::SyncDisplaySlotsToList()
     }
 }
 
-void Flip3DCompApp::AdvanceWrapDisplaySlots(float deltaScrollPos)
+void Flip3DComp::AdvanceWrapDisplaySlots(float deltaScrollPos)
 {
     if (deltaScrollPos == 0.0f && m_wrapScrollAdjustThisFrame == 0.0f)
         return;
@@ -284,7 +284,7 @@ void Flip3DCompApp::AdvanceWrapDisplaySlots(float deltaScrollPos)
     }
 }
 
-void Flip3DCompApp::OnCarouselWrapForward(HWND outgoingHwnd, float outgoingSlot)
+void Flip3DComp::OnCarouselWrapForward(HWND outgoingHwnd, float outgoingSlot)
 {
     for (int k = 0; k < (int)m_cards.size(); ++k)
     {
@@ -310,7 +310,7 @@ void Flip3DCompApp::OnCarouselWrapForward(HWND outgoingHwnd, float outgoingSlot)
     SyncDisplaySlotsToList();
 }
 
-void Flip3DCompApp::OnCarouselWrapBackward(HWND incomingHwnd)
+void Flip3DComp::OnCarouselWrapBackward(HWND incomingHwnd)
 {
     for (int k = 0; k < (int)m_cards.size(); ++k)
     {
@@ -341,7 +341,7 @@ void Flip3DCompApp::OnCarouselWrapBackward(HWND incomingHwnd)
     SyncDisplaySlotsToList();
 }
 
-void Flip3DCompApp::FreezeCarouselVisuals()
+void Flip3DComp::FreezeCarouselVisuals()
 {
     std::vector<std::pair<HWND, float>> visualByHwnd;
     visualByHwnd.reserve(m_cards.size());
@@ -373,7 +373,7 @@ void Flip3DCompApp::FreezeCarouselVisuals()
     m_scrollTarget       = m_scrollPos;
 }
 
-void Flip3DCompApp::UpdateVisualSlots(float enterProgress)
+void Flip3DComp::UpdateVisualSlots(float enterProgress)
 {
     if (m_state != ViewState::Exit && m_state != ViewState::ExitRepeatedRotate)
         return;
@@ -406,12 +406,12 @@ void Flip3DCompApp::UpdateVisualSlots(float enterProgress)
 }
 
 // ============================================================================
-// Flip3DCompApp::RotateSelectedToListFront
+// Flip3DComp::RotateSelectedToListFront
 // uDWM: after scroll settles, splice the ring so the selection is list index 0
 // (e.g. A B C D E F G → C D E F G A B). Cards after C in the ring follow C at
 // slots 1…, not the windows that were before C (A B).
 // ============================================================================
-void Flip3DCompApp::RotateSelectedToListFront()
+void Flip3DComp::RotateSelectedToListFront()
 {
     if (!m_selectedHwnd || m_cards.size() <= 1)
         return;
@@ -425,10 +425,10 @@ void Flip3DCompApp::RotateSelectedToListFront()
 }
 
 // ============================================================================
-// Flip3DCompApp::CommitCarouselScroll
+// Flip3DComp::CommitCarouselScroll
 // Snap fractional scroll to integer slots and align the window list.
 // ============================================================================
-void Flip3DCompApp::CommitCarouselScroll()
+void Flip3DComp::CommitCarouselScroll()
 {
     if (m_cards.size() <= 1)
     {
@@ -442,10 +442,10 @@ void Flip3DCompApp::CommitCarouselScroll()
 }
 
 // ============================================================================
-// Flip3DCompApp::AlignCarouselScrollSettled
+// Flip3DComp::AlignCarouselScrollSettled
 // Wrap + rotate selection to list front + zero scroll (shared by commit & exit).
 // ============================================================================
-void Flip3DCompApp::AlignCarouselScrollSettled()
+void Flip3DComp::AlignCarouselScrollSettled()
 {
     if (m_cards.size() <= 1)
     {
@@ -472,9 +472,9 @@ void Flip3DCompApp::AlignCarouselScrollSettled()
 }
 
 // ============================================================================
-// Flip3DCompApp::RotateBy
+// Flip3DComp::RotateBy
 // ============================================================================
-void Flip3DCompApp::RotateBy(int deltaSteps)
+void Flip3DComp::RotateBy(int deltaSteps)
 {
     if (!deltaSteps || m_cards.size() <= 1
         || m_state == ViewState::Exit
@@ -485,12 +485,12 @@ void Flip3DCompApp::RotateBy(int deltaSteps)
 }
 
 // ============================================================================
-// Flip3DCompApp::ComputeScrollTargetForCard
+// Flip3DComp::ComputeScrollTargetForCard
 // Scroll value that places listIndex at the visual front (slot ≈ 0).
 // Short-path wrap is only used when it moves scrollPos in the direction that
 // reduces |visualSlot| (slot = index - scrollPos increases as scrollPos falls).
 // ============================================================================
-float Flip3DCompApp::ComputeScrollTargetForCard(int listIndex) const
+float Flip3DComp::ComputeScrollTargetForCard(int listIndex) const
 {
     const int N = (int)m_cards.size();
     if (N <= 1)
@@ -521,10 +521,10 @@ float Flip3DCompApp::ComputeScrollTargetForCard(int listIndex) const
 }
 
 // ============================================================================
-// Flip3DCompApp::IsSelectionAtCarouselFront
+// Flip3DComp::IsSelectionAtCarouselFront
 // Exit scroll completes when the selection is list index 0 and scroll settled.
 // ============================================================================
-bool Flip3DCompApp::IsSelectionAtCarouselFront() const
+bool Flip3DComp::IsSelectionAtCarouselFront() const
 {
     if (!m_selectedHwnd || m_cards.empty())
         return true;
@@ -537,10 +537,10 @@ bool Flip3DCompApp::IsSelectionAtCarouselFront() const
 }
 
 // ============================================================================
-// Flip3DCompApp::StepCarouselScroll
+// Flip3DComp::StepCarouselScroll
 // Shared smooth scroll + wrap + front-edge fade (browse and exit).
 // ============================================================================
-void Flip3DCompApp::StepCarouselScroll(float dtSeconds, bool notifyFrontChange)
+void Flip3DComp::StepCarouselScroll(float dtSeconds, bool notifyFrontChange)
 {
     const float prevFront  = std::floor(m_scrollPos + 0.5f);
     const float prevScroll = m_scrollPos;
@@ -561,9 +561,9 @@ void Flip3DCompApp::StepCarouselScroll(float dtSeconds, bool notifyFrontChange)
 }
 
 // ============================================================================
-// Flip3DCompApp::RotateToWindow
+// Flip3DComp::RotateToWindow
 // ============================================================================
-void Flip3DCompApp::RotateToWindow(HWND targetHwnd)
+void Flip3DComp::RotateToWindow(HWND targetHwnd)
 {
     if (m_cards.size() <= 1 || m_state == ViewState::Exit
         || m_state == ViewState::ExitRepeatedRotate)
@@ -581,9 +581,9 @@ void Flip3DCompApp::RotateToWindow(HWND targetHwnd)
 }
 
 // ============================================================================
-// Flip3DCompApp::TickSmoothScroll
+// Flip3DComp::TickSmoothScroll
 // ============================================================================
-void Flip3DCompApp::TickSmoothScroll(float dtSeconds)
+void Flip3DComp::TickSmoothScroll(float dtSeconds)
 {
     if (m_cards.size() <= 1 || m_state != ViewState::Interactive)
         return;
@@ -621,9 +621,9 @@ void Flip3DCompApp::TickSmoothScroll(float dtSeconds)
 }
 
 // ============================================================================
-// Flip3DCompApp::Update
+// Flip3DComp::Update
 // ============================================================================
-void Flip3DCompApp::Update(float dtSeconds)
+void Flip3DComp::Update(float dtSeconds)
 {
     if (m_thumbnailsDirty)
         OnThumbnailSourceSizeChanged();
@@ -694,10 +694,10 @@ void Flip3DCompApp::Update(float dtSeconds)
 }
 
 // ============================================================================
-// Flip3DCompApp::BuildCameraMatrix
+// Flip3DComp::BuildCameraMatrix
 // View × Proj × Viewport — shared by card transforms and hit-testing.
 // ============================================================================
-Matrix4x4 Flip3DCompApp::BuildCameraMatrix(float enterProgress) const
+Matrix4x4 Flip3DComp::BuildCameraMatrix(float enterProgress) const
 {
     auto view     = BuildViewMatrix(enterProgress);
     auto proj     = BuildProjMatrix(1.0f, enterProgress);
@@ -706,11 +706,11 @@ Matrix4x4 Flip3DCompApp::BuildCameraMatrix(float enterProgress) const
 }
 
 // ============================================================================
-// Flip3DCompApp::UpdateCamera
+// Flip3DComp::UpdateCamera
 // Scene root stays identity. Each card bakes Model × View × Proj × VP on its
 // container visual (same as the pre-SPATIAL single-matrix path).
 // ============================================================================
-void Flip3DCompApp::UpdateCamera(float /*enterProgress*/)
+void Flip3DComp::UpdateCamera(float /*enterProgress*/)
 {
     if (!m_sceneVisual)
         return;
@@ -718,7 +718,7 @@ void Flip3DCompApp::UpdateCamera(float /*enterProgress*/)
     m_sceneVisual->SetTransform(Math::Identity());
 }
 
-float Flip3DCompApp::ComputeFlatDepthRank(float slot, float enterProgress,
+float Flip3DComp::ComputeFlatDepthRank(float slot, float enterProgress,
                                           int listIndex) const
 {
     const float p = enterProgress;
@@ -741,11 +741,11 @@ float Flip3DCompApp::ComputeFlatDepthRank(float slot, float enterProgress,
 }
 
 // ============================================================================
-// Flip3DCompApp::ComputePaintKey
+// Flip3DComp::ComputePaintKey
 // DirectComposition has no depth buffer — sibling order must track carousel depth.
 // Blending slot with desktop rank mid-exit causes keys to cross and flicker.
 // ============================================================================
-float Flip3DCompApp::ComputePaintKey(float slot, float enterProgress,
+float Flip3DComp::ComputePaintKey(float slot, float enterProgress,
                                      int listIndex) const
 {
     const float p = enterProgress;
@@ -772,9 +772,9 @@ float Flip3DCompApp::ComputePaintKey(float slot, float enterProgress,
 }
 
 // ============================================================================
-// Flip3DCompApp::UpdateCards
+// Flip3DComp::UpdateCards
 // ============================================================================
-void Flip3DCompApp::UpdateCards(float enterProgress)
+void Flip3DComp::UpdateCards(float enterProgress)
 {
     if (!m_sceneVisual)
         return;
@@ -910,12 +910,12 @@ void Flip3DCompApp::UpdateCards(float enterProgress)
 }
 
 // ============================================================================
-// Flip3DCompApp::ComputeCarouselEdgeOpacity
+// Flip3DComp::ComputeCarouselEdgeOpacity
 // Continuous carousel edge roll-off used by the smooth-scroll path. Matches the
 // uDWM steady-state alpha: full inside, 0.5 at the back boundary, fading toward
 // the camera-side (slot < 0) as a card flies out the front.
 // ============================================================================
-float Flip3DCompApp::ComputeCarouselEdgeOpacity(float slot) const
+float Flip3DComp::ComputeCarouselEdgeOpacity(float slot) const
 {
     if (slot < 0.0f)
         return std::clamp(1.0f + slot, 0.0f, 1.0f);
@@ -929,9 +929,9 @@ float Flip3DCompApp::ComputeCarouselEdgeOpacity(float slot) const
 }
 
 // ============================================================================
-// Flip3DCompApp::ComputeUpdateAlpha
+// Flip3DComp::ComputeUpdateAlpha
 // ============================================================================
-float Flip3DCompApp::ComputeUpdateAlpha(const CardModel& card, float enterProgress,
+float Flip3DComp::ComputeUpdateAlpha(const CardModel& card, float enterProgress,
                                         float carouselSlot) const
 {
     float opacitySlot = carouselSlot;
@@ -980,21 +980,21 @@ float Flip3DCompApp::ComputeUpdateAlpha(const CardModel& card, float enterProgre
 }
 
 // ============================================================================
-// Flip3DCompApp::ComputeCarouselPathDenom
+// Flip3DComp::ComputeCarouselPathDenom
 // uDWM UpdateModels: m_cWindows = max(count, 5), capped by max visible.
 // ============================================================================
-float Flip3DCompApp::ComputeCarouselPathDenom() const
+float Flip3DComp::ComputeCarouselPathDenom() const
 {
     const int N = (int)m_cards.size();
     return (float)std::min(std::max(N, 5), kMaxVisibleCards);
 }
 
 // ============================================================================
-// Flip3DCompApp::ComputeCarouselBezierT
+// Flip3DComp::ComputeCarouselBezierT
 // flip3d/uDWM: zIndex = -pathRelative; t = 1 - (zIndex - 0.5) / -m_cWindows
 // (pathRelative == carousel slot: 0 = front, larger = further back)
 // ============================================================================
-float Flip3DCompApp::ComputeCarouselBezierT(float slot) const
+float Flip3DComp::ComputeCarouselBezierT(float slot) const
 {
     const float denom  = ComputeCarouselPathDenom();
     const float zIndex = -slot;
@@ -1006,9 +1006,9 @@ float Flip3DCompApp::ComputeCarouselBezierT(float slot) const
 }
 
 // ============================================================================
-// Flip3DCompApp::BuildViewMatrix
+// Flip3DComp::BuildViewMatrix
 // ============================================================================
-Matrix4x4 Flip3DCompApp::BuildViewMatrix(float p) const
+Matrix4x4 Flip3DComp::BuildViewMatrix(float p) const
 {
     using namespace Math;
 
@@ -1033,20 +1033,20 @@ Matrix4x4 Flip3DCompApp::BuildViewMatrix(float p) const
 }
 
 // ============================================================================
-// Flip3DCompApp::BuildProjMatrix
+// Flip3DComp::BuildProjMatrix
 // ============================================================================
-Matrix4x4 Flip3DCompApp::BuildProjMatrix(float /*aspect*/, float p) const
+Matrix4x4 Flip3DComp::BuildProjMatrix(float /*aspect*/, float p) const
 {
     float nearExtent = p * kNearPlaneEdgeSize + (1.0f - p);
     return Math::PerspectiveRH(nearExtent, 1.0f, kNearPlaneDistance, 50.0f);
 }
 
 // ============================================================================
-// Flip3DCompApp::BuildModelMatrix
+// Flip3DComp::BuildModelMatrix
 // uDWM UpdateModels / flip3d GetWorldFromParametric: carousel pathRelative for
 // both 3D bezier and flatZ; lerp to desktop when enterProgress != 1.
 // ============================================================================
-Matrix4x4 Flip3DCompApp::BuildModelMatrix(const CardModel& c, float t,
+Matrix4x4 Flip3DComp::BuildModelMatrix(const CardModel& c, float t,
                                           float enterProgress,
                                           float flatDepthRank) const
 {

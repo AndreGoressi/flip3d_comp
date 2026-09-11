@@ -14,9 +14,9 @@
 #pragma comment(lib, "gdi32.lib")
 
 // ============================================================================
-// Flip3DCompApp::Initialize
+// Flip3DComp::Initialize
 // ============================================================================
-bool Flip3DCompApp::Initialize(HINSTANCE hInstance)
+bool Flip3DComp::Initialize(HINSTANCE hInstance)
 {
     m_hInstance = hInstance;
 
@@ -68,9 +68,9 @@ bool Flip3DCompApp::Initialize(HINSTANCE hInstance)
 }
 
 // ============================================================================
-// Flip3DCompApp::Run
+// Flip3DComp::Run
 // ============================================================================
-int Flip3DCompApp::Run()
+int Flip3DComp::Run()
 {
     MSG msg = {};
 
@@ -104,14 +104,14 @@ int Flip3DCompApp::Run()
 }
 
 // ============================================================================
-// Flip3DCompApp::WndProc — window procedure
+// Flip3DComp::WndProc — window procedure
 // ============================================================================
-LRESULT CALLBACK Flip3DCompApp::WndProc(HWND hwnd, UINT msg,
+LRESULT CALLBACK Flip3DComp::WndProc(HWND hwnd, UINT msg,
                                          WPARAM wParam, LPARAM lParam)
 {
     if (msg == WM_NCCREATE)
     {
-        auto* self = (Flip3DCompApp*)((CREATESTRUCTW*)lParam)->lpCreateParams;
+        auto* self = (Flip3DComp*)((CREATESTRUCTW*)lParam)->lpCreateParams;
         if (self)
         {
             SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR)self);
@@ -119,16 +119,16 @@ LRESULT CALLBACK Flip3DCompApp::WndProc(HWND hwnd, UINT msg,
         }
     }
 
-    auto* self = (Flip3DCompApp*)GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+    auto* self = (Flip3DComp*)GetWindowLongPtrW(hwnd, GWLP_USERDATA);
     return self
         ? self->HandleMessage(msg, wParam, lParam)
         : DefWindowProcW(hwnd, msg, wParam, lParam);
 }
 
 // ============================================================================
-// Flip3DCompApp::HandleMessage
+// Flip3DComp::HandleMessage
 // ============================================================================
-LRESULT Flip3DCompApp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {

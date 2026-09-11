@@ -50,9 +50,9 @@ leave:
 } // namespace
 
 // ============================================================================
-// Flip3DCompApp::LoadThumbApi
+// Flip3DComp::LoadThumbApi
 // ============================================================================
-bool Flip3DCompApp::LoadThumbApi()
+bool Flip3DComp::LoadThumbApi()
 {
     m_initError.clear();
 
@@ -93,9 +93,9 @@ bool Flip3DCompApp::LoadThumbApi()
 }
 
 // ============================================================================
-// Flip3DCompApp::UnloadThumbApi
+// Flip3DComp::UnloadThumbApi
 // ============================================================================
-void Flip3DCompApp::UnloadThumbApi()
+void Flip3DComp::UnloadThumbApi()
 {
     m_pfnCreateSharedThumbVisual = nullptr;
     m_pfnQueryThumbSize          = nullptr;
@@ -109,13 +109,13 @@ void Flip3DCompApp::UnloadThumbApi()
 }
 
 // ============================================================================
-// Flip3DCompApp::UpdateCardGeometry
+// Flip3DComp::UpdateCardGeometry
 // uDWM Flip3DWindow::OnOriginalRectUpdated:
 //   - flatBounds in screen pixels (per-window monitor for taskbar/minimize)
 //   - NormalizeWindowSize + world mapping via shared PRIMARY rcWork (normMon*)
 //   - GetMonitorToWorldTransform on primary m_rcMonitor for all cards
 // ============================================================================
-void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
+void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
                                        bool selectedRestore)
 {
     HWND h = c.m_hwnd;
@@ -226,12 +226,12 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
 }
 
 // ============================================================================
-// Flip3DCompApp::UpdateMonitorRect
+// Flip3DComp::UpdateMonitorRect
 // uDWM UpdateMonitorRect: normMon from primary rcWork; SetSize uses work-area
 // pixels. The input window covers the virtual desktop, but the 3D viewport must
 // match rcWork (size + origin), not the full client rect.
 // ============================================================================
-void Flip3DCompApp::UpdateMonitorRect()
+void Flip3DComp::UpdateMonitorRect()
 {
     HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
     if (!hMon)
@@ -270,9 +270,9 @@ void Flip3DCompApp::UpdateMonitorRect()
 }
 
 // ============================================================================
-// Flip3DCompApp::BuildCards
+// Flip3DComp::BuildCards
 // ============================================================================
-void Flip3DCompApp::BuildCards()
+void Flip3DComp::BuildCards()
 {
     m_cards.clear();
 
@@ -317,9 +317,9 @@ void Flip3DCompApp::BuildCards()
 }
 
 // ============================================================================
-// Flip3DCompApp::CreateCardVisuals
+// Flip3DComp::CreateCardVisuals
 // ============================================================================
-HRESULT Flip3DCompApp::CreateCardVisuals()
+HRESULT Flip3DComp::CreateCardVisuals()
 {
     if (!m_dcompDevice || !m_sceneVisual)
         return E_FAIL;
@@ -337,10 +337,10 @@ HRESULT Flip3DCompApp::CreateCardVisuals()
 }
 
 // ============================================================================
-// Flip3DCompApp::UpdateCardThumbnailDest
+// Flip3DComp::UpdateCardThumbnailDest
 // Sync DWM thumbnail rcDestination to the current source pixel size.
 // ============================================================================
-void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
+void Flip3DComp::UpdateCardThumbnailDest(CardModel& card)
 {
     if (!card.m_hThumb || card.m_srcWidth <= 0 || card.m_srcHeight <= 0)
         return;
@@ -364,13 +364,13 @@ void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
 }
 
 // ============================================================================
-// Flip3DCompApp::OnThumbnailSourceSizeChanged
+// Flip3DComp::OnThumbnailSourceSizeChanged
 // uDWM CThumbnailVisual::OnSizeChanged posts WM 0x327 to hwndDestination when
 // DWM_TNF_DWMWINDOW is set and the live preview bitmap changes size. Every
 // card thumbnail posts independently, so the WndProc only sets m_thumbnailsDirty
 // and this runs once per frame, touching cards whose queried source size differs.
 // ============================================================================
-void Flip3DCompApp::OnThumbnailSourceSizeChanged()
+void Flip3DComp::OnThumbnailSourceSizeChanged()
 {
     m_thumbnailsDirty = false;
 
@@ -399,7 +399,7 @@ void Flip3DCompApp::OnThumbnailSourceSizeChanged()
         m_dcompDevice->Commit();
 }
 
-void Flip3DCompApp::RecreateThumbnail(CardModel& card)
+void Flip3DComp::RecreateThumbnail(CardModel& card)
 {
     if (!card.m_hwnd)
         return;

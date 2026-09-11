@@ -40,12 +40,12 @@ HRESULT LoadAccString(int stringId, BSTR* pbstrTarget)
 } // namespace
 
 // ============================================================================
-Flip3DAccessible::Flip3DAccessible(Flip3DCompApp* app)
+Flip3DAccessible::Flip3DAccessible(Flip3DComp* app)
     : m_app(app)
 {
 }
 
-HRESULT Flip3DAccessible::Create(Flip3DCompApp* app, IAccessible** ppAccessible)
+HRESULT Flip3DAccessible::Create(Flip3DComp* app, IAccessible** ppAccessible)
 {
     if (!app || !ppAccessible)
         return E_POINTER;

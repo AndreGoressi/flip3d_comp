@@ -58,7 +58,7 @@ enum class WallpaperPlacement
 };
 
 // ============================================================================
-// Flip3DCompApp — Main application class
+// Flip3DComp — Main application class
 // ============================================================================
 class Flip3DComp
 {

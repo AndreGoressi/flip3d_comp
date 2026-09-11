@@ -5,7 +5,7 @@
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nShowCmd)
 {
-    Flip3DCompApp app;
+    Flip3DComp app;
 
     if (!app.Initialize(hInstance))
     {

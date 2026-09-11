@@ -10,16 +10,16 @@
 #include <vector>
 #include <Windows.h>
 
-struct Flip3DCompApp::EnumContext
+struct Flip3DComp::EnumContext
 {
-    Flip3DCompApp*    app;
+    Flip3DComp*    app;
     std::vector<HWND> hwnds;
 };
 
 // ============================================================================
-// Flip3DCompApp::EnumWindowsProc
+// Flip3DComp::EnumWindowsProc
 // ============================================================================
-BOOL CALLBACK Flip3DCompApp::EnumWindowsProc(HWND hwnd, LPARAM lParam)
+BOOL CALLBACK Flip3DComp::EnumWindowsProc(HWND hwnd, LPARAM lParam)
 {
     auto* ctx = (EnumContext*)lParam;
 
@@ -35,9 +35,9 @@ BOOL CALLBACK Flip3DCompApp::EnumWindowsProc(HWND hwnd, LPARAM lParam)
 }
 
 // ============================================================================
-// Flip3DCompApp::EnumerateWindows
+// Flip3DComp::EnumerateWindows
 // ============================================================================
-std::vector<HWND> Flip3DCompApp::EnumerateWindows()
+std::vector<HWND> Flip3DComp::EnumerateWindows()
 {
     EnumContext ctx = { this };
     EnumWindows(EnumWindowsProc, (LPARAM)&ctx);
@@ -54,10 +54,10 @@ std::vector<HWND> Flip3DCompApp::EnumerateWindows()
 }
 
 // ============================================================================
-// Flip3DCompApp::ApplyFullscreenLayout
+// Flip3DComp::ApplyFullscreenLayout
 // uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
 // ============================================================================
-void Flip3DCompApp::ApplyFullscreenLayout()
+void Flip3DComp::ApplyFullscreenLayout()
 {
     if (!m_hwnd)
         return;
@@ -95,15 +95,15 @@ void Flip3DCompApp::ApplyFullscreenLayout()
 }
 
 // ============================================================================
-// Flip3DCompApp::CreateAppWindow
+// Flip3DComp::CreateAppWindow
 // uDWM Flip3D input window: borderless popup, topmost, full virtual desktop.
 // ============================================================================
-bool Flip3DCompApp::CreateWindow()
+bool Flip3DComp::CreateWindow()
 {
     WNDCLASSEXW wc = {
         sizeof(wc),
         CS_HREDRAW | CS_VREDRAW,
-        &Flip3DCompApp::WndProc,
+        &Flip3DComp::WndProc,
         0, 0,
         m_hInstance,
         nullptr,

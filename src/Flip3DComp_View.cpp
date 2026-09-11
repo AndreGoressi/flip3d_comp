@@ -7,9 +7,9 @@
 #include <cmath>
 
 // ============================================================================
-// Flip3DCompApp::ExitView
+// Flip3DComp::ExitView
 // ============================================================================
-void Flip3DCompApp::ExitView(bool commitScroll, float exitDurationSec)
+void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
 {
     if (m_state == ViewState::Exit || m_state == ViewState::ExitRepeatedRotate)
         return;
@@ -25,9 +25,9 @@ void Flip3DCompApp::ExitView(bool commitScroll, float exitDurationSec)
 }
 
 // ============================================================================
-// Flip3DCompApp::BeginExitView — uDWM CFlip3D::BeginExitView (parallel flatten)
+// Flip3DComp::BeginExitView — uDWM CFlip3D::BeginExitView (parallel flatten)
 // ============================================================================
-void Flip3DCompApp::BeginExitView()
+void Flip3DComp::BeginExitView()
 {
     if (m_state == ViewState::Exit || m_state == ViewState::ExitRepeatedRotate)
         return;
@@ -40,9 +40,9 @@ void Flip3DCompApp::BeginExitView()
 }
 
 // ============================================================================
-// Flip3DCompApp::SelectFront
+// Flip3DComp::SelectFront
 // ============================================================================
-void Flip3DCompApp::SelectFront()
+void Flip3DComp::SelectFront()
 {
     if (m_cards.empty())
         return;
@@ -65,9 +65,9 @@ void Flip3DCompApp::SelectFront()
 }
 
 // ============================================================================
-// Flip3DCompApp::SelectWindow — uDWM: BeginExitView then ExitRepeatedRotate
+// Flip3DComp::SelectWindow — uDWM: BeginExitView then ExitRepeatedRotate
 // ============================================================================
-void Flip3DCompApp::SelectWindow(HWND hwndTarget)
+void Flip3DComp::SelectWindow(HWND hwndTarget)
 {
     if (!hwndTarget || !IsWindow(hwndTarget))
         return;
@@ -121,9 +121,9 @@ void Flip3DCompApp::SelectWindow(HWND hwndTarget)
 }
 
 // ============================================================================
-// Flip3DCompApp::HitTest3DScene
+// Flip3DComp::HitTest3DScene
 // ============================================================================
-HWND Flip3DCompApp::HitTest3DScene(LONG screenX, LONG screenY) const
+HWND Flip3DComp::HitTest3DScene(LONG screenX, LONG screenY) const
 {
     if (m_cards.empty())
         return nullptr;

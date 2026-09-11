@@ -184,9 +184,9 @@ HRESULT CreateWallpaperSurface(ID3D11Device* d3d,
 } // namespace
 
 // ============================================================================
-// Flip3DCompApp::InitComposition
+// Flip3DComp::InitComposition
 // ============================================================================
-HRESULT Flip3DCompApp::InitComposition()
+HRESULT Flip3DComp::InitComposition()
 {
     if (!m_d3dDevice)
         return E_FAIL;

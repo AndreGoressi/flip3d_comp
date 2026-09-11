@@ -5,9 +5,9 @@
 #include <algorithm>
 
 // ============================================================================
-// Flip3DCompApp::QualifiesForView
+// Flip3DComp::QualifiesForView
 // ============================================================================
-bool Flip3DCompApp::QualifiesForView(HWND hwnd) const
+bool Flip3DComp::QualifiesForView(HWND hwnd) const
 {
     if (!hwnd || hwnd == m_hwnd || hwnd == GetDesktopWindow())
         return false;
@@ -54,12 +54,12 @@ bool Flip3DCompApp::QualifiesForView(HWND hwnd) const
 }
 
 // ============================================================================
-bool Flip3DCompApp::IsFlip3DViewActive() const
+bool Flip3DComp::IsFlip3DViewActive() const
 {
     return m_state != ViewState::Inactive;
 }
 
-bool Flip3DCompApp::IsNeverHiddenWindow(HWND hwnd) const
+bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
 {
     if (!hwnd)
         return true;
@@ -77,7 +77,7 @@ bool Flip3DCompApp::IsNeverHiddenWindow(HWND hwnd) const
 }
 
 // ============================================================================
-void Flip3DCompApp::EnterFlip3DWindowMode()
+void Flip3DComp::EnterFlip3DWindowMode()
 {
     if (!m_hwnd || m_shellHookRegistered)
         return;
@@ -89,7 +89,7 @@ void Flip3DCompApp::EnterFlip3DWindowMode()
         m_shellHookRegistered = true;
 }
 
-void Flip3DCompApp::LeaveFlip3DWindowMode()
+void Flip3DComp::LeaveFlip3DWindowMode()
 {
     if (m_hwnd && m_shellHookRegistered)
     {
@@ -99,7 +99,7 @@ void Flip3DCompApp::LeaveFlip3DWindowMode()
 }
 
 // ============================================================================
-void Flip3DCompApp::OnShellHookMessage(WPARAM wParam, LPARAM lParam)
+void Flip3DComp::OnShellHookMessage(WPARAM wParam, LPARAM lParam)
 {
     if (!IsFlip3DViewActive())
         return;
@@ -132,7 +132,7 @@ void Flip3DCompApp::OnShellHookMessage(WPARAM wParam, LPARAM lParam)
 }
 
 // ============================================================================
-void Flip3DCompApp::OnWindowShowHide(HWND hwnd)
+void Flip3DComp::OnWindowShowHide(HWND hwnd)
 {
     if (!IsFlip3DViewActive() || !hwnd || !IsWindow(hwnd))
         return;
@@ -155,7 +155,7 @@ void Flip3DCompApp::OnWindowShowHide(HWND hwnd)
 }
 
 // ============================================================================
-int Flip3DCompApp::FindCardIndex(HWND hwnd) const
+int Flip3DComp::FindCardIndex(HWND hwnd) const
 {
     if (!hwnd)
         return -1;
@@ -169,7 +169,7 @@ int Flip3DCompApp::FindCardIndex(HWND hwnd) const
 }
 
 // ============================================================================
-HRESULT Flip3DCompApp::CreateCardVisual(CardModel& card)
+HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
 {
     if (!m_dcompDevice || !m_sceneVisual || !card.m_hwnd)
         return E_INVALIDARG;
@@ -235,7 +235,7 @@ HRESULT Flip3DCompApp::CreateCardVisual(CardModel& card)
 }
 
 // ============================================================================
-bool Flip3DCompApp::AddCardForWindow(HWND hwnd)
+bool Flip3DComp::AddCardForWindow(HWND hwnd)
 {
     if (!hwnd || m_cards.size() >= (size_t)kMaxCards)
         return false;
@@ -260,7 +260,7 @@ bool Flip3DCompApp::AddCardForWindow(HWND hwnd)
 }
 
 // ============================================================================
-void Flip3DCompApp::RemoveCardAt(size_t index)
+void Flip3DComp::RemoveCardAt(size_t index)
 {
     if (index >= m_cards.size())
         return;
