@@ -158,7 +158,7 @@ void Flip3DComp::ApplyFullscreenLayout()
     return true;
 }*/
 
-bool Flip3DCompApp::InitializeDCompStage()
+bool Flip3DComp::InitializeDCompStage()
 {
     WNDCLASSEXW wc = {
         sizeof(wc),
