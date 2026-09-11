@@ -1,4 +1,4 @@
-name: Build flip3d
+name: Build flip3d_comp
 
 on:
   push:
