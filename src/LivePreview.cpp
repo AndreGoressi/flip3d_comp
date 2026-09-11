@@ -28,7 +28,7 @@ void LivePreview::Activate(BOOL enable, HWND hPeekWindow, HWND hTopmostWindow, P
 
     if (g_aeroPeekActive != enable)
     {
-        g_pDwmpActivateLivePreview(enable, hPeekWindow, hTopmostWindow, static_Item<UINT>(peekType), nullptr);
+        g_pDwmpActivateLivePreview(enable, hPeekWindow, hTopmostWindow, (UINT)peekType, nullptr);
         g_aeroPeekActive = enable;
     }
 }
