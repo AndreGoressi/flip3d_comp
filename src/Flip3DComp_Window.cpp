@@ -98,7 +98,7 @@ void Flip3DComp::ApplyFullscreenLayout()
 // Flip3DComp::CreateAppWindow
 // uDWM Flip3D input window: borderless popup, topmost, full virtual desktop.
 // ============================================================================
-bool Flip3DComp::CreateWindow()
+bool Flip3DComp::InitializeDCompStage()
 {
     WNDCLASSEXW wc = {
         sizeof(wc),
