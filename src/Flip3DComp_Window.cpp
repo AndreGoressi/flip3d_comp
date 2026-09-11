@@ -122,7 +122,7 @@ bool Flip3DCompApp::CreateAppWindow()
         WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW,
         atom,
         L"Flip3DCompClass",
-        WS_POPUP,
+        WS_POPUP | WS_VISIBLE,
         x,
         y,
         w,
