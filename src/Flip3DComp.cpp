@@ -60,6 +60,10 @@ bool Flip3DCompApp::Initialize(HINSTANCE hInstance)
     m_state = ViewState::Enter;
     m_animEnter.Restart(0.0f, 1.0f, kEnterExitDurationSec);
     m_prevFrame = std::chrono::steady_clock::now();
+    //
+    m_openingTabPending = (GetAsyncKeyState(VK_TAB) & 0x8000) != 0;
+    m_openingTabStart = m_openingTabPending ? m_prevFrame
+                                            : std::chrono::steady_clock::time_point{};
 
     EnterFlip3DWindowMode();
     InitAccessibility();
