@@ -2,6 +2,7 @@
 // Flip3DComp_View.cpp — View state: Exit, Select, HitTest3DScene
 // ============================================================================
 #include "Flip3DComp.h"
+#include "LivePreview.h"
 
 #include <algorithm>
 #include <cmath>
@@ -13,6 +14,8 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
 {
     if (m_state == ViewState::Exit || m_state == ViewState::ExitRepeatedRotate)
         return;
+
+    LivePreview::Activate(FALSE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
 
     if (commitScroll)
         CommitCarouselScroll();
