@@ -37,5 +37,5 @@ using SetWindowCompositionAttribute_t = BOOL (WINAPI*)(HWND, WINDOWCOMPOSITIONAT
 namespace WindowCompositionAttribute
 {
     bool Initialize();
-    bool EnableAcrylic(HWND hwnd, DWORD gradientColor);
+    bool EnableAcrylic(HWND hwnd);
 }
