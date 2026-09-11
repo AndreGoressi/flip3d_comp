@@ -179,7 +179,7 @@ LRESULT Flip3DCompApp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
 
     case WM_KEYDOWN:
-        if (OnKey(true, (UINT)wParam))
+        if (OnKey(true, (UINT)wParam, lParam))
             return 0;
         break;
         

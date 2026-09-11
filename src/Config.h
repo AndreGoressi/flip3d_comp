@@ -42,6 +42,16 @@ constexpr float  kTimelineBezierY2 = 1.0f;
 
 constexpr float  kScrollSmoothTimeSec      = 0.08f;    // smooth-scroll ease time constant
 constexpr float  kScrollSettleEpsilon      = 0.002f;   // scrollPos≈scrollTarget threshold (browse)
+
+// Missing from this fork's Config.h — pulled from milestprower92/flip3d_comp,
+// which is where the Update.cpp/Input.cpp code referencing them originated.
+constexpr float  kScrollWheelNotchFraction = 1.0f;     // carousel slots per mouse wheel notch
+constexpr float  kWheelActiveTimeoutSec    = 0.15f;    // throttle repeated wheel processing (uDWM CFlip3D::OnWheel)
+constexpr float  kKeyRepeatIntervalSec     = 0.135f;   // throttle repeated keydown processing (uDWM CFlip3D::OnKey)
+constexpr float  kHeldKeyStartDelaySec     = 0.20f;    // delay continuous rotation so a key tap moves one card
+constexpr float  kHeldKeyRotateSpeed       = 6.0f;     // carousel slots per second while a navigation key is held
+constexpr float  kOpeningTabDelaySec       = 0.40f;    // delay the first automatic Tab move after opening
+
 constexpr float  kRotateListDurationSec    = 0.175f;   // uDWM g_secRotateListDuration
 constexpr float  kNearPlaneEdgeSize        = 1.15f;    // near plane half-extent
 constexpr float  kNearPlaneDistance        = 1.0f;     // near plane Z distance

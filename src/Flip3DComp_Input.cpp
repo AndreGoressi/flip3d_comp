@@ -27,7 +27,7 @@ bool Flip3DCompApp::OnWheel(int wheelDelta)
 // ============================================================================
 // Flip3DCompApp::OnKey
 // ============================================================================
-bool Flip3DCompApp::OnKey(bool down, UINT vkCode)
+bool Flip3DCompApp::OnKey(bool down, UINT vkCode, LPARAM lParam)
 {
     /*if (!down ||
         m_state == ViewState::Exit ||

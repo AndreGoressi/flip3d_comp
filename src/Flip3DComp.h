@@ -200,7 +200,10 @@ private:
     // Input processing
     // ========================================================================
 
-    bool    OnKey(bool down, UINT vkCode);
+    // Was missing the LPARAM param — OnKey's own body already reads lParam
+    // (autorepeat-bit detection) but the declaration never had it, so that
+    // reference was silently resolving to nothing until it finally errored.
+    bool    OnKey(bool down, UINT vkCode, LPARAM lParam);
     bool    OnWheel(int wheelDelta);
     bool    OnMouse(LONG x, LONG y, bool pressed);
 
@@ -330,6 +333,7 @@ private:
     bool                    m_rotateBackward = false;
     bool                    m_showOutgoingDuringRotation = false;
     float                   m_rRepeatedRotateRate = 0.0f;
+    int                     m_repeatedRotateStepsRemaining = 0; // was missing — used by ReplayEnterAnimation
 
     // ---- Selection ----
     HWND                    m_originalFrontHwnd = nullptr;
