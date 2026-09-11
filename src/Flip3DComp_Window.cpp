@@ -144,6 +144,8 @@ bool Flip3DCompApp::CreateAppWindow()
                  SWP_FRAMECHANGED |
                  SWP_SHOWWINDOW |
                  SWP_NOZORDER);*/
+    SetWindowPos(m_hwnd, HWND_BOTTOM, x, y, w, h, SWP_NOACTIVATE | SWP_FRAMECHANGED);
+    ShowWindow(m_hwnd, SW_SHOWNOACTIVATE);
     //
     if (!m_hwnd)
         return false;
