@@ -122,7 +122,7 @@ bool Flip3DCompApp::CreateAppWindow()
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
     m_hwnd = WindowBand::CreateBandWindow(
-        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW,
+        WS_OVERLAPPEDWINDOW | WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW,
         atom,
         L"Flip3DCompClass",
         WS_POPUP | WS_VISIBLE,
@@ -135,17 +135,13 @@ bool Flip3DCompApp::CreateAppWindow()
         ZBID_DESKTOP
     );
     //
-    /*SetWindowPos(m_hwnd,
+    SetWindowPos(m_hwnd,
                  nullptr,
                  x,
                  y,
                  w,
                  h,
-                 SWP_FRAMECHANGED |
-                 SWP_SHOWWINDOW |
-                 SWP_NOZORDER);*/
-    SetWindowPos(m_hwnd, HWND_BOTTOM, x, y, w, h, SWP_NOACTIVATE | SWP_FRAMECHANGED);
-    ShowWindow(m_hwnd, SW_SHOWNOACTIVATE);
+                 SWP_SHOWWINDOW);
     //
     if (!m_hwnd)
         return false;
