@@ -145,12 +145,12 @@ bool Flip3DCompApp::CreateAppWindow()
                  h,
                  SWP_SHOWWINDOW);*/
     
-    if (m_hwnd)
-    {
+    //if (m_hwnd)
+    //{
         BOOL exclude = TRUE;
         DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
         WindowCompositionAttribute::EnableAcrylic(m_hwnd);;
-    }
+    //}
     //
     if (!m_hwnd)
         return false;
