@@ -55,28 +55,6 @@ std::vector<HWND> Flip3DCompApp::EnumerateWindows()
 // Flip3DCompApp::ApplyFullscreenLayout
 // uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
 // ============================================================================
-/*void Flip3DCompApp::ApplyFullscreenLayout()
-{
-    if (!m_hwnd)
-        return;
-
-    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
-    const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-
-    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
-
-    RECT client = {};
-    if (GetClientRect(m_hwnd, &client))
-    {
-        m_width  = std::max(1u, (UINT)(client.right  - client.left));
-        m_height = std::max(1u, (UINT)(client.bottom - client.top));
-    }
-
-    UpdateMonitorRect();
-}*/
-
 void Flip3DCompApp::ApplyFullscreenLayout()
 {
     if (!m_hwnd)
@@ -141,7 +119,7 @@ bool Flip3DCompApp::CreateAppWindow()
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
     m_hwnd = WindowBand::CreateBandWindow(
-        WS_EX_TOPMOST,
+        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW,
         atom,
         L"Flip3DCompClass",
         WS_POPUP,
@@ -154,15 +132,6 @@ bool Flip3DCompApp::CreateAppWindow()
         ZBID_DESKTOP
     );
     //
-    SetWindowLongPtrW(m_hwnd,
-                      GWL_STYLE,
-                      WS_POPUP);
-
-    SetWindowLongPtrW(m_hwnd,
-                      GWL_EXSTYLE,
-                      WS_EX_NOREDIRECTIONBITMAP |
-                      WS_EX_TOOLWINDOW);
-    
     SetWindowPos(m_hwnd,
                  nullptr,
                  x,
