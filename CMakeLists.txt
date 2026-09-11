@@ -8,7 +8,7 @@ add_executable(Flip3DComp WIN32
     src/resources.rc
     src/main.cpp
     src/Flip3DComp.cpp
-    src/Flip3DComp_Window.cpp
+    src/Flip3DComp_Stage.cpp
     src/Flip3DComp_Cards.cpp
     src/Flip3DComp_Composition.cpp
     src/Flip3DComp_Update.cpp
