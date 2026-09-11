@@ -86,8 +86,7 @@ private:
     // Lifecycle
     // ========================================================================
 
-    #undef CreateWindow
-    bool CreateWindow();
+    bool InitializeDCompStage();
     void    ApplyFullscreenLayout();
 
     // ========================================================================
