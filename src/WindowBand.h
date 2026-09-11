@@ -6,7 +6,7 @@ namespace WindowBand
 {
     bool Initialize();
 
-    HWND CreateBandWindow(DWORD exStyle,
+    HWND CreateWindowInBand(DWORD exStyle,
                           ATOM atom,
                           LPCWSTR title,
                           DWORD style,
