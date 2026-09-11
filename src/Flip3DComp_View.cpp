@@ -95,22 +95,13 @@ void Flip3DCompApp::SelectWindow(HWND hwndTarget)
         return;
     }
 
-    // Ported from flip3d (D3D11): restore minimized windows as early as
-    // possible — right when the selection happens, not just once our own
-    // overlay is about to close. This gives the real window the ENTIRE exit
-    // animation to actually redraw itself at full size in the background.
-    // Without this, the real window only starts restoring right as our
-    // thumbnail-based exit animation finishes, which is what caused the
-    // visible "content suddenly snaps/stretches" glitch — the thumbnail was
-    // still showing old/cached minimized-size content until the very last
-    // moment. Both calls together (not just one) is what flip3d found to
-    // actually work correctly, empirically.
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
-        PostMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
-        ShowWindow(hwndTarget, SW_RESTORE);
+        //PostMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
+        //ShowWindow(hwndTarget, SW_RESTORE);
 
         UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
+        ShowWindow(hwndTarget, SW_RESTORE);
     }
 
     m_selectedHwnd = hwndTarget;
