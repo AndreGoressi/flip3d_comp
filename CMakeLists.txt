@@ -22,6 +22,10 @@ add_executable(Flip3DComp WIN32
     src/WindowBand.cpp 
 )
 
+set_target_properties(Flip3DComp PROPERTIES
+    OUTPUT_NAME "flip3d"
+)
+
 target_include_directories(Flip3DComp PRIVATE src)
 target_link_libraries(Flip3DComp
     dwmapi
@@ -30,5 +34,7 @@ target_link_libraries(Flip3DComp
     d3d11         # DComp interop surface creation — no D3D rendering
     user32
     gdi32
+    windowscodecs
+    advapi32
     oleacc
 )
