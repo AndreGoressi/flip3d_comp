@@ -679,9 +679,9 @@ bool Flip3DCompApp::RebuildMonitorBackdropsIfNeeded()
                         mon.taskbarContainer.Reset();
                         mon.rcTaskbar = {};
                     }
-                }*/
                 }
-            }
+                }
+            }*/
 
             ComPtr<IDCompositionVisual> thumbBase;
             thumbBase.Attach((IDCompositionVisual*)pv);
