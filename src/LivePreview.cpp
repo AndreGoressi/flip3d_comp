@@ -12,7 +12,7 @@ bool LivePreview::Initialize()
     HMODULE dwmapiModule = LoadLibraryExW(L"dwmapi.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
     if (dwmapiModule)
     {
-        // Ordinal 113 is the native Aero Peek / Live Preview in dwmapi.dll
+        // Ordinal 113 is the native Aero Peek / Live Preview, dwmapi.dll
         g_pDwmpActivateLivePreview = reinterpret_cast<DwmpActivateLivePreview_t>(
             GetProcAddress(dwmapiModule, reinterpret_cast<LPCSTR>(113))
         );
