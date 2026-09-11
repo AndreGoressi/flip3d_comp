@@ -212,7 +212,6 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
     }
 
     case WM_DESTROY:
-        LivePreview::Activate(FALSE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
         //
         ShutdownAccessibility();
         LeaveFlip3DWindowMode();
