@@ -86,6 +86,7 @@ private:
     // Lifecycle
     // ========================================================================
 
+    #undef CreateWindow
     bool CreateWindow();
     void    ApplyFullscreenLayout();
 
