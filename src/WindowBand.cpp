@@ -22,16 +22,16 @@ bool WindowBand::Initialize()
 }
 
 HWND WindowBand::CreateWindowInBand(DWORD exStyle,
-                                  ATOM atom,
-                                  LPCWSTR title,
-                                  DWORD style,
-                                  int x,
-                                  int y,
-                                  int width,
-                                  int height,
-                                  HINSTANCE instance,
-                                  LPVOID param,
-                                  DWORD band)
+                                    ATOM atom,
+                                    LPCWSTR title,
+                                    DWORD style,
+                                    int x,
+                                    int y,
+                                    int width,
+                                    int height,
+                                    HINSTANCE instance,
+                                    LPVOID param,
+                                    DWORD band)
 {
     if (!Initialize())
         return nullptr;
