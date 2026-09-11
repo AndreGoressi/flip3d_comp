@@ -2,29 +2,28 @@ name: Build Flip3DComp
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
+  workflow_dispatch:  # allows manual trigger from the Actions tab
 
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Configure CMake
-      run: cmake -S . -B build
+      - name: Configure CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
-    - name: Build
-      run: cmake --build build --config Release
+      - name: Build
+        run: cmake --build build --config Release
 
-    - name: List Build Directory (Debug)
-      run: dir /s build
-      shell: cmd
-
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: Flip3DComp-Binary
-        path: build/**/flip3d.exe
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Flip3DComp
+          path: build/Release/flip3d.exe
+          if-no-files-found: error
