@@ -3,8 +3,10 @@
 // ============================================================================
 #include "Flip3DComp.h"
 #include "banding.h"
-#include <algorithm>
 #include "WindowBand.h"
+#include "WindowCompositionAttribute.h"
+//
+#include <algorithm>
 #include <vector>
 #include <Windows.h>
 
@@ -142,6 +144,13 @@ bool Flip3DCompApp::CreateAppWindow()
                  w,
                  h,
                  SWP_SHOWWINDOW);
+    
+    if (m_hwnd)
+    {
+        BOOL exclude = TRUE;
+        DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
+        WindowCompositionAttribute::EnableAcrylic(m_hwnd);;
+    }
     //
     if (!m_hwnd)
         return false;
