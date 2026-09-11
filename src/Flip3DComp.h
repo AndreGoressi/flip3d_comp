@@ -101,10 +101,10 @@ private:
     // ========================================================================
 
     HRESULT InitComposition();
-    HRESULT CreateShellBackdrop();
-    void    DestroyMonitorBackdrops();
-    void    UpdateBackdropLayout();
-    bool    RebuildMonitorBackdropsIfNeeded();
+    //HRESULT CreateShellBackdrop();
+    //void    DestroyMonitorBackdrops();
+    //void    UpdateBackdropLayout();
+    //bool    RebuildMonitorBackdropsIfNeeded();
 
     // ========================================================================
     // Window enumeration
@@ -295,8 +295,8 @@ private:
     float                   m_monOriginY    = 0.0f;   // primary rcWork.top  (screen px)
     float                   m_viewX         = 0.0f;   // primary rcWork origin in client px
     float                   m_viewY         = 0.0f;
-    std::vector<MonitorBackdrop> m_monitorBackdrops;
-    ComPtr<IDCompositionSurface> m_washSurface;
+    //std::vector<MonitorBackdrop> m_monitorBackdrops;
+    //ComPtr<IDCompositionSurface> m_washSurface;
     bool                    m_minimized     = false;
     bool                    m_rtl           = false;
     bool                    m_thumbnailsDirty = false; // coalesce WM 0x327 bursts
