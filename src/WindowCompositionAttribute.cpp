@@ -20,7 +20,7 @@ bool WindowCompositionAttribute::Initialize()
     return g_SetWindowCompositionAttribute != nullptr;
 }
 
-bool WindowCompositionAttribute::EnableAcrylic(HWND hwnd, DWORD gradientColor)
+bool WindowCompositionAttribute::EnableAcrylic(HWND hwnd)
 {
     if (!Initialize())
         return false;
