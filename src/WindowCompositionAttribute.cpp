@@ -27,8 +27,8 @@ bool WindowCompositionAttribute::EnableAcrylic(HWND hwnd)
 
     ACCENT_POLICY accent = {};
     accent.AccentState = ACCENT_ENABLE_ACRYLICBLURBEHIND;
-    accent.AccentFlags = 2;
-    accent.GradientColor =  0xCC101010;/*0x73190F0F; /*gradientColor*/
+    accent.AccentFlags = 4;
+    accent.GradientColor =  0x73190F0F; /*gradientColor*/
 
     WINDOWCOMPOSITIONATTRIBDATA data = {};
     data.Attrib = WCA_ACCENT_POLICY;
