@@ -21,14 +21,22 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
-      - name: Show build tree
-        run: dir build /s
-
-      - name: Create ZIP
+      - name: Locate EXE and create ZIP
+        shell: pwsh
         run: |
-          powershell Compress-Archive `
-            -Path build\Release\*.exe `
-            -DestinationPath build\flip3d.zip
+          $exe = Get-ChildItem -Path build -Recurse -Filter *.exe |
+                 Where-Object { $_.Name -eq "flip3d.exe" } |
+                 Select-Object -First 1
+
+          if (-not $exe)
+          {
+              throw "flip3d.exe not found!"
+          }
+
+          Compress-Archive `
+              -Path $exe.FullName `
+              -DestinationPath build\flip3d.zip `
+              -Force
 
       - name: Upload ZIP
         uses: actions/upload-artifact@v4
