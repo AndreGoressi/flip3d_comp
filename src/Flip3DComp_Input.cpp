@@ -74,30 +74,21 @@ bool Flip3DCompApp::OnKey(bool down, UINT vkCode, LPARAM lParam)
     }
 
     case VK_UP:
-        m_heldNavigationKey = vkCode;
-        m_heldNavigationDirection = -1;
-        m_heldNavigationStart = std::chrono::steady_clock::now();
+        // Arrow keys: single step per press only, no continuous auto-scroll
+        // while held (that's what m_heldNavigationKey/Direction/Start drove
+        // in TickSmoothScroll — deliberately not set here anymore).
         RotateBy(-1);
         return true;
 
     case VK_DOWN:
-        m_heldNavigationKey = vkCode;
-        m_heldNavigationDirection = 1;
-        m_heldNavigationStart = std::chrono::steady_clock::now();
         RotateBy(1);
         return true;
 
     case VK_LEFT:
-        m_heldNavigationKey = vkCode;
-        m_heldNavigationDirection = m_rtl ? 1 : -1;
-        m_heldNavigationStart = std::chrono::steady_clock::now();
         RotateBy(m_rtl ? 1 : -1);
         return true;
 
     case VK_RIGHT:
-        m_heldNavigationKey = vkCode;
-        m_heldNavigationDirection = m_rtl ? -1 : 1;
-        m_heldNavigationStart = std::chrono::steady_clock::now();
         RotateBy(m_rtl ? -1 : 1);
         return true;
 
