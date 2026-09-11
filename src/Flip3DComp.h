@@ -47,6 +47,16 @@ using Microsoft::WRL::ComPtr;
 
 class Flip3DAccessible;
 
+enum class WallpaperPlacement
+{
+    Center,
+    Tile,
+    Stretch,
+    Fit,
+    Fill,
+    Span,
+};
+
 // ============================================================================
 // Flip3DCompApp — Main application class
 // ============================================================================
@@ -255,11 +265,23 @@ private:
     {
         RECT                        rcMonitor = {};
         RECT                        rcWork    = {};
+        RECT                        rcTaskbar = {};
         ComPtr<IDCompositionVisual3> washVisual;
         ComPtr<IDCompositionVisual3> shellContainer;
         ComPtr<IDCompositionVisual3> shellThumb;
         HTHUMBNAIL                  hShellThumb = nullptr;
+        ComPtr<IDCompositionVisual3> taskbarContainer;
+        ComPtr<IDCompositionVisual3> taskbarThumb;
+        HTHUMBNAIL                  hTaskbarThumb = nullptr;
+        ComPtr<IDCompositionVisual3> wallpaperVisual;
+        ComPtr<IDCompositionSurface> wallpaperSurface;
+        UINT                        wallpaperWidth = 0;
+        UINT                        wallpaperHeight = 0;
+        WallpaperPlacement          wallpaperPlacement = WallpaperPlacement::Stretch;
+        std::vector<ComPtr<IDCompositionVisual3>> wallpaperTiles;
+        std::vector<POINT>           wallpaperTileOrigins;
     };
+
 
     // ---- Dimensions ----
     UINT                    m_width         = 1600;
@@ -280,6 +302,15 @@ private:
 
     // ---- Frame timing ----
     std::chrono::steady_clock::time_point   m_prevFrame;
+    //new
+    std::chrono::steady_clock::time_point   m_lastKeyProcessed{};
+    int                                       m_wheelPendingSlots = 0;
+    std::chrono::steady_clock::time_point     m_lastWheelTime{};
+    UINT                                      m_heldNavigationKey = 0;
+    int                                       m_heldNavigationDirection = 0;
+    std::chrono::steady_clock::time_point     m_heldNavigationStart{};
+    bool                                      m_openingTabPending = false;
+    std::chrono::steady_clock::time_point     m_openingTabStart{};
 
     // ---- Cards & view state ----
     std::vector<CardModel>  m_cards;
