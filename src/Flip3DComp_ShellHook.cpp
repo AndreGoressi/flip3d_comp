@@ -222,12 +222,18 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
         clip->SetTop(0.f);
         clip->SetRight((float)card.m_srcWidth);
         clip->SetBottom((float)card.m_srcHeight);
-        clip->SetRadiusX(9.0f);
-        clip->SetRadiusY(9.0f);
+        clip->SetTopLeftRadiusX(9.0f);
+        clip->SetTopLeftRadiusY(9.0f);
+        clip->SetTopRightRadiusX(9.0f);
+        clip->SetTopRightRadiusY(9.0f);
+        clip->SetBottomLeftRadiusX(9.0f);
+        clip->SetBottomLeftRadiusY(9.0f);
+        clip->SetBottomRightRadiusX(9.0f);
+        clip->SetBottomRightRadiusY(9.0f);
 
         container->SetClip(clip.Get());
     }
-    // ----------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
     //
     container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
