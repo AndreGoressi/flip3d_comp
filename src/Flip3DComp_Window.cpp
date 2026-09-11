@@ -122,7 +122,7 @@ bool Flip3DCompApp::CreateAppWindow()
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
     m_hwnd = WindowBand::CreateBandWindow(
-        WS_OVERLAPPEDWINDOW | WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW,
+        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW,
         atom,
         L"Flip3DCompClass",
         WS_POPUP | WS_VISIBLE,
