@@ -27,7 +27,7 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
 
     BuildCards();
 
-    if (!CreateWindow())
+    if (!InitializeDCompStage())
     {
         if (m_initError.empty())
             m_initError = L"Failed to create the Flip3D input window.";
