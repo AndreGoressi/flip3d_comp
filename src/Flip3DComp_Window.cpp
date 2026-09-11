@@ -98,7 +98,7 @@ void Flip3DCompApp::ApplyFullscreenLayout()
 // Flip3DCompApp::CreateAppWindow
 // uDWM Flip3D input window: borderless popup, topmost, full virtual desktop.
 // ============================================================================
-bool Flip3DCompApp::CreateAppWindow()
+bool Flip3DCompApp::CreateWindow()
 {
     WNDCLASSEXW wc = {
         sizeof(wc),
@@ -123,7 +123,7 @@ bool Flip3DCompApp::CreateAppWindow()
     const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
-    m_hwnd = WindowBand::CreateBandWindow(
+    m_hwnd = WindowBand::CreateWindowInBand(
         WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW,
         atom,
         L"Flip3DCompClass",
