@@ -49,13 +49,6 @@ bool Flip3DCompApp::Initialize(HINSTANCE hInstance)
             m_initError = L"Failed to create DWM thumbnail visuals.";
         return false;
     }
-
-    /*if (FAILED(CreateShellBackdrop()))
-    {
-        if (m_initError.empty())
-            m_initError = L"Failed to create the shell desktop backdrop.";
-        return false;
-    }*/
     
     m_state = ViewState::Enter;
     m_animEnter.Restart(0.0f, 1.0f, kEnterExitDurationSec);
