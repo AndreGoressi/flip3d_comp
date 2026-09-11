@@ -139,7 +139,7 @@ bool Flip3DComp::InitializeDCompStage()
     //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
-    WindowCompositionAttribute::EnableAcrylic(m_hwnd);;
+    WindowCompositionAttribute::EnableAcrylic(m_hwnd);
     //
     if (!m_hwnd)
         return false;
