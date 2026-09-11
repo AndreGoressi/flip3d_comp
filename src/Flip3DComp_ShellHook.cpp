@@ -215,6 +215,20 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     if (FAILED(hr))
         return hr;
 
+    ComPtr<IDCompositionRectangleClip> clip;
+    if (SUCCEEDED(m_dcompDevice->CreateRectangleClip(&clip)))
+    {
+        clip->SetLeft(0.f);
+        clip->SetTop(0.f);
+        clip->SetRight((float)card.m_srcWidth);
+        clip->SetBottom((float)card.m_srcHeight);
+        clip->SetRadiusX(9.0f);
+        clip->SetRadiusY(9.0f);
+
+        container->SetClip(clip.Get());
+    }
+    // ----------------------------------------------------------------
+
     //
     container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
     container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
