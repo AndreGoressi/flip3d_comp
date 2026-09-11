@@ -578,7 +578,7 @@ void Flip3DComp::RotateToWindow(HWND targetHwnd)
 // ============================================================================
 // Flip3DComp::TickSmoothScroll
 // ============================================================================
-void Flip3DCompApp::TickSmoothScroll(float dtSeconds)
+void Flip3DComp::TickSmoothScroll(float dtSeconds)
 {
     if (m_cards.size() <= 1 || m_state != ViewState::Interactive)
         return;
