@@ -134,22 +134,13 @@ bool Flip3DCompApp::CreateAppWindow()
         h,
         m_hInstance,
         this,
-        ZBID_DEFAULT
+        ZBID_DESKTOP
     );
     //
-    /*SetWindowPos(m_hwnd,
-                 nullptr,
-                 x,
-                 y,
-                 w,
-                 h,
-                 SWP_SHOWWINDOW);*/
-    
-    //if (m_hwnd)
-    //{
-        BOOL exclude = TRUE;
-        DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
-        WindowCompositionAttribute::EnableAcrylic(m_hwnd);;
+
+    BOOL exclude = TRUE;
+    DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
+    WindowCompositionAttribute::EnableAcrylic(m_hwnd);;
     //}
     //
     if (!m_hwnd)
