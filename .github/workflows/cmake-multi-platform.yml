@@ -22,5 +22,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: flip3d_comp
-          path: build/**/*.exe
+          path: build/*.exe
         
