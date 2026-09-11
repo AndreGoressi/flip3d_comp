@@ -95,24 +95,23 @@ void Flip3DCompApp::SelectWindow(HWND hwndTarget)
         return;
     }
 
-    //if (m_cards[(size_t)selIdx].m_isMinimized)
-        //UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
-
+    // Ported from flip3d (D3D11): restore minimized windows as early as
+    // possible — right when the selection happens, not just once our own
+    // overlay is about to close. This gives the real window the ENTIRE exit
+    // animation to actually redraw itself at full size in the background.
+    // Without this, the real window only starts restoring right as our
+    // thumbnail-based exit animation finishes, which is what caused the
+    // visible "content suddenly snaps/stretches" glitch — the thumbnail was
+    // still showing old/cached minimized-size content until the very last
+    // moment. Both calls together (not just one) is what flip3d found to
+    // actually work correctly, empirically.
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
-        RecreateThumbnail(
-            m_cards[(size_t)selIdx]);
+        PostMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
+        ShowWindow(hwndTarget, SW_RESTORE);
 
-        UpdateCardGeometry(
-            m_cards[(size_t)selIdx],
-            m_monW,
-            m_monH,
-            /*selectedRestore=*/true);
-
-        if (m_dcompDevice)
-            m_dcompDevice->Commit();
+        UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
     }
-
 
     m_selectedHwnd = hwndTarget;
     m_lastPaintOrder.clear();
@@ -161,6 +160,9 @@ HWND Flip3DCompApp::HitTest3DScene(LONG screenX, LONG screenY) const
 
         float sw = (float)std::max(c.m_srcWidth,  1);
         float sh = (float)std::max(c.m_srcHeight, 1);
+        //float sw = (float)std::max(c.m_thumbTexWidth,  1);
+        //float sh = (float)std::max(c.m_thumbTexHeight, 1);
+        
 
         auto project = [&](float px, float py) -> Vec2
         {
