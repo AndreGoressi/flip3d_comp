@@ -15,10 +15,10 @@ bool Flip3DCompApp::OnWheel(int wheelDelta)
         m_state == ViewState::ExitRepeatedRotate)
         return false;
 
-    const float scaled = (float)wheelDelta / (float)WHEEL_DELTA * kScrollWheelNotchFraction;
+    const float scaled = -(float)wheelDelta / (float)WHEEL_DELTA * kScrollWheelNotchFraction;
     int deltaSlots = (int)std::round(scaled);
     if (deltaSlots == 0 && wheelDelta != 0)
-        deltaSlots = (wheelDelta > 0) ? 1 : -1;
+        deltaSlots = (wheelDelta > 0) ? -1 : 1;
     m_wheelPendingSlots += deltaSlots;
     m_lastWheelTime = std::chrono::steady_clock::now();
     return true;
@@ -50,12 +50,12 @@ bool Flip3DCompApp::OnKey(bool down, UINT vkCode, LPARAM lParam)
         m_state == ViewState::ExitRepeatedRotate)
         return false;
 
-    // Detect Windows autorepeat: bit 30 of lParam is set if the key was
-    // previously down. Throttle repeated keydown processing so holding an
-    // arrow or tab key doesn't rotate the carousel too quickly.
-    const bool isRepeat = (lParam & (1 << 30)) != 0;
-    if (isRepeat)
-        return true; // held navigation is driven from the frame update
+    // Was swallowing every OS keyboard-autorepeat event so a smooth,
+    // custom-timed continuous scroll could take over instead — now that
+    // arrow keys don't drive that anymore, this needs to be gone too, or
+    // holding a key down does literally nothing after the first tap.
+    // Falling through here lets Windows' own repeat cadence just trigger
+    // another RotateBy() each time, exactly like the very first press.
 
     switch (vkCode)
     {
@@ -66,9 +66,6 @@ bool Flip3DCompApp::OnKey(bool down, UINT vkCode, LPARAM lParam)
     case VK_TAB:
     {
         const int direction = (GetAsyncKeyState(VK_SHIFT) & 0x8000) ? -1 : 1;
-        m_heldNavigationKey = vkCode;
-        m_heldNavigationDirection = direction;
-        m_heldNavigationStart = std::chrono::steady_clock::now();
         RotateBy(direction);
         return true;
     }
