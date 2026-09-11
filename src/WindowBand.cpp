@@ -21,7 +21,7 @@ bool WindowBand::Initialize()
     return g_CreateWindowInBand != nullptr;
 }
 
-HWND WindowBand::CreateBandWindow(DWORD exStyle,
+HWND WindowBand::CreateWindowInBand(DWORD exStyle,
                                   ATOM atom,
                                   LPCWSTR title,
                                   DWORD style,
