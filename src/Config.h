@@ -31,9 +31,8 @@ using Matrix4x4 = D2D_MATRIX_4X4_F;
 // ============================================================================
 // uDWM animation / camera constants
 // ============================================================================
-constexpr float  kEnterExitDurationSec     = 0.25f;    // uDWM binary: 0.25s
-constexpr float  kExitDurationSec          = 0.25f;    // uDWM: same timeline for exit + exit-rotate
-constexpr bool   kEnableAnimationEasing    = false;    // controls if Flip3D should use easing or not
+constexpr float  kEnterExitDurationSec     = 0.333f;    // uDWM binary: 0.25s
+constexpr float  kExitDurationSec          = 0.333f;    // uDWM: same timeline for exit + exit-rotate
 
 // Timeline easing: CSS cubic-bezier(0, 0, 0, 1) — fast start, soft landing
 constexpr float  kTimelineBezierX1 = 0.0f;
@@ -41,19 +40,8 @@ constexpr float  kTimelineBezierY1 = 0.0f;
 constexpr float  kTimelineBezierX2 = 0.0f;
 constexpr float  kTimelineBezierY2 = 1.0f;
 
-constexpr float  kScrollSmoothTimeSec      = 0.15f;    // smooth-scroll ease time constant
-constexpr float  kAnimationRate            = 1.0f;     // animation speed multiplier (1 = normal)
-constexpr float  kShiftAnimationRate       = 0.1f;     // Windows/DWM Shift slowdown (10x slower)
-constexpr float  kScrollSettleEpsilon      = 0.002f;   // scrollPos≈scrollTarget threshold (browse
-constexpr float  kFrontCardExitSlot        = -0.5f;    // front card slot when exiting (fade-out)
-constexpr float  kFrontCardFadeSpeed       = 0.0f;     // front card fade speed (0 = instant, 1 = linear)
-constexpr float  kScrollWheelNotchFraction = 1.0f;     // carousel slots per mouse wheel notch
-constexpr bool   kScrollWheelSnapToSlots   = true;     // snap scroll target to integer slots after wheel input
-constexpr float  kWheelActiveTimeoutSec    = 0.15f;    // throttle repeated wheel processing (uDWM CFlip3D::OnWheel)
-constexpr float  kKeyRepeatIntervalSec     = 0.135f;   // throttle repeated keydown processing (uDWM CFlip3D::OnKey)
-constexpr float  kHeldKeyStartDelaySec     = 0.20f;    // delay continuous rotation so a key tap moves one card
-constexpr float  kHeldKeyRotateSpeed       = 6.0f;     // carousel slots per second while a navigation key is held
-constexpr float  kOpeningTabDelaySec       = 0.40f;    // delay the first automatic Tab move after opening
+constexpr float  kScrollSmoothTimeSec      = 0.08f;    // smooth-scroll ease time constant
+constexpr float  kScrollSettleEpsilon      = 0.002f;   // scrollPos≈scrollTarget threshold (browse)
 constexpr float  kRotateListDurationSec    = 0.175f;   // uDWM g_secRotateListDuration
 constexpr float  kNearPlaneEdgeSize        = 1.15f;    // near plane half-extent
 constexpr float  kNearPlaneDistance        = 1.0f;     // near plane Z distance
@@ -62,18 +50,18 @@ constexpr int    kMaxCards                 = 24;       // absolute max cards in 
 
 enum class CardThumbnailQuality
 {
-Low,MediumLow,Medium,MediumHigh,High,
+    Low,
+    MediumLow,
+    Medium,
+    MediumHigh,
+    High,
 };
 
-constexpr CardThumbnailQuality kCardThumbnailQuality = CardThumbnailQuality::Medium; // This controls the DWM thumbnail resolution used by 3D window cards. By default Windows Vista & 7 have it set to a Medium value (0.50f)
-
-constexpr float  kBackCardOpacityScale     = 1.0f;     // scale opacity for cards near the back edge (slot ~ span-2..span)
-constexpr float  kBackCardMinOpacity       = 0.60f;    // minimum opacity for cards entering from the back (wrap fade)
-constexpr float  kBackCardFadeTimeSec      = 0.015f;    // fade-in time for cards entering from the back (wrap fade)
-constexpr bool   kEnableBackCardOpacityEasing = true;
+constexpr CardThumbnailQuality kCardThumbnailQuality = CardThumbnailQuality::Medium; 
+// This controls the DWM thumbnail resolution used by 3D window cards. By default Windows Vista & 7 have it set to a Medium value (0.50f)
 
 // Pre-computed camera poses (radians)
-constexpr float kCameraFinalTranslateX = -1.1f;             
+constexpr float kCameraFinalTranslateX = -1.1f;
 constexpr float kCameraFinalTranslateY =  0.35f;   // uDWM InitializeModelAndCamera
 constexpr float kCameraFinalTranslateZ =  0.35f;
 constexpr float kCameraFinalRotateX    =  0.08726646f;   //  5.0 deg pitch
@@ -84,7 +72,7 @@ constexpr float kCameraFinalRotateZ    =  0.061086524f;  //  3.5 deg roll
 constexpr float kBezierControls[3][3] = {
     { -2.0f,   0.5f,   -2.25f },
     { -1.8f,   0.55f,  -1.25f },
-    { -1.45f, -0.1f,   -0.3f  },        
+    { -1.45f, -0.1f,   -0.3f  },
 };
 
 constexpr float CardThumbnailQualityScale()

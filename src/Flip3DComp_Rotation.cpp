@@ -327,11 +327,10 @@ void Flip3DCompApp::TickRepeatedRotate()
 
     if (m_state == ViewState::ExitRepeatedRotate)
     {
-        if (m_repeatedRotateStepsRemaining > 0)
+        if (!m_selectedHwnd || m_cards[0].m_hwnd != m_selectedHwnd)
         {
             constexpr bool backward = false;
             RotateListPhysically(backward);
-            --m_repeatedRotateStepsRemaining;
             StartRotationStep(backward, RotationDurationForRotateList());
 
             for (int k = 0; k < (int)m_cards.size(); ++k)

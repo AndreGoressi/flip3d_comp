@@ -129,6 +129,8 @@ private:
     void    OnThumbnailSourceSizeChanged();
     void    UpdateCardThumbnailDest(CardModel& card);
     HRESULT CreateCardVisuals();
+    //new
+    void RecreateThumbnail(CardModel& card);
 
     // ========================================================================
     // Per-frame update
@@ -188,7 +190,7 @@ private:
     // Input processing
     // ========================================================================
 
-    bool    OnKey(bool down, UINT vkCode, LPARAM lParam);
+    bool    OnKey(bool down, UINT vkCode);
     bool    OnWheel(int wheelDelta);
     bool    OnMouse(LONG x, LONG y, bool pressed);
 
@@ -203,7 +205,7 @@ private:
     // ========================================================================
 
     void    UpdateCamera(float enterProgress);
-    void    UpdateCards(float enterProgress, float dtSeconds);
+    void    UpdateCards(float enterProgress);
     Matrix4x4 BuildCameraMatrix(float enterProgress) const;
     Matrix4x4 BuildViewMatrix(float enterProgress) const;
     Matrix4x4 BuildProjMatrix(float aspect, float enterProgress) const;
@@ -278,14 +280,6 @@ private:
 
     // ---- Frame timing ----
     std::chrono::steady_clock::time_point   m_prevFrame;
-    std::chrono::steady_clock::time_point   m_lastKeyProcessed{};
-    int                                       m_wheelPendingSlots = 0;
-    std::chrono::steady_clock::time_point     m_lastWheelTime{};
-    UINT                                      m_heldNavigationKey = 0;
-    int                                       m_heldNavigationDirection = 0;
-    std::chrono::steady_clock::time_point     m_heldNavigationStart{};
-    bool                                      m_openingTabPending = false;
-    std::chrono::steady_clock::time_point     m_openingTabStart{};
 
     // ---- Cards & view state ----
     std::vector<CardModel>  m_cards;
@@ -305,7 +299,6 @@ private:
     bool                    m_rotateBackward = false;
     bool                    m_showOutgoingDuringRotation = false;
     float                   m_rRepeatedRotateRate = 0.0f;
-    int                     m_repeatedRotateStepsRemaining = 0;
 
     // ---- Selection ----
     HWND                    m_originalFrontHwnd = nullptr;

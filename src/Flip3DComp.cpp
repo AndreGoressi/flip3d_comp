@@ -58,14 +58,8 @@ bool Flip3DCompApp::Initialize(HINSTANCE hInstance)
     }
     
     m_state = ViewState::Enter;
-    m_animEnter.Restart(0.0f, 1.0f, kEnterExitDurationSec,
-                        kEnableAnimationEasing
-                            ? InterpolationMode::CubicBezier
-                            : InterpolationMode::Linear);
+    m_animEnter.Restart(0.0f, 1.0f, kEnterExitDurationSec);
     m_prevFrame = std::chrono::steady_clock::now();
-    m_openingTabPending = (GetAsyncKeyState(VK_TAB) & 0x8000) != 0;
-    m_openingTabStart = m_openingTabPending ? m_prevFrame
-                                            : std::chrono::steady_clock::time_point{};
 
     EnterFlip3DWindowMode();
     InitAccessibility();
@@ -181,14 +175,21 @@ LRESULT Flip3DCompApp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
 
     case WM_KEYDOWN:
-        if (OnKey(true, (UINT)wParam, lParam))
+        if (OnKey(true, (UINT)wParam))
             return 0;
         break;
-
-    case WM_KEYUP:
-        if (OnKey(false, (UINT)wParam, lParam))
-            return 0;
-        break;
+        
+    // new
+    case WM_ACTIVATE:
+        if (LOWORD(wParam) == WA_INACTIVE)
+        {
+            if (m_state != ViewState::Exit && m_state != ViewState::ExitRepeatedRotate)
+            {
+                ExitView();
+            }
+        }
+        return 0;
+    //close_if_focus_lost
 
     case WM_CLOSE:
         if (m_state == ViewState::Exit ||
