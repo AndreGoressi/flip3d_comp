@@ -60,7 +60,7 @@ enum class WallpaperPlacement
 // ============================================================================
 // Flip3DCompApp — Main application class
 // ============================================================================
-class Flip3DCompApp
+class Flip3DComp
 {
     friend class Flip3DAccessible;
 
@@ -86,7 +86,7 @@ private:
     // Lifecycle
     // ========================================================================
 
-    bool CreateAppWindow();
+    bool CreateWindow();
     void    ApplyFullscreenLayout();
 
     // ========================================================================
