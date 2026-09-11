@@ -111,9 +111,9 @@ int Flip3DCompApp::Run()
 }
 
 // ============================================================================
-// Flip3DCompApp::WndProc — static window procedure
+// Flip3DCompApp::WndProc — window procedure
 // ============================================================================
-LRESULT CALLBACK Flip3DCompApp::WndProc(HWND hwnd, UINT msg,
+/*LRESULT CALLBACK Flip3DCompApp::WndProc(HWND hwnd, UINT msg,
                                          WPARAM wParam, LPARAM lParam)
 {
     if (msg == WM_NCCREATE)
@@ -130,6 +130,35 @@ LRESULT CALLBACK Flip3DCompApp::WndProc(HWND hwnd, UINT msg,
     return self
         ? self->HandleMessage(msg, wParam, lParam)
         : DefWindowProcW(hwnd, msg, wParam, lParam);
+}*/
+
+LRESULT CALLBACK Flip3DCompApp::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) 
+{
+    switch (msg) 
+    {
+        case WM_GETMINMAXINFO: {
+            MINMAXINFO* pMinMaxInfo = reinterpret_cast<MINMAXINFO*>(lParam);
+            
+            HMONITOR hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
+            MONITORINFO mi = { sizeof(mi) };
+            GetMonitorInfoW(hMonitor, &mi);
+            
+            int width = mi.rcWork.right - mi.rcWork.left;
+            int height = mi.rcWork.bottom - mi.rcWork.top;
+            
+            pMinMaxInfo->ptMaxSize.x = width;
+            pMinMaxInfo->ptMaxSize.y = height;
+            pMinMaxInfo->ptMaxPosition.x = mi.rcWork.left;
+            pMinMaxInfo->ptMaxPosition.y = mi.rcWork.top;
+            
+            return 0;
+        }
+        
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
+    }
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
 }
 
 // ============================================================================
