@@ -207,7 +207,7 @@ HRESULT CreateWallpaperSurface(ID3D11Device* d3d,
 
 } // namespace
 
-namespace {
+/*namespace {
 
 HRESULT CreateSharedWashSurface(ID3D11Device* d3d,
                                 IDCompositionDesktopDevice* dcomp,
@@ -249,7 +249,7 @@ HRESULT CreateSharedWashSurface(ID3D11Device* d3d,
     return outSurface ? S_OK : E_FAIL;
 }
 
-} // namespace
+} // namespace*/
 
 // ============================================================================
 // Flip3DCompApp::InitComposition
@@ -293,8 +293,8 @@ HRESULT Flip3DCompApp::InitComposition()
     root.As(&rootBase);
     rootBase->AddVisual(m_sceneVisual.Get(), FALSE, nullptr);
 
-    if (m_d3dDevice)
-        CreateSharedWashSurface(m_d3dDevice.Get(), m_dcompDevice.Get(), m_washSurface);
+    /*if (m_d3dDevice)
+        CreateSharedWashSurface(m_d3dDevice.Get(), m_dcompDevice.Get(), m_washSurface);*/
 
     return m_dcompDevice->Commit();
 }
