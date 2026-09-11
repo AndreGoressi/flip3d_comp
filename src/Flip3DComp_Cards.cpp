@@ -322,7 +322,7 @@ void Flip3DCompApp::BuildCards()
 // ============================================================================
 // Flip3DCompApp::CreateCardVisuals
 // ============================================================================
-HRESULT Flip3DCompApp::CreateCardVisuals()
+/*HRESULT Flip3DCompApp::CreateCardVisuals()
 {
     if (!m_dcompDevice || !m_sceneVisual)
         return E_FAIL;
@@ -337,6 +337,40 @@ HRESULT Flip3DCompApp::CreateCardVisuals()
     }
 
     return S_OK;
+}*/
+
+// ============================================================================
+// Flip3DCompApp::CreateCardVisuals
+// ============================================================================
+HRESULT Flip3DCompApp::CreateCardVisuals()
+{
+    if (!m_dcompDevice || !m_sceneVisual)
+        return E_FAIL;
+
+    int successCount = 0;
+    for (auto& card : m_cards)
+    {
+        if (!card.m_hwnd || card.m_containerVisual)
+            continue;
+
+        HRESULT hr = CreateCardVisual(card);
+        if (FAILED(hr))
+        {
+            wchar_t dbgMsg[256];
+            swprintf_s(dbgMsg, L"Flip3DComp Debug: CreateCardVisual failed for HWND %p with HRESULT 0x%08X\n", card.m_hwnd, hr);
+            OutputDebugStringW(dbgMsg);
+        }
+        else
+        {
+            successCount++;
+        }
+    }
+
+    wchar_t summaryMsg[256];
+    swprintf_s(summaryMsg, L"Flip3DComp Debug: Successfully created %d / %zu card visuals.\n", successCount, m_cards.size());
+    OutputDebugStringW(summaryMsg);
+
+    return successCount > 0 ? S_OK : E_FAIL;
 }
 
 // ============================================================================
