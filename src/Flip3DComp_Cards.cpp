@@ -267,9 +267,6 @@ void Flip3DCompApp::UpdateMonitorRect()
         for (auto& card : m_cards)
             UpdateCardGeometry(card, m_monW, m_monH);
     }
-
-    //RebuildMonitorBackdropsIfNeeded();
-    //UpdateBackdropLayout();
 }
 
 // ============================================================================
