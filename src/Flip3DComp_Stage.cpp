@@ -201,18 +201,6 @@ bool Flip3DComp::InitializeDCompStage()
                 y += tbHeight;
                 h -= tbHeight;
             }
-            // left docked?
-            else if (rcTaskbar.left <= x && rcTaskbar.right >= x)
-            {
-                int tbWidth = rcTaskbar.right - rcTaskbar.left;
-                x += tbWidth;
-                w -= tbWidth;
-            }
-            // right docked?
-            else if (rcTaskbar.left <= x + w && rcTaskbar.right >= x + w)
-            {
-                w -= (rcTaskbar.right - rcTaskbar.left);
-            }
         }
     }
 
