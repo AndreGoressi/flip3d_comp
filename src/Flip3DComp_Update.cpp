@@ -647,18 +647,6 @@ void Flip3DCompApp::Update(float dtSeconds)
 
     TickSmoothScroll(dtSeconds);
 
-    /*const float washProgress  = std::clamp(m_animEnter.LinearValue(), 0.0f, 1.0f);
-
-    if (m_sceneVisual)
-        m_sceneVisual->SetOpacity(1.0f);
-    for (auto& mon : m_monitorBackdrops)
-    {
-        if (mon.washVisual)
-            mon.washVisual->SetOpacity(washProgress * kDesktopWashOpacityScale);
-        if (mon.shellContainer)
-            mon.shellContainer->SetOpacity(1.0f);
-    }*/
-
     if (m_state == ViewState::Enter && !m_animEnter.IsActive())
     {
         m_state = ViewState::Interactive;
