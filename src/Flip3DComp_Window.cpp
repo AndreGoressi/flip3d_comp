@@ -74,7 +74,7 @@ void Flip3DCompApp::ApplyFullscreenLayout()
                  SWP_SHOWWINDOW);
 
     SetWindowPos(m_hwnd, HWND_BOTTOM, x, y, w, h, SWP_NOACTIVATE | SWP_FRAMECHANGED);
-    ShowWindow(hwnd, SW_SHOWNOACTIVATE);
+    ShowWindow(m_hwnd, SW_SHOWNOACTIVATE);
 
     RECT client = {};
 
