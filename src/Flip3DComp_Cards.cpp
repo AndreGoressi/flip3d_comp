@@ -173,6 +173,16 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
     c.m_srcWidth  = (int)thumbW;
     c.m_srcHeight = (int)thumbH;
 
+    //
+    float maxResW = normMonW;
+    float maxResH = normMonH;
+    float scale = std::min(maxResW / thumbW, maxResH / thumbH);
+    scale = std::min(scale, 1.0f); 
+
+    c.m_thumbTexWidth  = std::max(1, (int)(thumbW * scale));
+    c.m_thumbTexHeight = std::max(1, (int)(thumbH * scale));
+    // -------------------------------------------------------------------------------
+
     // targetSize / occupancy = 3D carousel (uDWM finalSize).
     Math::WorldSizesFromThumbPixels(
         thumbW, thumbH, normMonW, normMonH,
@@ -338,6 +348,9 @@ void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
     if (!card.m_hThumb || card.m_srcWidth <= 0 || card.m_srcHeight <= 0)
         return;
 
+    LONG targetW = (LONG)std::max(1.0f, std::abs(card.m_targetSize.x) * m_monW);
+    LONG targetH = (LONG)std::max(1.0f, std::abs(card.m_targetSize.y) * m_monH);
+
     DWM_THUMBNAIL_PROPERTIES tp = {};
     // Was DWM_TNP_DISABLEFORCECVI — that's what let staircase edges creep
     // back in for every window that isn't minimized/frozen (Steam, AdGuard,
@@ -347,7 +360,7 @@ void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
     // actively-updating content — DISABLEFORCECVI apparently only behaves
     // acceptably for already-frozen/iconic (minimized) source bitmaps.
     tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
-                    | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
+                    | DWM_TNP_ENABLE3D | DWM_TNP_DISABLEFORCECVI;
     tp.fVisible  = TRUE;
     tp.rcDestination   = { 0, 0, card.m_srcWidth, card.m_srcHeight };
     DwmUpdateThumbnailProperties(card.m_hThumb, &tp);
