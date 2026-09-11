@@ -8,19 +8,14 @@
 // Modern smooth scroll: each WHEEL_DELTA notch nudges the scroll target by one
 // slot. Wheel down (delta < 0) scrolls front→back; wheel up scrolls back→front.
 // ============================================================================
-bool Flip3DComp::OnWheel(int wheelDelta)
+bool Flip3DCompApp::OnWheel(int wheelDelta)
 {
     if (wheelDelta == 0 ||
         m_state == ViewState::Exit ||
         m_state == ViewState::ExitRepeatedRotate)
         return false;
 
-    const float scaled = -(float)wheelDelta / (float)WHEEL_DELTA * kScrollWheelNotchFraction;
-    int deltaSlots = (int)std::round(scaled);
-    if (deltaSlots == 0 && wheelDelta != 0)
-        deltaSlots = (wheelDelta > 0) ? -1 : 1;
-    m_wheelPendingSlots += deltaSlots;
-    m_lastWheelTime = std::chrono::steady_clock::now();
+    m_scrollTarget -= (float)wheelDelta / (float)WHEEL_DELTA;
     return true;
 }
 
@@ -29,33 +24,14 @@ bool Flip3DComp::OnWheel(int wheelDelta)
 // ============================================================================
 bool Flip3DComp::OnKey(bool down, UINT vkCode, LPARAM lParam)
 {
-    /*if (!down ||
+    if (!down ||
         m_state == ViewState::Exit ||
         m_state == ViewState::ExitRepeatedRotate)
-        return false;*/
-    
-    if (!down)
-    {
-        if (vkCode == m_heldNavigationKey)
-        {
-            m_heldNavigationKey = 0;
-            m_heldNavigationDirection = 0;
-            m_heldNavigationStart = {};
-            m_scrollTarget = std::round(m_scrollTarget);
-        }
         return false;
-    }
 
     if (m_state == ViewState::Exit ||
         m_state == ViewState::ExitRepeatedRotate)
         return false;
-
-    // Was swallowing every OS keyboard-autorepeat event so a smooth,
-    // custom-timed continuous scroll could take over instead — now that
-    // arrow keys don't drive that anymore, this needs to be gone too, or
-    // holding a key down does literally nothing after the first tap.
-    // Falling through here lets Windows' own repeat cadence just trigger
-    // another RotateBy() each time, exactly like the very first press.
 
     switch (vkCode)
     {
@@ -71,9 +47,6 @@ bool Flip3DComp::OnKey(bool down, UINT vkCode, LPARAM lParam)
     }
 
     case VK_UP:
-        // Arrow keys: single step per press only, no continuous auto-scroll
-        // while held (that's what m_heldNavigationKey/Direction/Start drove
-        // in TickSmoothScroll — deliberately not set here anymore).
         RotateBy(-1);
         return true;
 
