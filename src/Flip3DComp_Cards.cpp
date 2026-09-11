@@ -360,7 +360,7 @@ void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
 // card thumbnail posts independently, so the WndProc only sets m_thumbnailsDirty
 // and this runs once per frame, touching cards whose queried source size differs.
 // ============================================================================
-/*void Flip3DCompApp::OnThumbnailSourceSizeChanged()
+void Flip3DCompApp::OnThumbnailSourceSizeChanged()
 {
     m_thumbnailsDirty = false;
 
@@ -387,7 +387,7 @@ void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
 
     if (anyChange && m_dcompDevice)
         m_dcompDevice->Commit();
-}*/
+}
 
 void Flip3DCompApp::RecreateThumbnail(CardModel& card)
 {
@@ -420,32 +420,4 @@ void Flip3DCompApp::RecreateThumbnail(CardModel& card)
     {
         UpdateCardThumbnailDest(card);
     }
-}
-
-void Flip3DCompApp::OnThumbnailSourceSizeChanged()
-{
-    m_thumbnailsDirty = false;
-
-    bool anyChange = false;
-
-    for (auto& card : m_cards)
-    {
-        if (!card.m_hwnd)
-            continue;
-
-        const bool selectedRestore =
-            card.m_hwnd == m_selectedHwnd;
-
-        UpdateCardGeometry(
-            card,
-            m_monW,
-            m_monH,
-            selectedRestore);
-
-        UpdateCardThumbnailDest(card);
-        anyChange = true;
-    }
-
-    if (anyChange && m_dcompDevice)
-        m_dcompDevice->Commit();
 }
