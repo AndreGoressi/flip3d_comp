@@ -137,13 +137,13 @@ bool Flip3DCompApp::CreateAppWindow()
         ZBID_UIACCESS
     );
     //
-    SetWindowPos(m_hwnd,
+    /*SetWindowPos(m_hwnd,
                  nullptr,
                  x,
                  y,
                  w,
                  h,
-                 SWP_SHOWWINDOW);
+                 SWP_SHOWWINDOW);*/
     
     if (m_hwnd)
     {
