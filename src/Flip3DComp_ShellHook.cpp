@@ -2,7 +2,6 @@
 // Flip3DComp_ShellHook.cpp — dynamic card list via RegisterShellHookWindow
 // ============================================================================
 #include "Flip3DComp.h"
-
 #include <algorithm>
 
 // ============================================================================
@@ -175,6 +174,9 @@ HRESULT Flip3DCompApp::CreateCardVisual(CardModel& card)
     if (!m_dcompDevice || !m_sceneVisual || !card.m_hwnd)
         return E_INVALIDARG;
 
+    LONG targetW = (LONG)std::max(1.0f, std::abs(card.m_targetSize.x) * m_monW);
+    LONG targetH = (LONG)std::max(1.0f, std::abs(card.m_targetSize.y) * m_monH);
+
     DWM_THUMBNAIL_PROPERTIES tp = {};
     // Same fix as UpdateCardThumbnailDest, and actually the more important
     // one: this is where every card's thumbnail is FIRST registered, at
@@ -212,6 +214,13 @@ HRESULT Flip3DCompApp::CreateCardVisual(CardModel& card)
     hr = m_dcompDevice->CreateVisual(&container);
     if (FAILED(hr))
         return hr;
+
+    //
+    container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+    container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+
+    card.m_visual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+    card.m_visual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
 
     hr = container->AddVisual(card.m_visual.Get(), FALSE, nullptr);
     if (FAILED(hr))
