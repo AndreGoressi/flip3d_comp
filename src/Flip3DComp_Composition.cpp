@@ -302,7 +302,7 @@ HRESULT Flip3DCompApp::InitComposition()
 // ============================================================================
 // Flip3DCompApp::DestroyMonitorBackdrops
 // ============================================================================
-void Flip3DCompApp::DestroyMonitorBackdrops()
+/*void Flip3DCompApp::DestroyMonitorBackdrops()
 {
     if (!m_rootVisual)
     {
@@ -681,7 +681,7 @@ bool Flip3DCompApp::RebuildMonitorBackdropsIfNeeded()
                     }
                 }
                 }
-            }*/
+            }
 
             ComPtr<IDCompositionVisual> thumbBase;
             thumbBase.Attach((IDCompositionVisual*)pv);
@@ -805,4 +805,4 @@ HRESULT Flip3DCompApp::CreateShellBackdrop()
             return E_FAIL;
     }
     return S_OK;
-}
+}*/
