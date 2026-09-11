@@ -70,7 +70,7 @@ struct TaskbarSearchContext
     HWND taskbar = nullptr;
 };
 
-BOOL CALLBACK FindTaskbarProc(HWND hwnd, LPARAM lParam)
+/*BOOL CALLBACK FindTaskbarProc(HWND hwnd, LPARAM lParam)
 {
     auto* ctx = reinterpret_cast<TaskbarSearchContext*>(lParam);
     wchar_t className[64] = {};
@@ -85,14 +85,14 @@ BOOL CALLBACK FindTaskbarProc(HWND hwnd, LPARAM lParam)
         return FALSE;
     }
     return TRUE;
-}
+}*/
 
-HWND FindTaskbarForMonitor(HMONITOR monitor)
+/*HWND FindTaskbarForMonitor(HMONITOR monitor)
 {
     TaskbarSearchContext ctx = { monitor, nullptr };
     EnumWindows(FindTaskbarProc, reinterpret_cast<LPARAM>(&ctx));
     return ctx.taskbar;
-}
+}*/
 
 HRESULT CreateWallpaperSurface(ID3D11Device* d3d,
                                IDCompositionDesktopDevice* dcomp,
@@ -632,7 +632,7 @@ bool Flip3DCompApp::RebuildMonitorBackdropsIfNeeded()
             if (FAILED(hr) || !pv)
                 continue;
 
-            HWND taskbar = FindTaskbarForMonitor(MonitorFromRect(&mon.rcMonitor,
+            /*HWND taskbar = FindTaskbarForMonitor(MonitorFromRect(&mon.rcMonitor,
                                                                  MONITOR_DEFAULTTONEAREST));
             if (taskbar)
             {
@@ -680,7 +680,7 @@ bool Flip3DCompApp::RebuildMonitorBackdropsIfNeeded()
                         mon.rcTaskbar = {};
                     }
                 }
-            }
+            }*/
             }
 
             ComPtr<IDCompositionVisual> thumbBase;
