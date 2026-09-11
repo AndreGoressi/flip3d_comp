@@ -134,7 +134,7 @@ bool Flip3DCompApp::CreateAppWindow()
         h,
         m_hInstance,
         this,
-        ZBID_DESKTOP
+        ZBID_UIACCESS
     );
     //
     SetWindowPos(m_hwnd,
