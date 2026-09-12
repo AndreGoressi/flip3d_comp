@@ -219,7 +219,7 @@ HRESULT Flip3DComp::InitComposition()
     //m_sceneVisual->SetDepthMode(DCOMPOSITION_DEPTH_MODE_TREE);
     // before, DCOMPOSITION_DEPTH_MODE_TREE:
     // test, DCOMPOSITION_DEPTH_MODE_SPATIAL
-    m_sceneVisual->SetDepthMode(DCOMPOSITION_DEPTH_MODE_SORTED);
+    m_sceneVisual->SetDepthMode(DCOMPOSITION_DEPTH_MODE_SPATIAL);
     //
     /*m_sceneVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
     m_sceneVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);*/
