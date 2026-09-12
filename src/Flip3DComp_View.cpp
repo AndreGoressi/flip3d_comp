@@ -2,7 +2,6 @@
 // Flip3DComp_View.cpp — View state: Exit, Select, HitTest3DScene
 // ============================================================================
 #include "Flip3DComp.h"
-#include "LivePreview.h"
 
 #include <algorithm>
 #include <cmath>
@@ -14,8 +13,6 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
 {
     if (m_state == ViewState::Exit || m_state == ViewState::ExitRepeatedRotate)
         return;
-
-    LivePreview::Activate(FALSE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
 
     if (commitScroll)
         CommitCarouselScroll();
@@ -100,10 +97,12 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
 
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
-        //ShowWindowAsync(hwndTarget, SW_RESTORE);
-        //DwmInvalidateIconicBitmaps(hwndTarget);
+        ShowWindowAsync(m_selectedHWND, SW_HIDE);
+        SendMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
+        UpdateWindow(hwndTarget);  
+        ShowWindowAsync(hwndTarget, SW_SHOWNA);
+        //
         UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
-
     }
 
     m_selectedHwnd = hwndTarget;

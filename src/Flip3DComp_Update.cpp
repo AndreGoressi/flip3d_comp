@@ -32,7 +32,12 @@ void Flip3DComp::ReplayEnterAnimation()
     m_scrollPos           = 0.0f;
     m_scrollTarget        = 0.0f;
     m_wrapScrollAdjustThisFrame = 0.0f;
+    m_heldNavigationKey   = 0;
+    m_heldNavigationDirection = 0;
+    m_heldNavigationStart = {};
     m_repeatedRotateStepsRemaining = 0;
+    m_openingTabPending = false;
+    m_openingTabStart = {};
     m_selectedHwnd        = nullptr;
     m_rRepeatedRotateRate = 0.0f;
     m_showOutgoingDuringRotation = false;
@@ -583,6 +588,35 @@ void Flip3DComp::TickSmoothScroll(float dtSeconds)
     if (m_cards.size() <= 1 || m_state != ViewState::Interactive)
         return;
 
+    const auto now = std::chrono::steady_clock::now();
+    const float heldTime = std::chrono::duration<float>(now - m_heldNavigationStart).count();
+    if (m_heldNavigationDirection != 0 && heldTime >= kHeldKeyStartDelaySec)
+    {
+        m_scrollTarget += (float)m_heldNavigationDirection
+            * kHeldKeyRotateSpeed * dtSeconds;
+    }
+
+    if (m_wheelPendingSlots != 0)
+    {
+        const auto now = std::chrono::steady_clock::now();
+        const float sinceWheel = std::chrono::duration<float>(now - m_lastWheelTime).count();
+        if (sinceWheel > kWheelActiveTimeoutSec)
+        {
+            m_wheelPendingSlots = 0;
+        }
+        else
+        {
+            const float sinceKey = std::chrono::duration<float>(now - m_lastKeyProcessed).count();
+            if (sinceKey >= kKeyRepeatIntervalSec)
+            {
+                const int step = (m_wheelPendingSlots > 0) ? 1 : -1;
+                RotateBy(step);
+                m_wheelPendingSlots -= step;
+                m_lastKeyProcessed = now;
+            }
+        }
+    }
+
     StepCarouselScroll(dtSeconds, /*notifyFrontChange=*/true);
 }
 
@@ -621,6 +655,25 @@ void Flip3DComp::Update(float dtSeconds)
         NotifyAccessibilityFocusFront();
     }
 
+    if (m_openingTabPending && m_state == ViewState::Interactive)
+    {
+        const auto now = std::chrono::steady_clock::now();
+        const bool tabStillDown = (GetAsyncKeyState(VK_TAB) & 0x8000) != 0;
+        const float pendingTime = std::chrono::duration<float>(now - m_openingTabStart).count();
+        if (!tabStillDown)
+        {
+            m_openingTabPending = false;
+        }
+        else if (pendingTime >= kOpeningTabDelaySec)
+        {
+            m_openingTabPending = false;
+            OnKey(true, VK_TAB, 0);
+            m_heldNavigationStart = now
+                - std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+                    std::chrono::duration<float>(kHeldKeyStartDelaySec));
+        }
+    }
+
     UpdateCamera(enterProgress);
     UpdateCards(enterProgress);
 
@@ -628,7 +681,9 @@ void Flip3DComp::Update(float dtSeconds)
         m_dcompDevice->Commit();
 
     if (m_state == ViewState::Exit && !m_animEnter.IsActive())
+    {
         DestroyWindow(m_hwnd);
+    }
 
     if (m_state == ViewState::ExitRepeatedRotate
         && !m_animEnter.IsActive()
