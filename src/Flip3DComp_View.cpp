@@ -15,24 +15,6 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
     if (m_state == ViewState::Exit || m_state == ViewState::ExitRepeatedRotate)
         return;
 
-    if (commitScroll)
-        CommitCarouselScroll();
-
-    m_lastPaintOrder.clear();
-    m_state = ViewState::Exit;
-    NotifyAccessibilityEvent(EVENT_SYSTEM_DIALOGEND);
-    m_animEnter.Restart(EnterProgress(), 0.0f, exitDurationSec,
-                        InterpolationMode::Linear);
-}
-
-// ============================================================================
-// Flip3DComp::BeginExitView — uDWM CFlip3D::BeginExitView (parallel flatten)
-// ============================================================================
-void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
-{
-    if (m_state == ViewState::Exit || m_state == ViewState::ExitRepeatedRotate)
-        return;
-
     LivePreview::Activate(FALSE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
 
     if (commitScroll)
