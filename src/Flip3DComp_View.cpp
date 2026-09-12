@@ -93,10 +93,10 @@ void Flip3DComp::RevealAndActivateQueuedTarget()
     if (!target || !IsWindow(target))
         return;
 
-    SetWindowPos(m_hwnd, HWND_NOTOPMOST, 0, 0, 0, 0,
-        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+    /*SetWindowPos(m_hwnd, HWND_NOTOPMOST, 0, 0, 0, 0,
+        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);*/
 
-    SetForegroundWindow(target);
+    //SetForegroundWindow(target);
     m_revealedTarget = true;
 }
 
