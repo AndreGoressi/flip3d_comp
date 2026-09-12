@@ -210,7 +210,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     ComPtr<IDCompositionRectangleClip> clip;
     if (SUCCEEDED(m_dcompDevice->CreateRectangleClip(&clip)))
     {
-        float radius = 5.0f;
+        float radius = 4.5f;
         clip->SetLeft(0.f);
         clip->SetTop(0.f);
         clip->SetRight((float)card.m_srcWidth);
