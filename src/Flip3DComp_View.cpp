@@ -78,6 +78,7 @@ void Flip3DComp::QueueTargetActivation(HWND hwndTarget)
     m_revealedTarget = false;
 
     if (IsIconic(target))
+        //ShowWindowAsync(target, SW_SHOWNOACTIVATE);
         ShowWindowAsync(target, SW_RESTORE);
 }
 
@@ -93,9 +94,7 @@ void Flip3DComp::RevealAndActivateQueuedTarget()
     if (!target || !IsWindow(target))
         return;
     
-    //SetForegroundWindow(target);
-    ShowWindowAsync(target, SW_SHOWNOACTIVATE);
-
+    SetForegroundWindow(target);
     m_revealedTarget = true;
 }
 
