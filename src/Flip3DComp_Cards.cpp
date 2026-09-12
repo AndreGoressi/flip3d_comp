@@ -115,7 +115,7 @@ void Flip3DComp::UnloadThumbApi()
 //   - NormalizeWindowSize + world mapping via shared PRIMARY rcWork (normMon*)
 //   - GetMonitorToWorldTransform on primary m_rcMonitor for all cards
 // ============================================================================
-void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
+/*void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
                                        bool selectedRestore)
 {
     HWND h = c.m_hwnd;
@@ -196,6 +196,109 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
 
     // 2D flat: position from flatBounds; size from QueryThumbSize (restored pixels).
     // Exceptions: shell uses rcWork; iconic minimize uses taskbar tile dimensions.
+    float flatW = thumbW;
+    float flatH = thumbH;
+    if (c.m_isShellDesktop || c.m_isMinimized)
+    {
+        flatW = (float)std::max(1L, flatBounds.right  - flatBounds.left);
+        flatH = (float)std::max(1L, flatBounds.bottom - flatBounds.top);
+    }
+
+    c.m_flatSize = { flatW / normMonW, flatH / normMonH };
+
+    float anchorX = (float)flatBounds.left;
+    float anchorY = (float)flatBounds.top;
+    if (m_rtl)
+    {
+        const float relX = anchorX - m_monOriginX;
+        anchorX = m_monOriginX + (normMonW - (flatW + relX));
+    }
+
+    float worldX = 0.0f;
+    float worldY = 0.0f;
+    Math::MonitorToWorldTopLeft(
+        anchorX, anchorY,
+        m_monOriginX, m_monOriginY, normMonW, normMonH,
+        worldX, worldY);
+
+    c.m_originalPos = { worldX, worldY, 0.0f };
+    c.m_flatPos     = { worldX, worldY, 0.0f };
+}*/
+
+void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
+                                    bool selectedRestore)
+{
+    HWND h = c.m_hwnd;
+    if (!h)
+        return;
+
+    normMonW = std::max(normMonW, 1.0f);
+    normMonH = std::max(normMonH, 1.0f);
+
+    c.m_isMinimized    = !!IsIconic(h) && !selectedRestore;
+    c.m_isShellDesktop = (h == GetShellWindow());
+
+    HMONITOR mon = MonitorFromWindow(h, MONITOR_DEFAULTTONEAREST);
+    if (!mon)
+        mon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+
+    MONITORINFO mi = { sizeof(mi) };
+    if (mon)
+        GetMonitorInfoW(mon, &mi);
+    else
+        mi = QueryPrimaryMonitor();
+
+    SIZE srcSize = {};
+    BOOL queryExtended = selectedRestore ? TRUE : FALSE;
+    if (FAILED(m_pfnQueryThumbSize(h, queryExtended, &srcSize))
+        || srcSize.cx < 1 || srcSize.cy < 1)
+    {
+        RECT rcWin = {};
+        if (GetWindowRect(h, &rcWin))
+        {
+            srcSize.cx = rcWin.right - rcWin.left;
+            srcSize.cy = rcWin.bottom - rcWin.top;
+        }
+        if (srcSize.cx < 1 || srcSize.cy < 1)
+            return;
+    }
+
+    float thumbW = (float)srcSize.cx;
+    float thumbH = (float)srcSize.cy;
+    const float thumbAspect = thumbH / thumbW;
+
+    RECT flatBounds = {};
+
+    if (c.m_isShellDesktop)
+    {
+        MONITORINFO primaryMi = QueryPrimaryMonitor();
+        flatBounds = primaryMi.rcWork;
+    }
+    else if (c.m_isMinimized)
+    {
+        RECT minRect = {};
+        if (m_pfnGetWindowMinimizeRect(h, &minRect) && !IsRectEmpty(&minRect))
+            flatBounds = Math::BuildFinalMinRect(minRect, thumbAspect);
+    }
+    else if (!FillRestoredScreenRect(h, mi, flatBounds))
+    {
+        flatBounds = mi.rcWork;
+    }
+
+    if (IsRectEmpty(&flatBounds))
+        flatBounds = mi.rcWork;
+
+    // 3D carousel sizes
+    Math::WorldSizesFromThumbPixels(
+        thumbW, thumbH, normMonW, normMonH,
+        c.m_flatSize, c.m_targetSize, c.m_occupancy);
+
+    c.m_aspectRatio = thumbW / thumbH;
+
+    const float qualityScale = CardThumbnailQualityScale();
+    c.m_srcWidth  = std::max(1, (int)std::lround(thumbW * qualityScale));
+    c.m_srcHeight = std::max(1, (int)std::lround(thumbH * qualityScale));
+
     float flatW = thumbW;
     float flatH = thumbH;
     if (c.m_isShellDesktop || c.m_isMinimized)
