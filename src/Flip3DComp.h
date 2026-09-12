@@ -88,6 +88,13 @@ private:
 
     bool InitializeDCompStage();
     void    ApplyFullscreenLayout();
+    //new
+    void QueueTargetActivation(HWND hwndTarget);
+    void RevealAndActivateQueuedTarget();
+
+    HWND m_pendingActivationHwnd = nullptr;
+    bool m_pendingActivation = false;
+    bool m_revealedTarget = false;
 
     // ========================================================================
     // DWM Thumbnail API (dwmapi.dll ordinals 147, 162)
