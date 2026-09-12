@@ -229,8 +229,8 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     // -------------------------------------------------------------------------
 
     //
-    /*container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-    container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);*/
+    container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+    container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
 
     card.m_visual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
     card.m_visual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
