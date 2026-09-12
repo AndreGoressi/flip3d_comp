@@ -140,6 +140,13 @@ bool Flip3DComp::InitializeDCompStage()
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
     WindowCompositionAttribute::EnableBlurBehind(m_hwnd);
+
+    HWND hTaskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
+    if (hTaskbar)
+    {
+        SetWindowPos(hTaskbar, HWND_TOP, 0, 0, 0, 0, 
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+    }
     //
     if (!m_hwnd)
         return false;
