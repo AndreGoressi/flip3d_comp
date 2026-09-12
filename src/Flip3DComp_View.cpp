@@ -2,6 +2,7 @@
 // Flip3DComp_View.cpp — View state: Exit, Select, HitTest3DScene
 // ============================================================================
 #include "Flip3DComp.h"
+#include "LivePreview.h"
 
 #include <algorithm>
 #include <cmath>
@@ -27,16 +28,21 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
 // ============================================================================
 // Flip3DComp::BeginExitView — uDWM CFlip3D::BeginExitView (parallel flatten)
 // ============================================================================
-void Flip3DComp::BeginExitView()
+void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
 {
     if (m_state == ViewState::Exit || m_state == ViewState::ExitRepeatedRotate)
         return;
 
+    LivePreview::Activate(FALSE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
+
+    if (commitScroll)
+        CommitCarouselScroll();
+
     m_lastPaintOrder.clear();
-    NotifyAccessibilityEvent(EVENT_SYSTEM_DIALOGEND);
-    m_animEnter.Restart(EnterProgress(), 0.0f, kExitDurationSec,
-                        InterpolationMode::Linear);
     m_state = ViewState::Exit;
+    NotifyAccessibilityEvent(EVENT_SYSTEM_DIALOGEND);
+    m_animEnter.Restart(EnterProgress(), 0.0f, exitDurationSec,
+                        InterpolationMode::Linear);
 }
 
 // ============================================================================
