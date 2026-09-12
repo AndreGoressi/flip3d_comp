@@ -116,7 +116,7 @@ void Flip3DComp::UnloadThumbApi()
 //   - GetMonitorToWorldTransform on primary m_rcMonitor for all cards
 // ============================================================================
 void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
-                                       bool selectedRestore)
+                                    bool selectedRestore)
 {
     HWND h = c.m_hwnd;
     if (!h)
@@ -139,9 +139,19 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
         mi = QueryPrimaryMonitor();
 
     SIZE srcSize = {};
-    if (FAILED(m_pfnQueryThumbSize(h, FALSE, &srcSize))
+    BOOL queryExtended = selectedRestore ? TRUE : FALSE;
+    if (FAILED(m_pfnQueryThumbSize(h, queryExtended, &srcSize))
         || srcSize.cx < 1 || srcSize.cy < 1)
-        return;
+    {
+        RECT rcWin = {};
+        if (GetWindowRect(h, &rcWin))
+        {
+            srcSize.cx = rcWin.right - rcWin.left;
+            srcSize.cy = rcWin.bottom - rcWin.top;
+        }
+        if (srcSize.cx < 1 || srcSize.cy < 1)
+            return;
+    }
 
     float thumbW = (float)srcSize.cx;
     float thumbH = (float)srcSize.cy;
@@ -151,13 +161,11 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
 
     if (c.m_isShellDesktop)
     {
-        // uDWM shell: relative origin {0,0} on primary - use primary rcWork.
         MONITORINFO primaryMi = QueryPrimaryMonitor();
         flatBounds = primaryMi.rcWork;
     }
     else if (c.m_isMinimized)
     {
-        // 2D minimize destination: taskbar tile position only.
         RECT minRect = {};
         if (m_pfnGetWindowMinimizeRect(h, &minRect) && !IsRectEmpty(&minRect))
             flatBounds = Math::BuildFinalMinRect(minRect, thumbAspect);
@@ -170,20 +178,7 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
     if (IsRectEmpty(&flatBounds))
         flatBounds = mi.rcWork;
 
-    c.m_srcWidth  = (int)thumbW;
-    c.m_srcHeight = (int)thumbH;
-
-    //
-    float maxResW = normMonW;
-    float maxResH = normMonH;
-    float scale = std::min(maxResW / thumbW, maxResH / thumbH);
-    scale = std::min(scale, 1.0f); 
-
-    c.m_srcWidth  = std::max(1, (int)(thumbW * scale));
-    c.m_srcHeight = std::max(1, (int)(thumbH * scale));
-    // -------------------------------------------------------------------------------
-
-    // targetSize / occupancy = 3D carousel (uDWM finalSize).
+    // 3D carousel sizes
     Math::WorldSizesFromThumbPixels(
         thumbW, thumbH, normMonW, normMonH,
         c.m_flatSize, c.m_targetSize, c.m_occupancy);
@@ -191,11 +186,9 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
     c.m_aspectRatio = thumbW / thumbH;
 
     const float qualityScale = CardThumbnailQualityScale();
-    c.m_srcWidth = std::max(1, (int)std::lround(thumbW * qualityScale));
+    c.m_srcWidth  = std::max(1, (int)std::lround(thumbW * qualityScale));
     c.m_srcHeight = std::max(1, (int)std::lround(thumbH * qualityScale));
 
-    // 2D flat: position from flatBounds; size from QueryThumbSize (restored pixels).
-    // Exceptions: shell uses rcWork; iconic minimize uses taskbar tile dimensions.
     float flatW = thumbW;
     float flatH = thumbH;
     if (c.m_isShellDesktop || c.m_isMinimized)
