@@ -100,10 +100,10 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
 
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
-        UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
-        //
         ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
         SendMessageW(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
+        //
+        UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
     }
 
     m_selectedHwnd = hwndTarget;
