@@ -178,14 +178,6 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     LONG targetH = (LONG)std::max(1.0f, std::abs(card.m_targetSize.y) * m_monH);
 
     DWM_THUMBNAIL_PROPERTIES tp = {};
-    // Same fix as UpdateCardThumbnailDest, and actually the more important
-    // one: this is where every card's thumbnail is FIRST registered, at
-    // Flip3D startup or whenever Shell-Hook adds a new window. Source size
-    // rarely changes mid-session, so UpdateCardThumbnailDest (which only
-    // runs on a size-change event) may never even fire again after this —
-    // meaning DISABLEFORCECVI here was the real, persistent cause, not just
-    // a secondary path. FORCECVI is what makes DWM actually re-filter the
-    // thumbnail to the reduced rcDestination for live/active window content.
     tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
                  | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
     tp.fVisible  = TRUE;
@@ -237,11 +229,11 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     // -------------------------------------------------------------------------
 
     //
-    container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+    /*container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
     container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
 
     card.m_visual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-    card.m_visual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+    card.m_visual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);*/
 
     hr = container->AddVisual(card.m_visual.Get(), FALSE, nullptr);
     if (FAILED(hr))
