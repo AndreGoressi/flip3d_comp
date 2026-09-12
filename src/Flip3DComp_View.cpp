@@ -67,6 +67,39 @@ void Flip3DComp::SelectFront()
     SelectWindow(m_cards[(size_t)bestIdx].m_hwnd);
 }
 
+void Flip3DComp::QueueTargetActivation(HWND hwndTarget)
+{
+    HWND target = GetLastActivePopup(GetAncestor(hwndTarget, GA_ROOTOWNER));
+    if (!target || !IsWindow(target))
+        target = hwndTarget;
+
+    m_pendingActivationHwnd = target;
+    m_pendingActivation = true;
+    m_revealedTarget = false;
+
+    if (IsIconic(target))
+        ShowWindowAsync(target, SW_RESTORE);
+}
+
+void Flip3DComp::RevealAndActivateQueuedTarget()
+{
+    if (!m_pendingActivation)
+        return;
+
+    m_pendingActivation = false;
+    const HWND target = m_pendingActivationHwnd;
+    m_pendingActivationHwnd = nullptr;
+
+    if (!target || !IsWindow(target))
+        return;
+
+    SetWindowPos(m_hwnd, HWND_NOTOPMOST, 0, 0, 0, 0,
+        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+
+    SetForegroundWindow(target);
+    m_revealedTarget = true;
+}
+
 // ============================================================================
 // Flip3DComp::SelectWindow — uDWM: BeginExitView then ExitRepeatedRotate
 // ============================================================================
@@ -76,49 +109,39 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         return;
 
     const bool isShell = (hwndTarget == GetShellWindow());
-
     if (isShell)
     {
         if (HWND shellTray = FindWindowW(L"Shell_TrayWnd", nullptr))
             PostMessageW(shellTray, 0x579, 1, 0);
     }
-    else if (!IsWindowEnabled(hwndTarget))
-    {
-        SwitchToThisWindow(GetLastActivePopup(GetAncestor(hwndTarget, GA_ROOTOWNER)), TRUE);
-    }
     else
     {
-        SwitchToThisWindow(hwndTarget, TRUE);
+        QueueTargetActivation(hwndTarget);
     }
 
-    const int selIdx = FindCardIndex(hwndTarget);
-    if (selIdx < 0)
+    const int selectedIndex = FindCardIndex(hwndTarget);
+    if (selectedIndex < 0)
     {
         ExitView();
         return;
     }
 
-    if (m_cards[(size_t)selIdx].m_isMinimized)
+    if (m_cards[(size_t)selectedIndex].m_isMinimized)
     {
-        UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
-        //
-        //ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
-        //SendMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
-
+        UpdateCardGeometry(m_cards[(size_t)selectedIndex], m_monW, m_monH,
+            /* selectedRestore = */ true);
     }
 
     m_selectedHwnd = hwndTarget;
     m_lastPaintOrder.clear();
-
     FreezeCarouselVisuals();
-
     BeginExitView();
 
-    // Re-index after wrap may have rotated the list; step count = list index of selection.
-    const int selIdxAfter = FindCardIndex(hwndTarget);
-    if (selIdxAfter > 0)
+    const int selectedIndexAfterWrap = FindCardIndex(hwndTarget);
+    if (selectedIndexAfterWrap > 0)
     {
-        m_rRepeatedRotateRate = -(kExitDurationSec / (float)selIdxAfter);
+        m_rRepeatedRotateRate =
+            -(kExitDurationSec / static_cast<float>(selectedIndexAfterWrap));
         m_state = ViewState::ExitRepeatedRotate;
         TickRepeatedRotate();
     }
