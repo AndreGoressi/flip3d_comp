@@ -20,14 +20,14 @@ bool WindowCompositionAttribute::Initialize()
     return g_SetWindowCompositionAttribute != nullptr;
 }
 
-bool WindowCompositionAttribute::EnableAcrylic(HWND hwnd)
+bool WindowCompositionAttribute::EnableBlurBehind(HWND hwnd)
 {
     if (!Initialize())
         return false;
 
     ACCENT_POLICY accent = {};
     accent.AccentState = ACCENT_ENABLE_BLURBEHIND;
-    accent.AccentFlags = 2;
+    accent.AccentFlags = 0;
     accent.GradientColor =  0x73190F0F; /*gradientColor*/
 
     WINDOWCOMPOSITIONATTRIBDATA data = {};
