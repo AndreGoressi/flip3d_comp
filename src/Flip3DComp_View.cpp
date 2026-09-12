@@ -96,7 +96,7 @@ void Flip3DComp::RevealAndActivateQueuedTarget()
     /*SetWindowPos(m_hwnd, HWND_NOTOPMOST, 0, 0, 0, 0,
         SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);*/
 
-    //SetForegroundWindow(target);
+    SetForegroundWindow(target);
     m_revealedTarget = true;
 }
 
