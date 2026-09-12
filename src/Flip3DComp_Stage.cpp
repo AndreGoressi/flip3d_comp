@@ -136,6 +136,12 @@ bool Flip3DComp::InitializeDCompStage()
         this,
         ZBID_DESKTOP
     );
+    SetWindowPos(
+        m_hwnd, 
+        HWND_TOP, 
+        x, y, w, h, 
+        SWP_SHOWWINDOW | SWP_NOACTIVATE 
+    );
     //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
