@@ -65,9 +65,10 @@ enum class CardThumbnailQuality
     Medium,
     MediumHigh,
     High,
+    Ultra,
 };
 
-constexpr CardThumbnailQuality kCardThumbnailQuality = CardThumbnailQuality::Medium; 
+constexpr CardThumbnailQuality kCardThumbnailQuality = CardThumbnailQuality::Ultra; 
 // This controls the DWM thumbnail resolution used by 3D window cards. By default Windows Vista & 7 have it set to a Medium value (0.50f)
 
 // Pre-computed camera poses (radians)
@@ -94,6 +95,7 @@ constexpr float CardThumbnailQualityScale()
     case CardThumbnailQuality::Medium: return 0.50f;
     case CardThumbnailQuality::MediumHigh:    return 0.75f;
     case CardThumbnailQuality::High:   return 1.00f;
+    case CardThumbnailQuality::Ultra:   return 2.00f;
     }
     return 1.00f;
 }
