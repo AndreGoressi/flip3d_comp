@@ -28,6 +28,21 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
 }
 
 // ============================================================================
+// Flip3DComp::BeginExitView — uDWM CFlip3D::BeginExitView (parallel flatten)
+// ============================================================================
+void Flip3DComp::BeginExitView()
+{
+    if (m_state == ViewState::Exit || m_state == ViewState::ExitRepeatedRotate)
+        return;
+
+    m_lastPaintOrder.clear();
+    NotifyAccessibilityEvent(EVENT_SYSTEM_DIALOGEND);
+    m_animEnter.Restart(EnterProgress(), 0.0f, kExitDurationSec,
+                        InterpolationMode::Linear);
+    m_state = ViewState::Exit;
+}
+
+// ============================================================================
 // Flip3DComp::SelectFront
 // ============================================================================
 void Flip3DComp::SelectFront()
