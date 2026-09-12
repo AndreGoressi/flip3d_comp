@@ -627,6 +627,12 @@ void Flip3DComp::Update(float dtSeconds)
     if (m_dcompDevice)
         m_dcompDevice->Commit();
 
+    if (m_pendingActivation && !m_revealedTarget
+        && m_animEnter.RawProgress() >= kRestoreRevealProgress)
+    {
+        RevealAndActivateQueuedTarget();
+    }
+
     if (m_state == ViewState::Exit && !m_animEnter.IsActive())
         DestroyWindow(m_hwnd);
 
