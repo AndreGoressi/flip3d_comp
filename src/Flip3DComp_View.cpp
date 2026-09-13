@@ -109,8 +109,8 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             attached = (AttachThreadInput(currentThreadId, targetThreadId, TRUE) == TRUE);
         }
 
-        //ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
         UpdateRestoredMinimizedCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH);
+        ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
 
         if (attached)
         {
