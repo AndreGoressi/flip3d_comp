@@ -162,20 +162,16 @@ void Flip3DComp::ApplyFullscreenLayout()
     const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
-    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
+    SetWindowPos(m_hwnd, HWND_TOP, x, y, w, h, SWP_SHOWWINDOW);
     //
     HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
     {
-        SetWindowPos(taskbar, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-        SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-    }
+        SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 
-    HWND secondaryTaskbar = FindWindowW(L"Shell_SecondaryTrayWnd", nullptr);
-    if (secondaryTaskbar)
-    {
-        SetWindowPos(secondaryTaskbar, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-        SetWindowPos(secondaryTaskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        APPBARDATA abd = { sizeof(abd) };
+        abd.hWnd = taskbar;
+        SHAppBarMessage(ABM_ACTIVATE, &abd);
     }
 
     RECT client = {};
@@ -226,21 +222,18 @@ bool Flip3DComp::InitializeDCompStage()
                              this);
     //
     SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_NOACTIVATE);
+    //SetWindowPos(m_hwnd, HWND_TOP, x, y, w, h, SWP_NOACTIVATE);
     //
     HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
     {
-        SetWindowPos(taskbar, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-        SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+
+        APPBARDATA abd = { sizeof(abd) };
+        abd.hWnd = taskbar;
+        SHAppBarMessage(ABM_ACTIVATE, &abd);
     }
 
-    HWND secondaryTaskbar = FindWindowW(L"Shell_SecondaryTrayWnd", nullptr);
-    if (secondaryTaskbar)
-    {
-        SetWindowPos(secondaryTaskbar, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-        SetWindowPos(secondaryTaskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-    }
-    
     if (m_hwnd)
     {
         BOOL exclude = TRUE;
