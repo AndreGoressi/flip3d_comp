@@ -158,6 +158,21 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         OnWheel(GET_WHEEL_DELTA_WPARAM(wParam));
         return 0;
 
+    case WM_NCHITTEST:
+    {
+        POINT pt = { (LONG)(short)LOWORD(lParam), (LONG)(short)HIWORD(lParam) };
+        HMONITOR hMon = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO mi = { sizeof(mi) };
+        if (hMon && GetMonitorInfoW(hMon, &mi))
+        {
+            if (pt.y >= mi.rcMonitor.bottom - 2)
+            {
+                return HTTRANSPARENT;
+            }
+        }
+        break;
+    }
+
     case WM_MOUSEMOVE:
         m_hitHwnd = HitTest3DScene(
             (LONG)(short)LOWORD(lParam),
