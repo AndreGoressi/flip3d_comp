@@ -66,10 +66,6 @@ bool Flip3DComp::OnKey(bool down, UINT vkCode, LPARAM lParam)
         RotateToWindow(m_originalFrontHwnd);
         return true;
 
-    case VK_F5:
-        ReplayEnterAnimation();
-        return true;
-
     case VK_RETURN:
     case VK_SPACE:
         SelectFront();
