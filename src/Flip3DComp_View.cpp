@@ -166,13 +166,10 @@ HWND Flip3DComp::HitTest3DScene(LONG screenX, LONG screenY) const
         float t   = ComputeCarouselBezierT(slot);
         const float flatRank = ComputeFlatDepthRank(slot, p, ki);
         auto  MVP = Math::Multiply(BuildModelMatrix(c, t, p, flatRank), cam);
-
+        //
         float sw = (float)std::max(c.m_srcWidth,  1);
         float sh = (float)std::max(c.m_srcHeight, 1);
-        //float sw = (float)std::max(c.m_thumbTexWidth,  1);
-        //float sh = (float)std::max(c.m_thumbTexHeight, 1);
-        
-
+        //
         auto project = [&](float px, float py) -> Vec2
         {
             float x = px*MVP.m[0][0] + py*MVP.m[1][0] + MVP.m[3][0];
