@@ -26,7 +26,7 @@ bool WindowCompositionAttribute::EnableBlurBehind(HWND hwnd)
         return false;
 
     ACCENT_POLICY accent = {};
-    accent.AccentState = ACCENT_ENABLE_BLURBEHIND;
+    accent.AccentState =  ACCENT_ENABLE_HOSTBACKDROP;
     accent.AccentFlags = 0;
     accent.GradientColor =  0x73190F0F; /*gradientColor*/
 
