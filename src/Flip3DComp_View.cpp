@@ -102,7 +102,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
     {
         ShowWindow(hwndTarget, SW_HIDE);
         SendMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
-        UpdateRestoredMinimizedCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH);
+        UpdateRestoredMinimizedCardGeometry(m_cards[(size_t)selIdx], m_monW * 0.5, m_monH * 0.5f);
         ShowWindow(hwndTarget, SW_SHOWNA);
     }
 
