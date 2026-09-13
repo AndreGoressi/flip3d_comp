@@ -67,28 +67,13 @@ void Flip3DComp::ApplyFullscreenLayout()
     const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
-    SetWindowPos(m_hwnd,
-                 nullptr,
-                 x,
-                 y,
-                 w,
-                 h,
-                 SWP_SHOWWINDOW);
-
-    SetWindowPos(m_hwnd, HWND_BOTTOM, x, y, w, h, SWP_NOACTIVATE | SWP_FRAMECHANGED);
-    ShowWindow(m_hwnd, SW_SHOWNOACTIVATE);
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
 
     RECT client = {};
-
     if (GetClientRect(m_hwnd, &client))
     {
-        m_width = std::max(1u,
-                          (UINT)(client.right - 
-                           client.left));
-
-        m_height = std::max(1u,
-                           (UINT)(client.bottom - 
-                                  client.top));
+        m_width  = std::max(1u, (UINT)(client.right  - client.left));
+        m_height = std::max(1u, (UINT)(client.bottom - client.top));
     }
 
     UpdateMonitorRect();
@@ -123,18 +108,18 @@ bool Flip3DComp::InitializeDCompStage()
     const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
-    m_hwnd = WindowBand::CreateWindowInBand(
-        WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOOLWINDOW,
-        atom,
-        L"Flip3DCompClass",
-        WS_POPUP | WS_VISIBLE,
-        x,
-        y,
-        w,
-        h,
-        m_hInstance,
-        this,
-        ZBID_DESKTOP
+    m_hwnd = WindowBand::CreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
+                                            WS_EX_TOOLWINDOW,
+                                            atom,
+                                            L"Flip3DCompClass",
+                                            WS_POPUP | WS_VISIBLE,
+                                            x,
+                                            y,
+                                            w,
+                                            h,
+                                            m_hInstance,
+                                            this,
+                                            ZBID_DESKTOP
     );
     //
 
