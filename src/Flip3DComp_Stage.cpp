@@ -57,7 +57,7 @@ std::vector<HWND> Flip3DComp::EnumerateWindows()
 // Flip3DComp::ApplyFullscreenLayout
 // uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
 // ============================================================================
-void Flip3DComp::ApplyFullscreenLayout()
+/*void Flip3DComp::ApplyFullscreenLayout()
 {
     if (!m_hwnd)
         return;
@@ -77,13 +77,15 @@ void Flip3DComp::ApplyFullscreenLayout()
     }
 
     UpdateMonitorRect();
-}
+}*/
+
+
 
 // ============================================================================
 // Flip3DComp::CreateAppWindow
 // uDWM Flip3D input window: borderless popup, topmost, full virtual desktop.
 // ============================================================================
-bool Flip3DComp::InitializeDCompStage()
+/*bool Flip3DComp::InitializeDCompStage()
 {
     WNDCLASSEXW wc = {
         sizeof(wc),
@@ -148,6 +150,99 @@ bool Flip3DComp::InitializeDCompStage()
     }
 
     return true;
+}*/
+
+void Flip3DComp::ApplyFullscreenLayout()
+{
+    if (!m_hwnd)
+        return;
+
+    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
+    //
+    HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
+    if (taskbar)
+        SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+
+    RECT client = {};
+    if (GetClientRect(m_hwnd, &client))
+    {
+        m_width  = std::max(1u, (UINT)(client.right  - client.left));
+        m_height = std::max(1u, (UINT)(client.bottom - client.top));
+    }
+
+    UpdateMonitorRect();
 }
+
+bool Flip3DComp::InitializeDCompStage()
+{
+    WNDCLASSEXW wc = {
+        sizeof(wc),
+        CS_HREDRAW | CS_VREDRAW,
+        &Flip3DComp::WndProc,
+        0, 0,
+        m_hInstance,
+        nullptr,
+        LoadCursorW(nullptr, IDC_ARROW),
+        nullptr, nullptr,
+        L"Flip3DCompClass",
+        nullptr,
+    };
+    ATOM atom = RegisterClassExW(&wc);
+    if (!atom)
+    {
+        return false;
+    }
+
+    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
+    m_hwnd = CreateWindowExW(WS_EX_NOREDIRECTIONBITMAP | 
+                             WS_EX_TOOLWINDOW | 
+                             WS_EX_TOPMOST,
+                             (LPCWSTR)MAKEINTATOM(atom),
+                             L"Flip3DComp",
+                             WS_POPUP | WS_VISIBLE,
+                             x, y, w, h,
+                             nullptr, 
+                             nullptr, 
+                             m_hInstance, 
+                             this);
+    //
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_NOACTIVATE);
+    //
+    HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
+    if (taskbar)
+        SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+
+    if (m_hwnd)
+    {
+        BOOL exclude = TRUE;
+        DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
+        WindowCompositionAttribute::EnableBlurBehind(m_hwnd);
+    }
+    //
+    if (!m_hwnd)
+        return false;
+
+    m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
+
+    RECT client = {};
+    if (GetClientRect(m_hwnd, &client))
+    {
+        m_width  = std::max(1u, (UINT)(client.right  - client.left));
+        m_height = std::max(1u, (UINT)(client.bottom - client.top));
+    }
+
+    return true;
+}
+
+
 
 
