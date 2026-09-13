@@ -98,11 +98,34 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         return;
     }
 
-    if (m_cards[(size_t)selIdx].m_isMinimized)
+    /*if (m_cards[(size_t)selIdx].m_isMinimized)
     {
         UpdateRestoredMinimizedCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH);
-        ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
-        SendMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
+    }*/
+    //
+    if (m_cards[(size_t)selIdx].m_isMinimized)
+    {
+        CardModel& card = m_cards[(size_t)selIdx];
+        HWND hwndTarget = card.m_hwnd;
+
+        if (hwndTarget)
+        {
+            WINDOWPLACEMENT wp = { sizeof(wp) };
+            if (GetWindowPlacement(hwndTarget, &wp))
+            {
+                if (wp.flags & WPF_RESTORETOMAXIMIZED)
+                {
+                    wp.showCmd = SW_MAXIMIZE;
+                }
+                else
+                {
+                    wp.showCmd = SW_RESTORE;
+                }
+                SetForegroundWindow(hwndTarget);
+                SetWindowPlacement(hwndTarget, &wp);
+            }
+        }
+        UpdateRestoredMinimizedCardGeometry(card, m_monW, m_monH);
     }
 
     m_selectedHwnd = hwndTarget;
