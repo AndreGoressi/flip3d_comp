@@ -68,7 +68,7 @@ void Flip3DComp::ApplyFullscreenLayout()
     const int x = mi.rcWork.left;
     const int y = mi.rcWork.top;
     const int w = mi.rcWork.right - mi.rcWork.left;
-    const int h = (mi.rcWork.bottom - mi.rcWork.top) - 2;
+    const int h = mi.rcWork.bottom - mi.rcWork.top;
 
     SetWindowPos(m_hwnd, HWND_TOP, x, y, w, h, SWP_SHOWWINDOW);
     //
@@ -120,7 +120,7 @@ bool Flip3DComp::InitializeDCompStage()
     const int x = mi.rcWork.left;
     const int y = mi.rcWork.top;
     const int w = mi.rcWork.right - mi.rcWork.left;
-    const int h = (mi.rcWork.bottom - mi.rcWork.top) - 2;
+    const int h = mi.rcWork.bottom - mi.rcWork.top;
     //
     m_hwnd = CreateWindowExW(WS_EX_NOREDIRECTIONBITMAP | 
                              WS_EX_TOPMOST | 
