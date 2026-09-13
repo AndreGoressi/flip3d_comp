@@ -77,12 +77,12 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
 
     const bool isShell = (hwndTarget == GetShellWindow());
 
-    if (isShell)
+    /*if (isShell)
     {
         if (HWND shellTray = FindWindowW(L"Shell_TrayWnd", nullptr))
             PostMessageW(shellTray, 0x579, 1, 0);
     }
-    else if (!IsWindowEnabled(hwndTarget))
+    elsea*/ if (!IsWindowEnabled(hwndTarget))
     {
         SwitchToThisWindow(GetLastActivePopup(GetAncestor(hwndTarget, GA_ROOTOWNER)), TRUE);
     }
