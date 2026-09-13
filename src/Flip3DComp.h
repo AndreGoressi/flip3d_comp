@@ -149,7 +149,6 @@ private:
     // ========================================================================
 
     float   EnterProgress() const;
-    void    ReplayEnterAnimation();
     void    ExitView(bool commitScroll = true,
                      float exitDurationSec = kExitDurationSec);
     void    BeginExitView();
