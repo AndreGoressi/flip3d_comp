@@ -1,5 +1,4 @@
 #include "LivePreview.h"
-#include <dwmapi.h>
 
 static DwmpActivateLivePreview_t g_pDwmpActivateLivePreview = nullptr;
 static BOOL g_aeroPeekActive = FALSE;
@@ -17,13 +16,6 @@ bool LivePreview::Initialize()
         g_pDwmpActivateLivePreview = reinterpret_cast<DwmpActivateLivePreview_t>(
             GetProcAddress(dwmapiModule, reinterpret_cast<LPCSTR>(113))
         );
-    }
-
-    HWND hTaskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
-    if (hTaskbar)
-    {
-        BOOL exclude = TRUE;
-        DwmSetWindowAttribute(hTaskbar, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
     }
 
     g_isInitialized = true;
