@@ -122,6 +122,11 @@ bool Flip3DComp::InitializeDCompStage()
                                             ZBID_DESKTOP
     );
     //
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_NOACTIVATE);
+    //
+    HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
+    if (taskbar)
+        SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
     if (m_hwnd)
     {
