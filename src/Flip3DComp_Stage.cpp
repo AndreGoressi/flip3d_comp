@@ -140,7 +140,7 @@ bool Flip3DComp::InitializeDCompStage()
                                             h,
                                             m_hInstance,
                                             this,
-                                            ZBID_DESKTOP
+                                            ZBID_DEFAULT
     );
     //
     SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_NOACTIVATE);
