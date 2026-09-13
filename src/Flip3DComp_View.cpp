@@ -103,19 +103,30 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         DWORD targetThreadId = GetWindowThreadProcessId(hwndTarget, nullptr);
         DWORD currentThreadId = GetCurrentThreadId();
         bool attached = false;
-
+    
         if (targetThreadId && targetThreadId != currentThreadId)
         {
             attached = (AttachThreadInput(currentThreadId, targetThreadId, TRUE) == TRUE);
         }
-        
-        ShowWindow(hwndTarget, SW_HIDE);
+    
+        LONG_PTR exStyle = GetWindowLongPtrW(hwndTarget, GWL_EXSTYLE);
+        bool wasLayered = (exStyle & WS_EX_LAYERED) != 0;
+        if (!wasLayered)
+        {
+            SetWindowLongPtrW(hwndTarget, GWL_EXSTYLE, exStyle | WS_EX_LAYERED);
+        }
+    
+        SetLayeredWindowAttributes(hwndTarget, 0, 0, LWA_ALPHA);
         SendMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
-        //
+    
         UpdateRestoredMinimizedCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH);
-        //
-        ShowWindow(hwndTarget, SW_SHOWNA);
 
+        SetLayeredWindowAttributes(hwndTarget, 0, 255, LWA_ALPHA);
+        if (!wasLayered)
+        {
+            SetWindowLongPtrW(hwndTarget, GWL_EXSTYLE, exStyle);
+        }
+        //
         if (attached)
         {
             AttachThreadInput(currentThreadId, targetThreadId, FALSE);
