@@ -67,37 +67,6 @@ void Flip3DComp::SelectFront()
     SelectWindow(m_cards[(size_t)bestIdx].m_hwnd);
 }
 
-void Flip3DComp::QueueTargetActivation(HWND hwndTarget)
-{
-    HWND target = GetLastActivePopup(GetAncestor(hwndTarget, GA_ROOTOWNER));
-    if (!target || !IsWindow(target))
-        target = hwndTarget;
-
-    m_pendingActivationHwnd = target;
-    m_pendingActivation = true;
-    m_revealedTarget = false;
-
-    if (IsIconic(target))
-        //ShowWindowAsync(target, SW_SHOWNOACTIVATE);
-        ShowWindowAsync(target, SW_RESTORE);
-}
-
-void Flip3DComp::RevealAndActivateQueuedTarget()
-{
-    if (!m_pendingActivation)
-        return;
-
-    m_pendingActivation = false;
-    const HWND target = m_pendingActivationHwnd;
-    m_pendingActivationHwnd = nullptr;
-
-    if (!target || !IsWindow(target))
-        return;
-    
-    SetForegroundWindow(target);
-    m_revealedTarget = true;
-}
-
 // ============================================================================
 // Flip3DComp::SelectWindow — uDWM: BeginExitView then ExitRepeatedRotate
 // ============================================================================
@@ -112,11 +81,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         if (HWND shellTray = FindWindowW(L"Shell_TrayWnd", nullptr))
             PostMessageW(shellTray, 0x579, 1, 0);
     }
-    else
-    {
-        QueueTargetActivation(hwndTarget);
-    }
-
+    
     const int selectedIndex = FindCardIndex(hwndTarget);
     if (selectedIndex < 0)
     {
