@@ -2,8 +2,6 @@
 // Flip3DComp_Window.cpp — Window creation + enumeration
 // ============================================================================
 #include "Flip3DComp.h"
-#include "banding.h"
-#include "WindowBand.h"
 #include "WindowCompositionAttribute.h"
 //
 #include <algorithm>
@@ -112,12 +110,8 @@ bool Flip3DComp::InitializeDCompStage()
         L"Flip3DCompClass",
         nullptr,
     };
-    ATOM atom = RegisterClassExW(&wc);
-    if (!atom)
-    {
-        return false;
-    }
-
+    RegisterClassExW(&wc);
+    //
     MONITORINFO mi = { sizeof(mi) };
     HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
     if (hMon)
@@ -128,20 +122,17 @@ bool Flip3DComp::InitializeDCompStage()
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
     //
-    m_hwnd = WindowBand::CreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
-                                            WS_EX_TOOLWINDOW | 
-                                            WS_EX_TOPMOST,
-                                            atom,
-                                            L"Flip3DCompClass",
-                                            WS_POPUP | WS_VISIBLE,
-                                            x,
-                                            y,
-                                            w,
-                                            h,
-                                            m_hInstance,
-                                            this,
-                                            ZBID_DEFAULT
-    );
+    m_hwnd = CreateWindowExW(WS_EX_NOREDIRECTIONBITMAP | 
+                             WS_EX_TOPMOST | 
+                             WS_EX_TOOLWINDOW,
+                             L"Flip3DCompClass",
+                             L"",
+                             WS_POPUP,
+                             x, y, w, h,
+                             nullptr, 
+                             nullptr,
+                             m_hInstance,
+                             this);
     //
     SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_NOACTIVATE);
     //
