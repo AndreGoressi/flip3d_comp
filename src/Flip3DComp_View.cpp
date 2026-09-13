@@ -70,41 +70,49 @@ void Flip3DComp::SelectFront()
 // ============================================================================
 // Flip3DComp::SelectWindow — uDWM: BeginExitView then ExitRepeatedRotate
 // ============================================================================
-void Flip3DComp::SelectWindow(HWND hwndTarget)
+void Flip3DCompApp::SelectWindow(HWND hwndTarget)
 {
     if (!hwndTarget || !IsWindow(hwndTarget))
         return;
 
     const bool isShell = (hwndTarget == GetShellWindow());
+
     if (isShell)
     {
         if (HWND shellTray = FindWindowW(L"Shell_TrayWnd", nullptr))
             PostMessageW(shellTray, 0x579, 1, 0);
     }
-    
-    const int selectedIndex = FindCardIndex(hwndTarget);
-    if (selectedIndex < 0)
+    else if (!IsWindowEnabled(hwndTarget))
+    {
+        SwitchToThisWindow(GetLastActivePopup(GetAncestor(hwndTarget, GA_ROOTOWNER)), TRUE);
+    }
+    else
+    {
+        SwitchToThisWindow(hwndTarget, TRUE);
+    }
+
+    const int selIdx = FindCardIndex(hwndTarget);
+    if (selIdx < 0)
     {
         ExitView();
         return;
     }
 
-    if (m_cards[(size_t)selectedIndex].m_isMinimized)
-    {
-        UpdateCardGeometry(m_cards[(size_t)selectedIndex], m_monW, m_monH,
-            /* selectedRestore = */ true);
-    }
+    if (m_cards[(size_t)selIdx].m_isMinimized)
+        UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
 
     m_selectedHwnd = hwndTarget;
     m_lastPaintOrder.clear();
+
     FreezeCarouselVisuals();
+
     BeginExitView();
 
-    const int selectedIndexAfterWrap = FindCardIndex(hwndTarget);
-    if (selectedIndexAfterWrap > 0)
+    // Re-index after wrap may have rotated the list; step count = list index of selection.
+    const int selIdxAfter = FindCardIndex(hwndTarget);
+    if (selIdxAfter > 0)
     {
-        m_rRepeatedRotateRate =
-            -(kExitDurationSec / static_cast<float>(selectedIndexAfterWrap));
+        m_rRepeatedRotateRate = -(kExitDurationSec / (float)selIdxAfter);
         m_state = ViewState::ExitRepeatedRotate;
         TickRepeatedRotate();
     }
