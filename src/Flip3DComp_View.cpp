@@ -100,38 +100,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
 
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
-        CardModel& card = m_cards[(size_t)selIdx];
-
-        if (card.m_containerVisual)
-        {
-            card.m_containerVisual->SetOpacity(0.0f);
-        }
-    
-        DWORD targetThreadId = GetWindowThreadProcessId(hwndTarget, nullptr);
-        DWORD currentThreadId = GetCurrentThreadId();
-        bool attached = false;
-    
-        if (targetThreadId && targetThreadId != currentThreadId)
-        {
-            attached = (AttachThreadInput(currentThreadId, targetThreadId, TRUE) == TRUE);
-        }
-
-        ShowWindow(hwndTarget, SW_HIDE);
-        SendMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
-        
-        UpdateRestoredMinimizedCardGeometry(card, m_monW, m_monH);
-
-        ShowWindow(hwndTarget, SW_SHOWNA);
-    
-        if (attached)
-        {
-            AttachThreadInput(currentThreadId, targetThreadId, FALSE);
-        }
-    
-        if (card.m_containerVisual)
-        {
-            card.m_containerVisual->SetOpacity(1.0f);
-        }
+        UpdateRestoredMinimizedCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH);
     }
 
     m_selectedHwnd = hwndTarget;
