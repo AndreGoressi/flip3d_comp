@@ -240,6 +240,9 @@ void Flip3DComp::UpdateNormalCardGeometry(CardModel& c, float normMonW, float no
     else
         mi = QueryPrimaryMonitor();
 
+    //bool selectedRestore;
+    const bool selectedRestore = c.m_hwnd == m_selectedHwnd;
+    //
     SIZE srcSize = {};
     BOOL queryExtended = selectedRestore ? TRUE : FALSE;
     if (FAILED(m_pfnQueryThumbSize(h, queryExtended, &srcSize))
@@ -540,7 +543,7 @@ void Flip3DComp::OnThumbnailSourceSizeChanged()
         if (queryW == card.m_srcWidth && queryH == card.m_srcHeight)
             continue;
 
-        const bool selectedRestore = card.m_hwnd == m_selectedHwnd;
+        //const bool selectedRestore = card.m_hwnd == m_selectedHwnd;
         //UpdateNormalCardGeometry(card, m_monW, m_monH, selectedRestore);
         UpdateRestoredMinimizedCardGeometry(card, m_monW, m_monH);
         UpdateCardThumbnailDest(card);
