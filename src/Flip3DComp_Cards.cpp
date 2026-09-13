@@ -1,4 +1,3 @@
-
 // ============================================================================
 // Flip3DComp_Cards.cpp — Card building + thumbnail visual creation + DWM API
 // ============================================================================
@@ -240,9 +239,8 @@ void Flip3DComp::UpdateNormalCardGeometry(CardModel& c, float normMonW, float no
     else
         mi = QueryPrimaryMonitor();
 
-    //bool selectedRestore;
     const bool selectedRestore = c.m_hwnd == m_selectedHwnd;
-    //
+    
     SIZE srcSize = {};
     BOOL queryExtended = selectedRestore ? TRUE : FALSE;
     if (FAILED(m_pfnQueryThumbSize(h, queryExtended, &srcSize))
@@ -261,6 +259,15 @@ void Flip3DComp::UpdateNormalCardGeometry(CardModel& c, float normMonW, float no
     float thumbW = (float)srcSize.cx;
     float thumbH = (float)srcSize.cy;
     const float thumbAspect = thumbH / thumbW;
+
+    float maxResW = normMonW;
+    float maxResH = normMonH;
+    float scale = std::min(maxResW / thumbW, maxResH / thumbH);
+    scale = std::min(scale, 1.0f);
+
+    c.m_thumbTexWidth  = std::max(1, (int)(thumbW * scale));
+    c.m_thumbTexHeight = std::max(1, (int)(thumbH * scale));
+
 
     RECT flatBounds = {};
 
@@ -323,7 +330,7 @@ void Flip3DComp::UpdateNormalCardGeometry(CardModel& c, float normMonW, float no
     c.m_flatPos     = { worldX, worldY, 0.0f };
 }
 
-void Flip3DComp::UpdateRestoredMinimizedCardGeometry(CardModel& c, float normMonW, float normMonH)
+void Flip3DCompApp::UpdateRestoredMinimizedCardGeometry(CardModel& c, float normMonW, float normMonH)
 {
     HWND h = c.m_hwnd;
     if (!h) return;
@@ -351,6 +358,14 @@ void Flip3DComp::UpdateRestoredMinimizedCardGeometry(CardModel& c, float normMon
     float thumbW = (float)std::max(1L, srcSize.cx);
     float thumbH = (float)std::max(1L, srcSize.cy);
 
+    float maxResW = normMonW;
+    float maxResH = normMonH;
+    float scale = std::min(maxResW / thumbW, maxResH / thumbH);
+    scale = std::min(scale, 1.0f); 
+
+    c.m_thumbTexWidth  = std::max(1, (int)(thumbW * scale));
+    c.m_thumbTexHeight = std::max(1, (int)(thumbH * scale));
+
     RECT flatBounds = mi.rcWork;
     if (!FillRestoredScreenRect(h, mi, flatBounds))
     {
@@ -377,7 +392,6 @@ void Flip3DComp::UpdateRestoredMinimizedCardGeometry(CardModel& c, float normMon
     c.m_originalPos = { worldX, worldY, 0.0f };
     c.m_flatPos     = { worldX, worldY, 0.0f };
 }
-
 
 // ============================================================================
 // Flip3DComp::UpdateMonitorRect
@@ -503,13 +517,6 @@ void Flip3DComp::UpdateCardThumbnailDest(CardModel& card)
     LONG targetH = (LONG)std::max(1.0f, std::abs(card.m_targetSize.y) * m_monH);
 
     DWM_THUMBNAIL_PROPERTIES tp = {};
-    // Was DWM_TNP_DISABLEFORCECVI — that's what let staircase edges creep
-    // back in for every window that isn't minimized/frozen (Steam, AdGuard,
-    // Scooby Loader, even the desktop itself, which is *always* "live" and
-    // can never be minimized). FORCECVI is what actually made DWM properly
-    // re-filter the thumbnail to match the reduced rcDestination for
-    // actively-updating content — DISABLEFORCECVI apparently only behaves
-    // acceptably for already-frozen/iconic (minimized) source bitmaps.
     tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
                     | DWM_TNP_ENABLE3D | DWM_TNP_DISABLEFORCECVI;
     tp.fVisible  = TRUE;
