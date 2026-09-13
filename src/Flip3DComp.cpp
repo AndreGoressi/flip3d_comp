@@ -57,6 +57,12 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     //
     LivePreview::Activate(TRUE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
 
+    HWND hwndProgman = FindWindowW(L"Progman", nullptr);
+    if (hwndProgman)
+    {
+        SetForegroundWindow(hwndProgman);
+    }
+
     EnterFlip3DWindowMode();
     InitAccessibility();
 
