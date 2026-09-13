@@ -47,7 +47,7 @@ std::vector<HWND> Flip3DComp::EnumerateWindows()
         if (it == ctx.hwnds.end() && ctx.hwnds.size() < (size_t)kMaxCards)
             ctx.hwnds.push_back(shell);
     }
-
+    //
     return ctx.hwnds;
 }
 
@@ -76,12 +76,11 @@ void Flip3DComp::ApplyFullscreenLayout()
     if (taskbar)
     {
         SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-
         APPBARDATA abd = { sizeof(abd) };
         abd.hWnd = taskbar;
         SHAppBarMessage(ABM_ACTIVATE, &abd);
     }
-
+    
     RECT client = {};
     if (GetClientRect(m_hwnd, &client))
     {
@@ -140,12 +139,11 @@ bool Flip3DComp::InitializeDCompStage()
     if (taskbar)
     {
         SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-
         APPBARDATA abd = { sizeof(abd) };
         abd.hWnd = taskbar;
         SHAppBarMessage(ABM_ACTIVATE, &abd);
     }
-
+    
     if (m_hwnd)
     {
         BOOL exclude = TRUE;
