@@ -100,26 +100,25 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
 
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
-        ShowWindow(hwndTarget, SW_HIDE);
-        PostMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
-        ShowWindow(hwndTarget, SW_SHOWNA);
-        //
-        /*if (!IsWindow(hwndTarget)) return;
+        DWORD targetThreadId = GetWindowThreadProcessId(hwndTarget, nullptr);
+        DWORD currentThreadId = GetCurrentThreadId();
+        bool attached = false;
 
-        if (IsIconic(hwndTarget)) {
-            ShowWindowAsync(hwndTarget, SW_RESTORE);
-        }*/
-    
-        DWORD dwProcessId = 0;
-        GetWindowThreadProcessId(hwndTarget, &dwProcessId);
-        AttachThreadInput(GetCurrentThreadId(), GetWindowThreadProcessId(hwndTarget, NULL), TRUE);
+        if (targetThreadId && targetThreadId != currentThreadId)
+        {
+            attached = (AttachThreadInput(currentThreadId, targetThreadId, TRUE) == TRUE);
+        }
+
+        ShowWindow(hwndTarget, SW_HIDE);
+        PostMessageW(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
+        ShowWindow(hwndTarget, SW_SHOWNA);
+
         UpdateRestoredMinimizedCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH);
-        AttachThreadInput(GetCurrentThreadId(), GetWindowThreadProcessId(hwndTarget, NULL), FALSE);
-        //
-        //ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
-        //SendMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
-        //UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
-        //UpdateRestoredMinimizedCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH);
+
+        if (attached)
+        {
+            AttachThreadInput(currentThreadId, targetThreadId, FALSE);
+        }
     }
 
     m_selectedHwnd = hwndTarget;
