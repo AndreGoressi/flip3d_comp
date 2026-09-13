@@ -5,19 +5,19 @@
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nShowCmd)
 {
-    Flip3DComp app;
+    Flip3DComp main;
 
-    if (!app.Initialize(hInstance))
+    if (!main.Initialize(hInstance))
     {
         MessageBoxW(nullptr,
-            app.InitErrorMessage(),
+            main.InitErrorMessage(),
             L"Flip3D (DComp)", MB_OK | MB_ICONERROR);
         return 1;
     }
 
-    ShowWindow(app.WindowHandle(), SW_SHOW);
-    SetForegroundWindow(app.WindowHandle());
-    UpdateWindow(app.WindowHandle());
+    ShowWindow(main.WindowHandle(), SW_SHOW);
+    SetForegroundWindow(main.WindowHandle());
+    UpdateWindow(main.WindowHandle());
 
-    return app.Run();
+    return main.Run();
 }
