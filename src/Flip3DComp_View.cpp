@@ -100,10 +100,26 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
 
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
-        ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
-        SendMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
-        //UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
+        ShowWindow(hwndTarget, SW_HIDE);
+        PostMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
+        ShowWindow(hwndTarget, SW_SHOWNA);
+        //
+        /*if (!IsWindow(hwndTarget)) return;
+
+        if (IsIconic(hwndTarget)) {
+            ShowWindowAsync(hwndTarget, SW_RESTORE);
+        }*/
+    
+        DWORD dwProcessId = 0;
+        GetWindowThreadProcessId(hwndTarget, &dwProcessId);
+        AttachThreadInput(GetCurrentThreadId(), GetWindowThreadProcessId(hwndTarget, NULL), TRUE);
         UpdateRestoredMinimizedCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH);
+        AttachThreadInput(GetCurrentThreadId(), GetWindowThreadProcessId(hwndTarget, NULL), FALSE);
+        //
+        //ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
+        //SendMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
+        //UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
+        //UpdateRestoredMinimizedCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH);
     }
 
     m_selectedHwnd = hwndTarget;
