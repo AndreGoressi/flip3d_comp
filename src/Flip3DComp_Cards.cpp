@@ -320,7 +320,7 @@ void Flip3DComp::UpdateNormalCardGeometry(CardModel& c, float normMonW, float no
     c.m_flatPos     = { worldX, worldY, 0.0f };
 }
 
-void Flip3DCompApp::UpdateRestoredMinimizedCardGeometry(CardModel& c, float normMonW, float normMonH)
+void Flip3DComp::UpdateRestoredMinimizedCardGeometry(CardModel& c, float normMonW, float normMonH)
 {
     HWND h = c.m_hwnd;
     if (!h) return;
