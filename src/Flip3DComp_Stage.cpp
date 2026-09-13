@@ -138,11 +138,10 @@ bool Flip3DComp::InitializeDCompStage()
     );
     //
 
-    HWND hTaskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
-    if (hTaskbar || m_hwnd)
+    if (m_hwnd)
     {
         BOOL exclude = TRUE;
-        DwmSetWindowAttribute(hTaskbar | m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
+        DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
         WindowCompositionAttribute::EnableBlurBehind(m_hwnd);
     }
     //
