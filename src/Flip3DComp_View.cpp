@@ -117,10 +117,11 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         }
     
         SetLayeredWindowAttributes(hwndTarget, 0, 0, LWA_ALPHA);
-        SendMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
-    
+        //        
         UpdateRestoredMinimizedCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH);
-
+        //
+        ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
+        //
         SetLayeredWindowAttributes(hwndTarget, 0, 255, LWA_ALPHA);
         if (!wasLayered)
         {
