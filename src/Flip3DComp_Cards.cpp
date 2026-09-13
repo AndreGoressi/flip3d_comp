@@ -265,8 +265,8 @@ void Flip3DComp::UpdateNormalCardGeometry(CardModel& c, float normMonW, float no
     float scale = std::min(maxResW / thumbW, maxResH / thumbH);
     scale = std::min(scale, 1.0f);
 
-    c.m_thumbTexWidth  = std::max(1, (int)(thumbW * scale));
-    c.m_thumbTexHeight = std::max(1, (int)(thumbH * scale));
+    c.m_srcWidth  = std::max(1, (int)(thumbW * scale));
+    c.m_srcHeight = std::max(1, (int)(thumbH * scale));
 
 
     RECT flatBounds = {};
@@ -363,8 +363,8 @@ void Flip3DComp::UpdateRestoredMinimizedCardGeometry(CardModel& c, float normMon
     float scale = std::min(maxResW / thumbW, maxResH / thumbH);
     scale = std::min(scale, 1.0f); 
 
-    c.m_thumbTexWidth  = std::max(1, (int)(thumbW * scale));
-    c.m_thumbTexHeight = std::max(1, (int)(thumbH * scale));
+    c.m_srcWidth  = std::max(1, (int)(thumbW * scale));
+    c.m_srcHeight = std::max(1, (int)(thumbH * scale));
 
     RECT flatBounds = mi.rcWork;
     if (!FillRestoredScreenRect(h, mi, flatBounds))
