@@ -9,24 +9,6 @@
 #include <vector>
 #include <wincodec.h>
 
-namespace {
-
-struct EnumMonitorsContext
-{
-    std::vector<MONITORINFO> monitors;
-};
-
-BOOL CALLBACK EnumMonitorsProc(HMONITOR hMon, HDC, LPRECT, LPARAM lParam)
-{
-    auto* ctx = reinterpret_cast<EnumMonitorsContext*>(lParam);
-    MONITORINFO mi = { sizeof(mi) };
-    if (GetMonitorInfoW(hMon, &mi))
-        ctx->monitors.push_back(mi);
-    return TRUE;
-}
-
-} // namespace
-
 // ============================================================================
 // Flip3DComp::InitComposition
 // ============================================================================
