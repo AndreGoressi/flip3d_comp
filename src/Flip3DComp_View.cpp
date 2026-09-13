@@ -100,6 +100,10 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
 
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
+        CardModel& card = m_cards[(size_t)selIdx];
+
+        card.m_opacity = 0.0f; 
+    
         DWORD targetThreadId = GetWindowThreadProcessId(hwndTarget, nullptr);
         DWORD currentThreadId = GetCurrentThreadId();
         bool attached = false;
@@ -109,29 +113,15 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             attached = (AttachThreadInput(currentThreadId, targetThreadId, TRUE) == TRUE);
         }
     
-        LONG_PTR exStyle = GetWindowLongPtrW(hwndTarget, GWL_EXSTYLE);
-        bool wasLayered = (exStyle & WS_EX_LAYERED) != 0;
-        if (!wasLayered)
-        {
-            SetWindowLongPtrW(hwndTarget, GWL_EXSTYLE, exStyle | WS_EX_LAYERED);
-        }
-    
-        SetLayeredWindowAttributes(hwndTarget, 0, 0, LWA_ALPHA);
-        //        
-        UpdateRestoredMinimizedCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH);
-        //
         ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
-        //
-        SetLayeredWindowAttributes(hwndTarget, 0, 255, LWA_ALPHA);
-        if (!wasLayered)
-        {
-            SetWindowLongPtrW(hwndTarget, GWL_EXSTYLE, exStyle);
-        }
-        //
+        UpdateRestoredMinimizedCardGeometry(card, m_monW, m_monH);
+    
         if (attached)
         {
             AttachThreadInput(currentThreadId, targetThreadId, FALSE);
         }
+        
+        card.m_opacity = 1.0f;
     }
 
     m_selectedHwnd = hwndTarget;
