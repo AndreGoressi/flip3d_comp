@@ -130,8 +130,11 @@ private:
 
     void    BuildCards();
     void    UpdateMonitorRect();
-    void    UpdateCardGeometry(CardModel& card, float normMonW, float normMonH,
-                               bool selectedRestore = false);
+    /*void    UpdateCardGeometry(CardModel& card, float normMonW, float normMonH,
+                               bool selectedRestore = false);*/
+    void    UpdateNormalCardGeometry(CardModel& card, float normMonW, float normMonH);
+    void    UpdateRestoredMinimizedCardGeometry(CardModel& card, float normMonW, float normMonH);
+
     void    OnThumbnailSourceSizeChanged();
     void    UpdateCardThumbnailDest(CardModel& card);
     HRESULT CreateCardVisuals();
