@@ -161,7 +161,7 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         MONITORINFO mi = { sizeof(mi) };
         if (hMon && GetMonitorInfoW(hMon, &mi))
         {
-            if (pt.y >= mi.rcMonitor.bottom)
+            if (pt.y >= mi.rcMonitor.bottom -2)
             {
                 return HTTRANSPARENT;
             }
