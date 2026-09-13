@@ -55,12 +55,6 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     m_animEnter.Restart(0.0f, 1.0f, kEnterExitDurationSec);
     m_prevFrame = std::chrono::steady_clock::now();
     //
-    HWND hwndProgman = FindWindowW(L"Progman", nullptr);
-    if (hwndProgman)
-    {
-        SetForegroundWindow(hwndProgman);
-    }
-    //
     LivePreview::Activate(TRUE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
 
     EnterFlip3DWindowMode();
