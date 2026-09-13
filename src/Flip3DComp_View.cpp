@@ -70,7 +70,7 @@ void Flip3DComp::SelectFront()
 // ============================================================================
 // Flip3DComp::SelectWindow — uDWM: BeginExitView then ExitRepeatedRotate
 // ============================================================================
-void Flip3DCompApp::SelectWindow(HWND hwndTarget)
+void Flip3DComp::SelectWindow(HWND hwndTarget)
 {
     if (!hwndTarget || !IsWindow(hwndTarget))
         return;
