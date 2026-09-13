@@ -23,27 +23,6 @@ float Flip3DComp::EnterProgress() const
 }
 
 // ============================================================================
-// Flip3DComp::ReplayEnterAnimation
-// ============================================================================
-void Flip3DComp::ReplayEnterAnimation()
-{
-    m_state = ViewState::Enter;
-    m_animEnter.Restart(0.0f, 1.0f, kEnterExitDurationSec);
-    m_scrollPos           = 0.0f;
-    m_scrollTarget        = 0.0f;
-    m_wrapScrollAdjustThisFrame = 0.0f;
-    m_repeatedRotateStepsRemaining = 0;
-    m_selectedHwnd        = nullptr;
-    m_rRepeatedRotateRate = 0.0f;
-    m_showOutgoingDuringRotation = false;
-    m_exitScrollSnapshot    = 0.0f;
-    m_lastPaintOrder.clear();
-    m_originalFrontHwnd   = m_cards.empty() ? nullptr : m_cards[0].m_hwnd;
-    InvalidateDisplaySlots();
-}
-
-
-// ============================================================================
 // Flip3DComp::RotateListPhysically
 // List splice when committing fractional scroll to discrete slots (exit only).
 // ============================================================================
