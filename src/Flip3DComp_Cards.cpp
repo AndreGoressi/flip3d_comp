@@ -541,7 +541,8 @@ void Flip3DComp::OnThumbnailSourceSizeChanged()
             continue;
 
         const bool selectedRestore = card.m_hwnd == m_selectedHwnd;
-        UpdateNormalCardGeometry(card, m_monW, m_monH, selectedRestore);
+        //UpdateNormalCardGeometry(card, m_monW, m_monH, selectedRestore);
+        UpdateRestoredMinimizedCardGeometry(card, m_monW, m_monH);
         UpdateCardThumbnailDest(card);
         anyChange = true;
     }
