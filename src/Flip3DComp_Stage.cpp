@@ -137,9 +137,14 @@ bool Flip3DComp::InitializeDCompStage()
         ZBID_DESKTOP
     );
     //
-    BOOL exclude = TRUE;
-    DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
-    WindowCompositionAttribute::EnableBlurBehind(m_hwnd);
+
+    HWND hTaskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
+    if (hTaskbar || m_hwnd)
+    {
+        BOOL exclude = TRUE;
+        DwmSetWindowAttribute(hTaskbar | m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
+        WindowCompositionAttribute::EnableBlurBehind(m_hwnd);
+    }
     //
     if (!m_hwnd)
         return false;
