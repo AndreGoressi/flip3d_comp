@@ -166,7 +166,17 @@ void Flip3DComp::ApplyFullscreenLayout()
     //
     HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
+    {
+        SetWindowPos(taskbar, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
         SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    }
+
+    HWND secondaryTaskbar = FindWindowW(L"Shell_SecondaryTrayWnd", nullptr);
+    if (secondaryTaskbar)
+    {
+        SetWindowPos(secondaryTaskbar, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+        SetWindowPos(secondaryTaskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    }
 
     RECT client = {};
     if (GetClientRect(m_hwnd, &client))
@@ -219,8 +229,18 @@ bool Flip3DComp::InitializeDCompStage()
     //
     HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
+    {
+        SetWindowPos(taskbar, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
         SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    }
 
+    HWND secondaryTaskbar = FindWindowW(L"Shell_SecondaryTrayWnd", nullptr);
+    if (secondaryTaskbar)
+    {
+        SetWindowPos(secondaryTaskbar, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+        SetWindowPos(secondaryTaskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    }
+    
     if (m_hwnd)
     {
         BOOL exclude = TRUE;
