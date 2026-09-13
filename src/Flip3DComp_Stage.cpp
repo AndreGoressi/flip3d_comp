@@ -163,11 +163,9 @@ void Flip3DComp::ApplyFullscreenLayout()
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);*/
 
     MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hMon = MonitorFromWindow(m_hwnd ? m_hwnd : GetDesktopWindow(), MONITOR_DEFAULTTOPRIMARY);
+    HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
-    else
-        mi = QueryPrimaryMonitor(); 
 
     const int x = mi.rcWork.left;
     const int y = mi.rcWork.top;
@@ -222,11 +220,9 @@ bool Flip3DComp::InitializeDCompStage()
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);*/
 
     MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hMon = MonitorFromWindow(m_hwnd ? m_hwnd : GetDesktopWindow(), MONITOR_DEFAULTTOPRIMARY);
+    HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
-    else
-        mi = QueryPrimaryMonitor(); 
 
     const int x = mi.rcWork.left;
     const int y = mi.rcWork.top;
