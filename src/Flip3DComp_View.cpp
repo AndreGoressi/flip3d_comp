@@ -67,6 +67,45 @@ void Flip3DComp::SelectFront()
     SelectWindow(m_cards[(size_t)bestIdx].m_hwnd);
 }
 
+void Flip3DComp::RestoreAndBringToForeground(HWND hwnd)
+{
+    if (!IsWindow(hwnd))
+        return;
+
+    if (IsIconic(hwnd))
+    {
+        //
+        ShowWindow(hwnd, SW_HIDE);
+        PostMessageW(hwnd, WM_SYSCOMMAND, SC_RESTORE, 0);
+        ShowWindow(hwnd, SW_SHOWNA);
+        //
+    }
+
+    DWORD targetThreadId = GetWindowThreadProcessId(hwnd, nullptr);
+    DWORD currentThreadId = GetCurrentThreadId();
+    bool attached = false;
+
+    if (currentThreadId != targetThreadId && targetThreadId != 0)
+    {
+        attached = AttachThreadInput(currentThreadId, targetThreadId, TRUE);
+    }
+
+    SetForegroundWindow(hwnd);
+    SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+
+    if (attached)
+    {
+        AttachThreadInput(currentThreadId, targetThreadId, FALSE);
+    }
+
+    POINT mousePos;
+    if (GetCursorPos(&mousePos))
+    {
+        SetCursorPos(mousePos.x, mousePos.y);
+    }
+    DwmFlush();
+}
+
 // ============================================================================
 // Flip3DComp::SelectWindow — uDWM: BeginExitView then ExitRepeatedRotate
 // ============================================================================
@@ -100,6 +139,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
     
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
+        RestoreAndBringToForeground(hwndTarget);
         UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
     }
         
