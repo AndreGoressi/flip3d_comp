@@ -147,6 +147,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             props.fVisible = TRUE;
             props.opacity = 255;
             DwmUpdateThumbnailProperties(card.m_hThumb, &props);
+            DwmFlush();
         }
     }
 
