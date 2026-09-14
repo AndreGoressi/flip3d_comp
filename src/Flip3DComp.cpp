@@ -21,6 +21,8 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
 {
     m_hInstance = hInstance;
 
+    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+
     if (!LoadThumbApi())
         return false;
 
