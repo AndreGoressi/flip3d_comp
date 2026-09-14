@@ -98,9 +98,6 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         return;
     }
     
-    if (CheckPendingThumbnail(m_cards[(size_t)selIdx].m_hwnd))
-        DwmInvalidateIconicBitmaps(m_cards[(size_t)selIdx].m_hwnd);
-    
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
         UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
