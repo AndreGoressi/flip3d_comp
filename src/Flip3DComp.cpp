@@ -252,20 +252,26 @@ void Flip3DComp::CheckPendingThumbnails()
             continue;
 
         ThumbnailType thumbType = ThumbnailType::Default;
-        if (ThumbQuery::GetType(card.m_hThumb, &thumbType))
+
+        if (!ThumbQuery::GetType(card.m_hThumb, &thumbType))
+            continue;
+
+        if (thumbType == ThumbnailType::BitmapPending)
         {
-            if (thumbType == ThumbnailType::BitmapPending)
+            if (!card.m_thumbnailWasPending)
             {
                 card.m_thumbnailWasPending = true;
-                continue;
             }
+            continue;
+        }
 
-            if (card.m_thumbnailWasPending && thumbType != ThumbnailType::BitmapPending)
-            {
-                card.m_thumbnailWasPending = false;
-                if (m_dcompDevice)
-                    m_dcompDevice->Commit();
-            }
+        if (card.m_thumbnailWasPending)
+        {
+            card.m_thumbnailWasPending = false;
+            UpdateCardThumbnailDest(card);
+
+            if (m_dcompDevice)
+                m_dcompDevice->Commit();
         }
     }
 }
