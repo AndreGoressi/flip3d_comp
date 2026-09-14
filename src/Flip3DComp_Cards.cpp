@@ -501,9 +501,13 @@ HRESULT Flip3DComp::CreateCardVisuals()
         if (FAILED(hr))
             continue;
 
-        if (m_multiWindowVisual)
+        /*if (m_multiWindowVisual)
         {
             container->AddVisual(reinterpret_cast<IUnknown*>(m_multiWindowVisual.Get()), FALSE, nullptr);
+        }*/
+        if (m_multiWindowVisual)
+        {
+            container->AddVisual(static_cast<IDCompositionVisual*>(m_multiWindowVisual.Get()), FALSE, nullptr);
         }
 
         hr = m_sceneVisual->AddVisual(container.Get(), TRUE, nullptr);
