@@ -87,7 +87,7 @@ void Flip3DComp::ThumbnailAsWindowToForeground(HWND hWnd)
     }
 
     SetForegroundWindow(hWnd);
-    SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+    //SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 
     if (bAttached)
     {
