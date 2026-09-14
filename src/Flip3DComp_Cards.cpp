@@ -439,7 +439,7 @@ void Flip3DComp::BuildCards()
 // ============================================================================
 // Flip3DComp::CreateCardVisuals
 // ============================================================================
-/*HRESULT Flip3DComp::CreateCardVisuals()
+HRESULT Flip3DComp::CreateCardVisuals()
 {
     if (!m_dcompDevice || !m_sceneVisual)
         return E_FAIL;
@@ -450,72 +450,6 @@ void Flip3DComp::BuildCards()
             continue;
 
         if (FAILED(CreateCardVisual(card)))
-            continue;
-    }
-
-    return S_OK;
-}*/
-
-// ============================================================================
-// Flip3DComp::CreateCardVisuals
-// ============================================================================
-HRESULT Flip3DComp::CreateCardVisuals()
-{
-    if (!m_dcompDevice || !m_sceneVisual)
-        return E_FAIL;
-
-    HRESULT hr = CreateMultiWindowVisualStage();
-    if (FAILED(hr))
-        return hr;
-
-    for (auto& card : m_cards)
-    {
-        if (!card.m_hwnd || card.m_containerVisual)
-            continue;
-
-        ComPtr<IDCompositionVisual2> container;
-        hr = m_dcompDevice->CreateVisual(&container);
-        if (FAILED(hr))
-            continue;
-
-        ComPtr<IDCompositionRectangleClip> clip;
-        if (SUCCEEDED(m_dcompDevice->CreateRectangleClip(&clip)))
-        {
-            float radius = 4.5f;
-            clip->SetLeft(0.f);
-            clip->SetTop(0.f);
-            clip->SetRight((float)card.m_srcWidth);
-            clip->SetBottom((float)card.m_srcHeight);
-            clip->SetTopLeftRadiusX(radius);
-            clip->SetTopLeftRadiusY(radius);
-            clip->SetTopRightRadiusX(radius);
-            clip->SetTopRightRadiusY(radius);
-            clip->SetBottomLeftRadiusX(radius);
-            clip->SetBottomLeftRadiusY(radius);
-            clip->SetBottomRightRadiusX(radius);
-            clip->SetBottomRightRadiusY(radius);
-
-            container->SetClip(clip.Get());
-        }
-
-        container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-        container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-
-        hr = container.As(&card.m_containerVisual);
-        if (FAILED(hr))
-            continue;
-
-        /*if (m_multiWindowVisual)
-        {
-            container->AddVisual(reinterpret_cast<IUnknown*>(m_multiWindowVisual.Get()), FALSE, nullptr);
-        }*/
-        if (m_multiWindowVisual)
-        {
-            container->AddVisual(static_cast<IDCompositionVisual*>(m_multiWindowVisual.Get()), FALSE, nullptr);
-        }
-
-        hr = m_sceneVisual->AddVisual(container.Get(), TRUE, nullptr);
-        if (FAILED(hr))
             continue;
     }
 
@@ -581,8 +515,10 @@ void Flip3DComp::OnThumbnailSourceSizeChanged()
 
 void Flip3DComp::RecreateThumbnail(CardModel& card)
 {
-    if (!card.m_hwnd)
+    if (!card.m_hwnd || !IsWindow(card.m_hwnd))
         return;
+
+    card.m_isMinimized = (IsIconic(card.m_hwnd) != 0);
     
     if (card.m_hThumb)
     {
@@ -590,24 +526,37 @@ void Flip3DComp::RecreateThumbnail(CardModel& card)
         card.m_hThumb = nullptr;
     }
 
-    if (card.m_containerVisual && m_sceneVisual)
+    if (card.m_isMinimized)
     {
-        ComPtr<IDCompositionVisual> scene;
-
-        if (SUCCEEDED(m_sceneVisual.As(&scene)))
-        {
-            scene->RemoveVisual(
-                card.m_containerVisual.Get());
-        }
+        return;
     }
 
-    card.m_visual.Reset();
-    card.m_containerVisual.Reset();
-
-    HRESULT hr = CreateCardVisual(card);
-
-    if (SUCCEEDED(hr))
+    if (m_pfnCreateSharedThumbVisual)
     {
-        UpdateCardThumbnailDest(card);
+        DWM_THUMBNAIL_PROPERTIES props = {};
+        props.dwFlags = DWM_TNP_RECTDEST | DWM_TNP_VISIBLE | DWM_TNP_OPACITY | DWM_TNP_ENABLE3D;
+        props.fVisible = TRUE;
+        props.opacity = 255;
+        props.rcDestination = { 0, 0, (LONG)card.m_srcWidth, (LONG)card.m_srcHeight };
+
+        void* rawVisual = nullptr;
+        HRESULT hr = m_pfnCreateSharedThumbVisual(
+            m_hwnd, 
+            card.m_hwnd, 
+            DWM_TNF_DWMWINDOW, 
+            &props, 
+            m_dcompDevice.Get(), 
+            &rawVisual, 
+            &card.m_hThumb
+        );
+
+        if (SUCCEEDED(hr) && rawVisual)
+        {
+            card.m_visual.Attach(reinterpret_cast<IDCompositionVisual3*>(rawVisual));
+            if (card.m_containerVisual && card.m_visual)
+            {
+                card.m_containerVisual->AddVisual(card.m_visual.Get(), FALSE, nullptr);
+            }
+        }
     }
 }
