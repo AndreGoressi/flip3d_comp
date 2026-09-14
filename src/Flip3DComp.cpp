@@ -258,36 +258,42 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_MOUSEWHEEL:
         OnWheel(GET_WHEEL_DELTA_WPARAM(wParam));
         return 0;
-        
+
     case WM_NCHITTEST: {
         POINT pt = { (LONG)(short)LOWORD(lParam), (LONG)(short)HIWORD(lParam) };
-        POINT clientPt = pt;
-        ScreenToClient(m_hwnd, &clientPt);
-
-        RECT rc;
-        GetClientRect(m_hwnd, &rc);
         
+        MONITORINFO mi = { sizeof(mi) };
+        HMONITOR hMon = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+        if (hMon)
+            GetMonitorInfoW(hMon, &mi);
+
         int hotZoneHeight = 3; 
         
-        if (clientPt.y >= rc.bottom - hotZoneHeight) {
+        if (pt.y >= mi.rcMonitor.bottom - hotZoneHeight) {
             return HTTRANSPARENT;
         }
         
         return HTCLIENT;
     }
-
+        
     case WM_MOUSEMOVE: {
         POINT pt = { (LONG)(short)LOWORD(lParam), (LONG)(short)HIWORD(lParam) };
-        RECT rc;
-        GetClientRect(m_hwnd, &rc);
         
-        if (pt.y >= rc.bottom - 3) {
+        POINT screenPt = pt;
+        ClientToScreen(m_hwnd, &screenPt);
+
+        MONITORINFO mi = { sizeof(mi) };
+        HMONITOR hMon = MonitorFromPoint(screenPt, MONITOR_DEFAULTTONEAREST);
+        if (hMon)
+            GetMonitorInfoW(hMon, &mi);
+
+        if (screenPt.y >= mi.rcMonitor.bottom - 3) {
             HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
             if (taskbar) {
                 PostMessageW(taskbar, WM_MOUSEMOVE, 0, 0); 
             }
         }
-
+        //
         m_hitHwnd = HitTest3DScene(
             (LONG)(short)LOWORD(lParam),
             (LONG)(short)HIWORD(lParam));
