@@ -97,25 +97,11 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         ExitView();
         return;
     }
-
-    /*if (m_cards[(size_t)selIdx].m_isMinimized)
-    {
-        UpdateRestoredMinimizedCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH);
-    }*/
-    /*if (m_cards[(size_t)selIdx].m_isMinimized)
-    {
-        DwmInvalidateIconicBitmaps(m_cards[(size_t)selIdx].m_hwnd);
-        UpdateRestoredMinimizedCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH);
-    }*/
+    
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
-        DwmInvalidateIconicBitmaps(
-            m_cards[(size_t)selIdx].m_hwnd);
-    
-        UpdateRestoredMinimizedCardGeometry(
-            m_cards[(size_t)selIdx],
-            m_monW,
-            m_monH);
+        DwmInvalidateIconicBitmaps(m_cards[(size_t)selIdx].m_hwnd);
+        UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
     
         if (m_dcompDevice)
             m_dcompDevice->Commit();
