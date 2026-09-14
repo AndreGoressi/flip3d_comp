@@ -127,8 +127,6 @@ private:
     void    OnThumbnailSourceSizeChanged();
     void    UpdateCardThumbnailDest(CardModel& card);
     HRESULT CreateCardVisuals();
-    //new
-    void RecreateThumbnail(CardModel& card);
 
     HTHUMBNAIL                          m_hMultiThumbId = nullptr;
     ComPtr<IDCompositionVisual3>        m_multiWindowVisual;
