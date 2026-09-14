@@ -347,7 +347,7 @@ void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
 // card thumbnail posts independently, so the WndProc only sets m_thumbnailsDirty
 // and this runs once per frame, touching cards whose queried source size differs.
 // ============================================================================
-void Flip3DCompApp::OnThumbnailSourceSizeChanged()
+void Flip3DComp::OnThumbnailSourceSizeChanged()
 {
     m_thumbnailsDirty = false;
 
