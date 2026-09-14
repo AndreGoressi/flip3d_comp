@@ -19,7 +19,7 @@ add_executable(Flip3DComp WIN32
     src/Flip3DComp_Accessible.cpp
     src/Flip3DAccessible.cpp
     src/Timeline.cpp
-    src/LivePreview.cpp
+    src/pDwmpActivateLivePreview.cpp
     src/pDwmpQueryThumbnailType.cpp
     src/WindowCompositionAttribute.cpp 
 )
