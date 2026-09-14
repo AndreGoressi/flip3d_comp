@@ -47,78 +47,6 @@ leave:
 }
 
 } // namespace
-
-void Flip3DComp::RecreateThumbnail(CardModel& card)
-{
-    if (!card.m_hwnd || !IsWindow(card.m_hwnd))
-        return;
-
-    if (card.m_visual && card.m_containerVisual)
-    {
-        card.m_containerVisual->RemoveVisual(
-            card.m_visual.Get());
-    }
-
-    card.m_visual.Reset();
-
-    if (card.m_hThumb)
-    {
-        DwmUnregisterThumbnail(card.m_hThumb);
-        card.m_hThumb = nullptr;
-    }
-
-    card.m_isMinimized = (IsIconic(card.m_hwnd) != 0);
-
-    UpdateRestoredMinimizedCardGeometry(
-        card,
-        m_monW,
-        m_monH);
-
-    DWM_THUMBNAIL_PROPERTIES props = {};
-    props.dwFlags =
-        DWM_TNP_RECTDESTINATION |
-        DWM_TNP_VISIBLE |
-        DWM_TNP_OPACITY |
-        DWM_TNP_ENABLE3D;
-
-    props.fVisible = TRUE;
-    props.opacity  = 255;
-
-    props.rcDestination =
-    {
-        0,
-        0,
-        (LONG)card.m_srcWidth,
-        (LONG)card.m_srcHeight
-    };
-
-    void* rawVisual = nullptr;
-
-    HRESULT hr =
-        m_pfnCreateSharedThumbVisual(
-            m_hwnd,
-            card.m_hwnd,
-            DWM_TNF_DWMWINDOW,
-            &props,
-            m_dcompDevice.Get(),
-            &rawVisual,
-            &card.m_hThumb);
-
-    if (SUCCEEDED(hr) && rawVisual)
-    {
-        card.m_visual.Attach(
-            reinterpret_cast<IDCompositionVisual3*>(rawVisual));
-
-        if (card.m_containerVisual)
-        {
-            card.m_containerVisual->AddVisual(
-                card.m_visual.Get(),
-                FALSE,
-                nullptr);
-        }
-    }
-}
-
 // ============================================================================
 // Flip3DComp::LoadThumbApi
 // ============================================================================
@@ -500,30 +428,35 @@ void Flip3DComp::UpdateCardThumbnailDest(CardModel& card)
 // ============================================================================
 void Flip3DComp::OnThumbnailSourceSizeChanged()
 {
-    m_thumbnailsDirty = false;
-
-    bool anyChange = false;
     for (auto& card : m_cards)
     {
-        if (!card.m_hwnd)
+        if (!IsWindow(card.m_hwnd) || !card.m_hThumb)
             continue;
 
-        SIZE querySize = {};
-        if (FAILED(m_pfnQueryThumbSize(card.m_hwnd, FALSE, &querySize)))
-            continue;
+        ThumbnailType thumbType = ThumbnailType::Default;
+        if (ThumbQuery::GetType(card.m_hThumb, &thumbType))
+        {
+            if (thumbType == ThumbnailType::BitmapPending)
+            {
+                card.m_thumbnailWasPending = true;
+                continue; 
+            }
 
-        const int queryW = (int)std::max(0L, querySize.cx);
-        const int queryH = (int)std::max(0L, querySize.cy);
-        if (queryW == card.m_srcWidth && queryH == card.m_srcHeight)
-            continue;
-
-        //const bool selectedRestore = card.m_hwnd == m_selectedHwnd;
-        //UpdateNormalCardGeometry(card, m_monW, m_monH, selectedRestore);
-        UpdateRestoredMinimizedCardGeometry(card, m_monW, m_monH);
-        UpdateCardThumbnailDest(card);
-        anyChange = true;
+            if (card.m_thumbnailWasPending && thumbType != ThumbnailType::BitmapPending)
+            {
+                card.m_thumbnailWasPending = false;
+                continue;
+            }
+        }
+        // -------------------------------------------------------
+        SIZE querySize{};
+        if (m_pfnQueryThumbSize && SUCCEEDED(m_pfnQueryThumbSize(card.m_hwnd, FALSE, &querySize)))
+        {
+            if (querySize.cx != card.m_srcWidth || querySize.cy != card.m_srcHeight)
+            {
+                card.m_srcWidth = querySize.cx;
+                card.m_srcHeight = querySize.cy;
+            }
+        }
     }
-
-    if (anyChange && m_dcompDevice)
-        m_dcompDevice->Commit();
 }
