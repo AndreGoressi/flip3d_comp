@@ -58,8 +58,6 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     //
     LivePreview::Activate(TRUE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
     //
-    CheckPendingThumbnails();
-
     EnterFlip3DWindowMode();
     InitAccessibility();
 
