@@ -68,7 +68,7 @@ void Flip3DComp::ApplyFullscreenLayout()
     const int x = mi.rcWork.left;
     const int y = mi.rcWork.top;
     const int w = mi.rcWork.right - mi.rcWork.left;
-    const int h = mi.rcWork.bottom - mi.rcWork.top;
+    int h = mi.rcWork.bottom - mi.rcWork.top;
 
     APPBARDATA abd = { sizeof(abd) };
     HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
