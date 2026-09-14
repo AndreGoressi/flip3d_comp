@@ -47,16 +47,6 @@ using Microsoft::WRL::ComPtr;
 
 class Flip3DAccessible;
 
-enum class WallpaperPlacement
-{
-    Center,
-    Tile,
-    Stretch,
-    Fit,
-    Fill,
-    Span,
-};
-
 // ============================================================================
 // Flip3DComp — Main application class
 // ============================================================================
@@ -130,8 +120,7 @@ private:
 
     void    BuildCards();
     void    UpdateMonitorRect();
-    /*void    UpdateCardGeometry(CardModel& card, float normMonW, float normMonH,
-                               bool selectedRestore = false);*/
+
     void    UpdateNormalCardGeometry(CardModel& card, float normMonW, float normMonH);
     void    UpdateRestoredMinimizedCardGeometry(CardModel& card, float normMonW, float normMonH);
 
@@ -140,6 +129,11 @@ private:
     HRESULT CreateCardVisuals();
     //new
     void RecreateThumbnail(CardModel& card);
+
+    HTHUMBNAIL                          m_hMultiThumbId = nullptr;
+    ComPtr<IDCompositionVisual3>        m_multiWindowVisual;
+    HRESULT CreateMultiWindowVisualStage();
+    void    UpdateMultiWindowVisualExclusion();
 
     // ========================================================================
     // Per-frame update
