@@ -100,31 +100,30 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
 
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
-        CheckPendingThumbnail(hwndTarget);
         UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
-        //
-        DWORD dwTargetThreadId = GetWindowThreadProcessId(hwndTarget, NULL);
-        DWORD dwCurrentThreadId = GetCurrentThreadId();
-        bool bAttached = false;
-        
-        if (dwCurrentThreadId != dwTargetThreadId && dwTargetThreadId != 0)
+        CheckPendingThumbnail(hwndTarget);
+
+        DWORD targetThreadId = GetWindowThreadProcessId(hwndTarget, nullptr);
+        DWORD currentThreadId = GetCurrentThreadId();
+        bool attached = false;
+
+        if (currentThreadId != targetThreadId && targetThreadId != 0)
         {
-            bAttached = AttachThreadInput(dwCurrentThreadId, dwTargetThreadId, TRUE);
+            attached = AttachThreadInput(currentThreadId, targetThreadId, TRUE);
         }
 
-        if (bAttached)
-        {
-            AttachThreadInput(dwCurrentThreadId, dwTargetThreadId, FALSE);
-        }
+        ShowWindowAsync(hwndTarget, SW_RESTORE);
+        DwmInvalidateIconicBitmaps(hwndTarget);
 
-        POINT mousePos;
-        if (GetCursorPos(&mousePos))
+        SetForegroundWindow(hwndTarget);
+        SetWindowPos(hwndTarget, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+
+        if (attached)
         {
-            SetCursorPos(mousePos.x, mousePos.y);
+            AttachThreadInput(currentThreadId, targetThreadId, FALSE);
         }
         DwmFlush();
     }
-    
     //
     m_selectedHwnd = hwndTarget;
     m_lastPaintOrder.clear();
