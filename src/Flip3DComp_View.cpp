@@ -98,36 +98,33 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         return;
     }
 
-    if (m_cards[(size_t)selIdx].m_isMinimized)
+    auto& card = m_cards[(size_t)selIdx];
+
+    if (card.m_isMinimized || IsIconic(hwndTarget))
     {
-        CheckPendingThumbnail(hwndTarget);
+        UpdateCardGeometry(card, m_monW, m_monH, /*selectedRestore=*/true);
 
-        DWORD targetThreadId = GetWindowThreadProcessId(hwndTarget, nullptr);
-        DWORD currentThreadId = GetCurrentThreadId();
-        bool attached = false;
-
-        if (currentThreadId != targetThreadId && targetThreadId != 0)
+        if (card.m_hThumb)
         {
-            attached = AttachThreadInput(currentThreadId, targetThreadId, TRUE);
+            DwmUnregisterThumbnail(card.m_hThumb);
+            card.m_hThumb = nullptr;
         }
-
-        UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
-
-        if (attached)
-        {
-            AttachThreadInput(currentThreadId, targetThreadId, FALSE);
-        }
+        //ShowWindow(hwndTarget, SW_RESTORE);
+        DwmInvalidateIconicBitmaps(hwndTarget);
         DwmFlush();
+
+        if (m_hwnd && hwndTarget)
+        {
+            DwmRegisterThumbnail(m_hwnd, hwndTarget, &card.m_hThumb);
+        }
     }
-    //
+
     m_selectedHwnd = hwndTarget;
     m_lastPaintOrder.clear();
 
     FreezeCarouselVisuals();
-
     BeginExitView();
 
-    // Re-index after wrap may have rotated the list; step count = list index of selection.
     const int selIdxAfter = FindCardIndex(hwndTarget);
     if (selIdxAfter > 0)
     {
