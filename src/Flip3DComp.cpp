@@ -21,8 +21,6 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
 {
     m_hInstance = hInstance;
 
-    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-
     if (!LoadThumbApi())
         return false;
 
@@ -49,6 +47,9 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
         if (m_initError.empty())
             m_initError = L"Failed to create DWM thumbnail visuals.";
         return false;
+    }
+
+    if (FAILED(CreateMultiWindowVisualStage())) {
     }
     
     m_state = ViewState::Enter;
