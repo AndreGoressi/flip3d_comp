@@ -250,17 +250,14 @@ bool Flip3DComp::CheckPendingThumbnail(HWND hwnd)
         return false;
 
     const int idx = FindCardIndex(hwnd);
-
     if (idx < 0)
         return false;
 
     auto& card = m_cards[(size_t)idx];
-
     if (!card.m_hThumb)
         return false;
 
     ThumbnailType thumbType = ThumbnailType::Default;
-
     if (!ThumbQuery::GetType(card.m_hThumb, &thumbType))
         return false;
 
@@ -270,15 +267,19 @@ bool Flip3DComp::CheckPendingThumbnail(HWND hwnd)
         return false;
     }
 
-    if (card.m_thumbnailWasPending)
+    if (thumbType == ThumbnailType::Iconic)
     {
         card.m_thumbnailWasPending = false;
+        return true;
+    }
 
+    if (card.m_thumbnailWasPending || thumbType == ThumbnailType::Bitmap)
+    {
+        card.m_thumbnailWasPending = false;
         UpdateCardThumbnailDest(card);
 
         if (m_dcompDevice)
             m_dcompDevice->Commit();
     }
-
     return true;
 }
