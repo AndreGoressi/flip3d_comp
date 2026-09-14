@@ -569,13 +569,13 @@ void Flip3DComp::TickSmoothScroll(float dtSeconds)
 // ============================================================================
 void Flip3DComp::Update(float dtSeconds)
 {
-    for (auto& card : m_cards)
+    /*for (auto& card : m_cards)
     {
         if (card.m_hwnd)
         {
             CheckPendingThumbnail(card.m_hwnd);
         }
-    }
+    }*/
     //
     if (m_thumbnailsDirty)
         OnThumbnailSourceSizeChanged();
