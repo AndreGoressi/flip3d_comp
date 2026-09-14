@@ -101,7 +101,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
         OutputDebugStringW(L"[Flip3D] MINIMIZED RECOVERY PATH\n");
-        CheckPendingThumbnails(m_cards[(size_t)selIdx].m_hwnd);
+        CheckPendingThumbnail(m_cards[(size_t)selIdx].m_hwnd);
         DwmInvalidateIconicBitmaps(m_cards[(size_t)selIdx].m_hwnd);
         UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
     }
