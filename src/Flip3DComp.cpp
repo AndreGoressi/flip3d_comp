@@ -127,7 +127,7 @@ LRESULT CALLBACK Flip3DComp::WndProc(HWND hwnd, UINT msg,
 // ============================================================================
 // Flip3DComp::HandleMessage
 // ============================================================================
-LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+/*LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {
@@ -157,21 +157,6 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_MOUSEWHEEL:
         OnWheel(GET_WHEEL_DELTA_WPARAM(wParam));
         return 0;
-
-    case WM_NCHITTEST:
-    {
-        POINT pt = { (LONG)(short)LOWORD(lParam), (LONG)(short)HIWORD(lParam) };
-        HMONITOR hMon = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-        MONITORINFO mi = { sizeof(mi) };
-        if (hMon && GetMonitorInfoW(hMon, &mi))
-        {
-            if (pt.y >= mi.rcMonitor.bottom - 2)
-            {
-                return HTTRANSPARENT;
-            }
-        }
-        break;
-    }
 
     case WM_MOUSEMOVE:
         m_hitHwnd = HitTest3DScene(
@@ -228,6 +213,134 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 
     case WM_DESTROY:
         //
+        ShutdownAccessibility();
+        LeaveFlip3DWindowMode();
+        PostQuitMessage(0);
+        return 0;
+    }
+
+    if (m_wmShellHook && msg == m_wmShellHook)
+    {
+        OnShellHookMessage(wParam, lParam);
+        return 0;
+    }
+
+    return DefWindowProcW(m_hwnd, msg, wParam, lParam);
+}*/  
+
+LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch (msg)
+    {
+    case WM_SIZE:
+        if (wParam == SIZE_MINIMIZED)
+        {
+            m_minimized = true;
+            return 0;
+        }
+        m_minimized = false;
+        m_width     = std::max(1u, (UINT)LOWORD(lParam));
+        m_height    = std::max(1u, (UINT)HIWORD(lParam));
+        UpdateMonitorRect();
+        return 0;
+
+    case WM_DISPLAYCHANGE:
+        ApplyFullscreenLayout();
+        UpdateMonitorRect();
+        return 0;
+
+    case WM_DWMTHUMBNAILSOURCESIZECHANGED:
+        // Each registered thumbnail posts 0x327 independently; coalesce to one
+        // refresh per frame in Update() (wParam = adapter LUID low part).
+        m_thumbnailsDirty = true;
+        return 0;
+
+    case WM_MOUSEWHEEL:
+        OnWheel(GET_WHEEL_DELTA_WPARAM(wParam));
+        return 0;
+
+    case WM_NCHITTEST: {
+        POINT pt = { (LONG)(short)LOWORD(lParam), (LONG)(short)HIWORD(lParam) };
+        ScreenToClient(m_hwnd, &pt);
+        RECT rc;
+        GetClientRect(m_hwnd, &rc);
+        // Define a "hot zone" at the bottom for taskbar activation (2px strip)
+        int hotZoneHeight = 2; 
+        
+        if (pt.y >= rc.bottom - hotZoneHeight) {
+            // Pass mouse events through to taskbar
+            return HTTRANSPARENT;
+        }
+        // Let your normal 3D scene handle the rest of the client area
+        return HTCLIENT;
+    }
+
+    case WM_MOUSEMOVE: {
+        POINT pt = { (LONG)(short)LOWORD(lParam), (LONG)(short)HIWORD(lParam) };
+        RECT rc;
+        GetClientRect(m_hwnd, &rc);
+        
+        if (pt.y >= rc.bottom - 2) {
+            HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
+            if (taskbar) {
+                PostMessageW(taskbar, WM_MOUSEMOVE, 0, 0); 
+            }
+        }
+
+        m_hitHwnd = HitTest3DScene(
+            (LONG)(short)LOWORD(lParam),
+            (LONG)(short)HIWORD(lParam));
+        SetCursor(LoadCursorW(nullptr, m_hitHwnd ? IDC_HAND : IDC_ARROW));
+        return 0;
+    }
+
+    case WM_LBUTTONDOWN:
+        OnMouse((LONG)(short)LOWORD(lParam),
+                (LONG)(short)HIWORD(lParam), true);
+        return 0;
+
+    case WM_KEYDOWN:
+        if (OnKey(true, (UINT)wParam, lParam))
+            return 0;
+        break;
+        
+    // new
+    case WM_ACTIVATE:
+        if (LOWORD(wParam) == WA_INACTIVE)
+        {
+            if (m_state != ViewState::Exit && m_state != ViewState::ExitRepeatedRotate)
+            {
+                ExitView();
+            }
+        }
+        return 0;
+    //close_if_focus_lost
+
+    case WM_CLOSE:
+        if (m_state == ViewState::Exit ||
+            m_state == ViewState::ExitRepeatedRotate)
+        {
+            DestroyWindow(m_hwnd);
+        }
+        else
+        {
+            ExitView();
+        }
+        return 0;
+
+    case WM_GETOBJECT:
+    {
+        if ((DWORD)lParam != OBJID_CLIENT && (DWORD)lParam != 0)
+            break;
+
+        IAccessible* pAccessible = GetAccessibleObject();
+        if (!pAccessible)
+            break;
+
+        return LresultFromObject(IID_IAccessible, wParam, pAccessible);
+    }
+
+    case WM_DESTROY:
         ShutdownAccessibility();
         LeaveFlip3DWindowMode();
         PostQuitMessage(0);
