@@ -160,7 +160,7 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
         if (m_pfnGetWindowMinimizeRect(h, &minRect) && !IsRectEmpty(&minRect))
             flatBounds = Math::BuildFinalMinRect(minRect, thumbAspect);
     }*/
-    else if (c.m_isMinimized && !selectedRestore)
+    else if (c.m_isMinimized)
     {
         RECT winRect = {};
         if (GetWindowRect(h, &winRect) && !IsRectEmpty(&winRect))
