@@ -2,6 +2,7 @@
 // Flip3DComp_Cards.cpp — Card building + thumbnail visual creation + DWM API
 // ============================================================================
 #include "Flip3DComp.h"
+#include "QueryThumbnail.h"
 #include <cmath>
 
 namespace {
