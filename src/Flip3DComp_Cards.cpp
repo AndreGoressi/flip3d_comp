@@ -160,7 +160,7 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
         if (m_pfnGetWindowMinimizeRect(h, &minRect) && !IsRectEmpty(&minRect))
             flatBounds = Math::BuildFinalMinRect(minRect, thumbAspect);*/
         ShowWindowAsync(h, SW_SHOWNOACTIVATE);
-        flatBounds = mi.rcWork;
+        //flatBounds = mi.rcWork;
     }
     //
     else if (!FillRestoredScreenRect(h, mi, flatBounds))
