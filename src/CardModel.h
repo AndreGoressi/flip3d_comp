@@ -23,6 +23,9 @@ struct CardModel
     int                 m_initialCarouselIndex = 0;  // order at Flip3D enter (before rotates)
     HTHUMBNAIL          m_hThumb      = nullptr;   // DWM shared thumbnail handle
 
+    //new
+    bool m_thumbnailWasPending = false;
+
     // ---- DirectComposition visuals ----
     ComPtr<IDCompositionVisual3> m_visual;          // thumbnail content visual (DWM)
     ComPtr<IDCompositionVisual3> m_containerVisual; // baked Model×Camera + opacity
