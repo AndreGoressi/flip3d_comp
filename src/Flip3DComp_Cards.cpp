@@ -108,13 +108,13 @@ void Flip3DComp::UnloadThumbApi()
 }
 
 // ============================================================================
-// Flip3DCompApp::UpdateCardGeometry
+// Flip3DComp::UpdateCardGeometry
 // uDWM Flip3DWindow::OnOriginalRectUpdated:
 //   - flatBounds in screen pixels (per-window monitor for taskbar/minimize)
 //   - NormalizeWindowSize + world mapping via shared PRIMARY rcWork (normMon*)
 //   - GetMonitorToWorldTransform on primary m_rcMonitor for all cards
 // ============================================================================
-void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
+void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
                                        bool selectedRestore)
 {
     HWND h = c.m_hwnd;
