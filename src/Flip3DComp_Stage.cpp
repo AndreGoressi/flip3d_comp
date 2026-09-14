@@ -70,16 +70,28 @@ void Flip3DComp::ApplyFullscreenLayout()
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
 
+    APPBARDATA abd = { sizeof(abd) };
+    HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
+    if (taskbar) {
+        abd.hWnd = taskbar;
+        abd.cbSize = sizeof(abd);
+        UINT state = SHAppBarMessage(ABM_GETSTATE, &abd);
+        
+        if (state & ABS_AUTOHIDE) {
+            h -= 2; 
+        }
+    }
+
     SetWindowPos(m_hwnd, HWND_TOP, x, y, w, h, SWP_SHOWWINDOW);
     //
-    HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
+    /*HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
     {
         SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
         APPBARDATA abd = { sizeof(abd) };
         abd.hWnd = taskbar;
         SHAppBarMessage(ABM_ACTIVATE, &abd);
-    }
+    }*/    
     
     RECT client = {};
     if (GetClientRect(m_hwnd, &client))
@@ -133,16 +145,26 @@ bool Flip3DComp::InitializeDCompStage()
                              m_hInstance,
                              this);
     //
-    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_NOACTIVATE);
+    //SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_NOACTIVATE);
     //
+
     HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
+    if (taskbar) {
+        // Position your window just below the taskbar in z-order
+        SetWindowPos(m_hwnd, taskbar, x, y, w, h, SWP_NOACTIVATE);
+    } else {
+        SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_NOACTIVATE);
+    }
+    //
+    
+    /*HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
     {
         SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
         APPBARDATA abd = { sizeof(abd) };
         abd.hWnd = taskbar;
         SHAppBarMessage(ABM_ACTIVATE, &abd);
-    }
+    }*/
     
     if (m_hwnd)
     {
