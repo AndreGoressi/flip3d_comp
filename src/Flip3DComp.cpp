@@ -281,7 +281,7 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         RECT rc;
         GetClientRect(m_hwnd, &rc);
         
-        if (pt.y >= rc.bottom - 2) {
+        if (pt.y >= rc.bottom - 3) {
             HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
             if (taskbar) {
                 PostMessageW(taskbar, WM_MOUSEMOVE, 0, 0); 
