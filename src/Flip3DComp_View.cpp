@@ -86,6 +86,9 @@ void Flip3DComp::ThumbnailAsWindowToForeground(HWND hWnd)
         bAttached = AttachThreadInput(dwCurrentThreadId, dwTargetThreadId, TRUE);
     }
 
+    SetForegroundWindow(hWnd);
+    SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+
     if (bAttached)
     {
         AttachThreadInput(dwCurrentThreadId, dwTargetThreadId, FALSE);
