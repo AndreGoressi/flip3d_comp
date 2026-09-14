@@ -75,12 +75,14 @@ void Flip3DComp::RestoreAndBringToForeground(HWND hwnd)
     if (IsIconic(hwnd))
     {
         //
-        ShowWindow(hwnd, SW_HIDE);
-        PostMessageW(hwnd, WM_SYSCOMMAND, SC_RESTORE, 0);
-        ShowWindow(hwnd, SW_SHOWNA);
+        ShowWindowAsync(hWnd, SW_RESTORE);
+        //PostMessageW(hwnd, WM_SYSCOMMAND, SC_RESTORE, 0);
+        //ShowWindow(hwnd, SW_SHOWNA);
+        DwmInvalidateIconicBitmaps(hwnd);
         //
     }
-
+    DwmFlush();
+    //
     DWORD targetThreadId = GetWindowThreadProcessId(hwnd, nullptr);
     DWORD currentThreadId = GetCurrentThreadId();
     bool attached = false;
@@ -90,8 +92,8 @@ void Flip3DComp::RestoreAndBringToForeground(HWND hwnd)
         attached = AttachThreadInput(currentThreadId, targetThreadId, TRUE);
     }
 
-    SetForegroundWindow(hwnd);
-    SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+    //SetForegroundWindow(hwnd);
+    //SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 
     if (attached)
     {
@@ -103,7 +105,7 @@ void Flip3DComp::RestoreAndBringToForeground(HWND hwnd)
     {
         SetCursorPos(mousePos.x, mousePos.y);
     }
-    DwmFlush();
+    //DwmFlush();
 }
 
 // ============================================================================
