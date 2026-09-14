@@ -143,9 +143,8 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             DwmRegisterThumbnail(m_hwnd, hwndTarget, &card.m_hThumb);
             //
             DWM_THUMBNAIL_PROPERTIES thp = {};
-            thp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_OPACITY | DWM_TNP_RECTDESTINATION;
+            thp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION;
             thp.fVisible = TRUE;
-            thp.opacity = 0;
             thp.rcDestination = { 0, 0, card.m_srcWidth, card.m_srcHeight };
             DwmUpdateThumbnailProperties(card.m_hThumb, &thp);
             DwmFlush();
