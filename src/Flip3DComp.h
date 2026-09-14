@@ -129,12 +129,6 @@ private:
     HRESULT CreateCardVisuals();
     //new
     void RecreateThumbnail(CardModel& card);
-    
-    HTHUMBNAIL                          m_hMultiThumbId = nullptr;
-    ComPtr<IDCompositionVisual3>        m_multiWindowVisual;
-    HRESULT CreateMultiWindowVisualStage();
-    void    UpdateMultiWindowVisualExclusion();
-
     // ========================================================================
     // Per-frame update
     // ========================================================================
