@@ -110,8 +110,8 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             card.m_hThumb = nullptr;
         }
         
-        ShowWindowAsync(hwndTarget, SW_RESTORE);
-        DwmInvalidateIconicBitmaps(hwndTarget);
+        //ShowWindowAsync(hwndTarget, SW_RESTORE);
+        //DwmInvalidateIconicBitmaps(hwndTarget);
         DwmFlush();
 
         if (m_hwnd && hwndTarget)
