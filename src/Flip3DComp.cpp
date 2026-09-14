@@ -3,6 +3,7 @@
 // ============================================================================
 #include "Flip3DComp.h"
 #include "Flip3DAccessible.h"
+#include "QueryThumbnail.h"
 #include "LivePreview.h"
 
 #include <windowsx.h>
@@ -241,4 +242,32 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
     }
 
     return DefWindowProcW(m_hwnd, msg, wParam, lParam);
+}
+
+void Flip3DComp::CheckPendingThumbnails()
+{
+    for (auto& card : m_cards)
+    {
+        if (!card.m_hwnd || !card.m_hThumb)
+            continue;
+
+        ThumbnailType thumbType = ThumbnailType::Default;
+        if (ThumbQuery::GetType(card.m_hThumb, &thumbType))
+        {
+            if (thumbType == ThumbnailType::BitmapPending)
+            {
+                card.m_thumbnailWasPending = true;
+                continue;
+            }
+
+            if (card.m_thumbnailWasPending && thumbType != ThumbnailType::BitmapPending)
+            {
+                card.m_thumbnailWasPending = false;
+                RecreateThumbnail(card);
+                
+                if (m_dcompDevice)
+                    m_dcompDevice->Commit();
+            }
+        }
+    }
 }
