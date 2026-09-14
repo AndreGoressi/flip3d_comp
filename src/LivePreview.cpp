@@ -1,4 +1,4 @@
-#include "LivePreview.h"
+#include "pDwmpActivateLivePreview.h"
 
 static DwmpActivateLivePreview_t g_pDwmpActivateLivePreview = nullptr;
 static BOOL g_aeroPeekActive = FALSE;
