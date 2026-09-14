@@ -123,7 +123,7 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
     normMonW = std::max(normMonW, 1.0f);
     normMonH = std::max(normMonH, 1.0f);
 
-    c.m_isMinimized    = !!IsIconic(h) && !selectedRestore;
+    c.m_isMinimized    = IsIconic(h) && !selectedRestore;
     c.m_isShellDesktop = (h == GetShellWindow());
 
     HMONITOR mon = MonitorFromWindow(h, MONITOR_DEFAULTTONEAREST);
@@ -156,11 +156,9 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
     else if (c.m_isMinimized)
     {
         // 2D minimize destination: taskbar tile position only.
-        /*RECT minRect = {};
+        RECT minRect = {};
         if (m_pfnGetWindowMinimizeRect(h, &minRect) && !IsRectEmpty(&minRect))
-            flatBounds = Math::BuildFinalMinRect(minRect, thumbAspect);*/
-        ShowWindowAsync(h, SW_SHOWNOACTIVATE);
-        //flatBounds = mi.rcWork;
+            flatBounds = Math::BuildFinalMinRect(minRect, thumbAspect);
     }
     //
     else if (!FillRestoredScreenRect(h, mi, flatBounds))
