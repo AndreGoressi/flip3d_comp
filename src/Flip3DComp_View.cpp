@@ -100,7 +100,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
 
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
-        //UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
+        UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
         CheckPendingThumbnail(hwndTarget);
 
         DWORD targetThreadId = GetWindowThreadProcessId(hwndTarget, nullptr);
@@ -118,8 +118,6 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         {
             AttachThreadInput(currentThreadId, targetThreadId, FALSE);
         }
-        //DwmFlush();
-        UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
         DwmFlush();
     }
     //
