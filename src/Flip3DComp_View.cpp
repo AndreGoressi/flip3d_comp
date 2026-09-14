@@ -2,7 +2,7 @@
 // Flip3DComp_View.cpp — View state: Exit, Select, HitTest3DScene
 // ============================================================================
 #include "Flip3DComp.h"
-#include "LivePreview.h"
+#include "pDwmpActivateLivePreview.h"
 
 #include <algorithm>
 #include <cmath>
