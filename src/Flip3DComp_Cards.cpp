@@ -2,7 +2,6 @@
 // Flip3DComp_Cards.cpp — Card building + thumbnail visual creation + DWM API
 // ============================================================================
 #include "Flip3DComp.h"
-#include "QueryThumbnail.h"
 #include <cmath>
 
 namespace {
@@ -359,9 +358,6 @@ void Flip3DComp::UpdateCardThumbnailDest(CardModel& card)
 // card thumbnail posts independently, so the WndProc only sets m_thumbnailsDirty
 // and this runs once per frame, touching cards whose queried source size differs.
 // ============================================================================
-// ============================================================================
-// Flip3DComp::OnThumbnailSourceSizeChanged
-// ============================================================================
 void Flip3DComp::OnThumbnailSourceSizeChanged()
 {
     m_thumbnailsDirty = false;
@@ -371,26 +367,6 @@ void Flip3DComp::OnThumbnailSourceSizeChanged()
     {
         if (!card.m_hwnd)
             continue;
-
-        if (card.m_hThumb)
-        {
-            ThumbnailType thumbType = ThumbnailType::Default;
-            if (ThumbQuery::GetType(card.m_hThumb, &thumbType))
-            {
-                if (thumbType == ThumbnailType::BitmapPending)
-                {
-                    card.m_thumbnailWasPending = true;
-                    continue; 
-                }
-
-                if (card.m_thumbnailWasPending && thumbType != ThumbnailType::BitmapPending)
-                {
-                    card.m_thumbnailWasPending = false;
-                    anyChange = true;
-                    continue;
-                }
-            }
-        }
 
         SIZE querySize = {};
         if (FAILED(m_pfnQueryThumbSize(card.m_hwnd, FALSE, &querySize)))
