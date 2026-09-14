@@ -55,7 +55,7 @@ std::vector<HWND> Flip3DComp::EnumerateWindows()
 // Flip3DComp::ApplyFullscreenLayout
 // uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
 // ============================================================================
-void Flip3DComp::ApplyFullscreenLayout()
+/*void Flip3DComp::ApplyFullscreenLayout()
 {
     if (!m_hwnd)
         return;
@@ -102,6 +102,59 @@ void Flip3DComp::ApplyFullscreenLayout()
         SHAppBarMessage(ABM_ACTIVATE, &abd);
     }*/    
     
+    RECT client = {};
+    if (GetClientRect(m_hwnd, &client))
+    {
+        m_width  = std::max(1u, (UINT)(client.right  - client.left));
+        m_height = std::max(1u, (UINT)(client.bottom - client.top));
+    }
+
+    UpdateMonitorRect();
+}*/
+
+void Flip3DComp::ApplyFullscreenLayout()
+{
+    if (!m_hwnd)
+        return;
+
+    // Wir holen uns die vollen Monitor-Ausmaße
+    MONITORINFO mi = { sizeof(mi) };
+    HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+    if (hMon)
+        GetMonitorInfoW(hMon, &mi);
+
+    const int x = mi.rcMonitor.left;
+    const int y = mi.rcMonitor.top;
+    const int w = mi.rcMonitor.right - mi.rcMonitor.left;
+    int h = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+    // Taskleiste finden und ihre exakte Höhe dynamisch abgreifen
+    HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
+    if (taskbar && IsWindowVisible(taskbar)) 
+    {
+        RECT rcTaskbar = {};
+        GetWindowRect(taskbar, &rcTaskbar);
+        
+        // Prüfen, ob die Taskleiste unten liegt (Standardfall)
+        int taskbarHeight = rcTaskbar.bottom - rcTaskbar.top;
+        
+        // Prüfen, ob Auto-Hide aktiv ist (dann ist die Taskleiste oft nur 1-2 Pixel hoch oder ausgeblendet)
+        APPBARDATA abd = { sizeof(abd) };
+        abd.hWnd = taskbar;
+        UINT state = (UINT)SHAppBarMessage(ABM_GETSTATE, &abd);
+        
+        if (state & ABS_AUTOHIDE) {
+            // Bei Auto-Hide lassen wir einen kleinen 2-Pixel-Spalt frei, damit die Maus triggern kann
+            h -= 3;
+        } else {
+            // Bei permanenter Taskleiste ziehen wir exakt ihre Höhe ab
+            h -= taskbarHeight;
+        }
+    }
+
+    // Fenster mit TOPMOST platzieren, aber jetzt hört es exakt über der Taskleiste auf!
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+
     RECT client = {};
     if (GetClientRect(m_hwnd, &client))
     {
