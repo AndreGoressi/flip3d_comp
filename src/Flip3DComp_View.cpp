@@ -98,8 +98,27 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         return;
     }
 
-    auto& card = m_cards[(size_t)selIdx];
+    //auto& card = m_cards[(size_t)selIdx];
+    //if (card.m_isMinimized || IsIconic(hwndTarget))
+    /*{
+        //UpdateCardGeometry(card, m_monW, m_monH, /*selectedRestore=*///true);
 
+        /*if (card.m_hThumb)
+        {
+            DwmUnregisterThumbnail(card.m_hThumb);
+            card.m_hThumb = nullptr;
+        }
+        
+        DwmInvalidateIconicBitmaps(hwndTarget);
+        DwmFlush();
+
+        if (m_hwnd && hwndTarget)
+        {
+            DwmRegisterThumbnail(m_hwnd, hwndTarget, &card.m_hThumb);
+        }
+    }*/
+
+    auto& card = m_cards[(size_t)selIdx];
     if (card.m_isMinimized || IsIconic(hwndTarget))
     {
         UpdateCardGeometry(card, m_monW, m_monH, /*selectedRestore=*/true);
@@ -110,13 +129,27 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             card.m_hThumb = nullptr;
         }
         
-        //ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
         DwmInvalidateIconicBitmaps(hwndTarget);
-        DwmFlush();
+
+        if (IsIconic(hwndTarget))
+        {
+            ShowWindow(hwndTarget, SW_RESTORE);
+        }
+
+        SetForegroundWindow(hwndTarget);
 
         if (m_hwnd && hwndTarget)
         {
             DwmRegisterThumbnail(m_hwnd, hwndTarget, &card.m_hThumb);
+            //
+            DWM_THUMBNAIL_PROPERTIES props = {};
+            props.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_OPACITY | DWM_TNP_RECTDEST;
+            props.fVisible = TRUE;
+            props.opacity = 255;
+            props.rcDestination = { (LONG)card.m_destX, (LONG)card.m_destY, 
+                                    (LONG)(card.m_destX + card.m_destW), 
+                                    (LONG)(card.m_destY + card.m_destH) };
+            DwmUpdateThumbnailProperties(card.m_hThumb, &props);
         }
     }
 
