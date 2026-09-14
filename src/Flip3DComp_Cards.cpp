@@ -171,6 +171,19 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
 
     c.m_srcWidth  = (int)thumbW;
     c.m_srcHeight = (int)thumbH;
+    //
+    float maxResW = normMonW * 0.5f;
+    float maxResH = normMonH * 0.5f;
+    float scale = std::min(maxResW / thumbW, maxResH / thumbH);
+    scale = std::min(scale, 1.0f); 
+
+    c.m_thumbTexWidth  = std::max(1, (int)(thumbW * scale));
+    c.m_thumbTexHeight = std::max(1, (int)(thumbH * scale));
+    // -------------------------------------------------------------------------------
+
+
+    c.m_thumbTexWidth  = std::max(1, (int)(thumbW * scale));
+    c.m_thumbTexHeight = std::max(1, (int)(thumbH * scale));
 
     // targetSize / occupancy = 3D carousel (uDWM finalSize).
     Math::WorldSizesFromThumbPixels(
@@ -329,10 +342,7 @@ void Flip3DComp::UpdateCardThumbnailDest(CardModel& card)
 {
     if (!card.m_hThumb || card.m_srcWidth <= 0 || card.m_srcHeight <= 0)
         return;
-
-    LONG targetW = (LONG)std::max(1.0f, std::abs(card.m_targetSize.x) * m_monW);
-    LONG targetH = (LONG)std::max(1.0f, std::abs(card.m_targetSize.y) * m_monH);
-
+    
     DWM_THUMBNAIL_PROPERTIES tp = {};
     tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
                     | DWM_TNP_ENABLE3D | DWM_TNP_DISABLEFORCECVI;
