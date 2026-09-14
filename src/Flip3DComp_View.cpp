@@ -75,7 +75,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
     if (!hwndTarget || !IsWindow(hwndTarget))
         return;
 
-    const bool isShell = (hwndTarget == GetShellWindow());
+    //const bool isShell = (hwndTarget == GetShellWindow());
 
     /*if (isShell)
     {
@@ -98,11 +98,11 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         return;
     }
     
+    if (CheckPendingThumbnail(hwndTarget))
+        DwmInvalidateIconicBitmaps(hwndTarget);
+    
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
-        OutputDebugStringW(L"[Flip3D] MINIMIZED RECOVERY PATH\n");
-        CheckPendingThumbnail(m_cards[(size_t)selIdx].m_hwnd);
-        DwmInvalidateIconicBitmaps(m_cards[(size_t)selIdx].m_hwnd);
         UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
     }
         
