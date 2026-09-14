@@ -569,8 +569,6 @@ void Flip3DComp::TickSmoothScroll(float dtSeconds)
 // ============================================================================
 void Flip3DComp::Update(float dtSeconds)
 {
-    CheckPendingThumbnails();
-    //
     if (m_thumbnailsDirty)
         OnThumbnailSourceSizeChanged();
 
