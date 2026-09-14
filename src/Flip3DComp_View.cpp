@@ -102,10 +102,10 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
     {
         if (CheckPendingThumbnail(hwndTarget))
             DwmInvalidateIconicBitmaps(hwndTarget);
-        DwmFlush();
         UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
         //ThumbnailAsWindowToForeground(hwndTarget);
     }
+    DwmFlush();
     //
     m_selectedHwnd = hwndTarget;
     m_lastPaintOrder.clear();
