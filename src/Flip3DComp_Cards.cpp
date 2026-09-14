@@ -162,7 +162,7 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
             flatBounds = Math::BuildFinalMinRect(minRect, thumbAspect);
     }*/
 
-    else if (c.m_isMinimized)
+    /*else if (c.m_isMinimized)
     {
         if (selectedRestore)
         {
@@ -180,7 +180,7 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
                 flatBounds = mi.rcWork; 
             }
         }
-    }
+    }*/
     //
     else if (!FillRestoredScreenRect(h, mi, flatBounds))
     {
