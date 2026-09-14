@@ -76,6 +76,7 @@ void Flip3DComp::ThumbnailAsWindowToForeground(HWND hWnd)
     {
         ShowWindowAsync(hWnd, SW_RESTORE);
     }
+    DwmFlush();
 
     DWORD dwTargetThreadId = GetWindowThreadProcessId(hWnd, NULL);
     DWORD dwCurrentThreadId = GetCurrentThreadId();
@@ -85,9 +86,6 @@ void Flip3DComp::ThumbnailAsWindowToForeground(HWND hWnd)
     {
         bAttached = AttachThreadInput(dwCurrentThreadId, dwTargetThreadId, TRUE);
     }
-
-    //SetForegroundWindow(hWnd);
-    //SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 
     if (bAttached)
     {
@@ -99,7 +97,6 @@ void Flip3DComp::ThumbnailAsWindowToForeground(HWND hWnd)
     {
         SetCursorPos(mousePos.x, mousePos.y);
     }
-    DwmFlush();
 }
 
 // ============================================================================
@@ -140,6 +137,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         ShowWindow(hwndTarget, SW_HIDE);
         SendMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
         //ShowWindowAsync(hwndTarget, SW_SHOWNA);
+        ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
     }
     ThumbnailAsWindowToForeground(hwndTarget);
     //
