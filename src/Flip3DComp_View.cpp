@@ -67,41 +67,6 @@ void Flip3DComp::SelectFront()
     SelectWindow(m_cards[(size_t)bestIdx].m_hwnd);
 }
 
-void Flip3DComp::ThumbnailAsWindowToForeground(HWND hWnd)
-{
-    if (!IsWindow(hWnd)) 
-        return;
-
-    if (IsIconic(hWnd)) 
-    {
-        ShowWindowAsync(hWnd, SW_RESTORE);
-    }
-
-    DWORD dwTargetThreadId = GetWindowThreadProcessId(hWnd, NULL);
-    DWORD dwCurrentThreadId = GetCurrentThreadId();
-    bool bAttached = false;
-    
-    if (dwCurrentThreadId != dwTargetThreadId && dwTargetThreadId != 0)
-    {
-        bAttached = AttachThreadInput(dwCurrentThreadId, dwTargetThreadId, TRUE);
-    }
-
-    SetForegroundWindow(hWnd);
-    //SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-
-    if (bAttached)
-    {
-        AttachThreadInput(dwCurrentThreadId, dwTargetThreadId, FALSE);
-    }
-
-    /*POINT mousePos;
-    if (GetCursorPos(&mousePos))
-    {
-        SetCursorPos(mousePos.x, mousePos.y);
-    }*/
-    DwmFlush();
-}
-
 // ============================================================================
 // Flip3DComp::SelectWindow — uDWM: BeginExitView then ExitRepeatedRotate
 // ============================================================================
@@ -135,13 +100,11 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
     
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
-        ShowWindowAsync(hwndTarget, SW_HIDE);
-        //SendMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
-        ShowWindowAsync(hwndTarget, SW_SHOWNA);
-        //ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
-        //
+        if (CheckPendingThumbnail(hwndTarget))
+            DwmInvalidateIconicBitmaps(hwndTarget);
+        DwmFlush();
         UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
-        ThumbnailAsWindowToForeground(hwndTarget);
+        //ThumbnailAsWindowToForeground(hwndTarget);
     }
     //
     m_selectedHwnd = hwndTarget;
