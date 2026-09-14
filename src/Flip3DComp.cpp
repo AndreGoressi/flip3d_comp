@@ -263,8 +263,11 @@ bool Flip3DComp::CheckPendingThumbnail(HWND hwnd)
 
     if (thumbType == ThumbnailType::BitmapPending || thumbType == ThumbnailType::Iconic)
     {
-        DwmInvalidateIconicBitmaps(card.m_hwnd);
-        card.m_thumbnailWasPending = true;
+        if (!card.m_thumbnailWasPending)
+        {
+            DwmInvalidateIconicBitmaps(card.m_hwnd);
+            card.m_thumbnailWasPending = true;
+        }
         return false; 
     }
 
@@ -274,7 +277,7 @@ bool Flip3DComp::CheckPendingThumbnail(HWND hwnd)
         UpdateCardThumbnailDest(card);
 
         if (m_dcompDevice)
-            m_dcompDevice->Commit();
+            m_dCompDevice->Commit();
     }
     return true;
 }
