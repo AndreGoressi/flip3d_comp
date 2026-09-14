@@ -188,10 +188,15 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
 
     c.m_aspectRatio = thumbW / thumbH;
 
+    const float qualityScale = CardThumbnailQualityScale();
+    c.m_srcWidth = std::max(1, (int)std::lround(thumbW * qualityScale));
+    c.m_srcHeight = std::max(1, (int)std::lround(thumbH * qualityScale));
+
     // 2D flat: position from flatBounds; size from QueryThumbSize (restored pixels).
     // Exceptions: shell uses rcWork; iconic minimize uses taskbar tile dimensions.
     float flatW = thumbW;
     float flatH = thumbH;
+    
     if (c.m_isShellDesktop || c.m_isMinimized)
     {
         flatW = (float)std::max(1L, flatBounds.right  - flatBounds.left);
