@@ -74,7 +74,7 @@ void Flip3DComp::ThumbnailAsWindowToForeground(HWND hWnd)
 
     if (IsIconic(hWnd)) 
     {
-        ShowWindowAsync(hWnd, SW_RESTORE);
+        ShowWindow(hWnd, SW_RESTORE);
     }
 
     DWORD dwTargetThreadId = GetWindowThreadProcessId(hWnd, NULL);
