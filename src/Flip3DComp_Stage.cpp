@@ -100,7 +100,7 @@ std::vector<HWND> Flip3DComp::EnumerateWindows()
         APPBARDATA abd = { sizeof(abd) };
         abd.hWnd = taskbar;
         SHAppBarMessage(ABM_ACTIVATE, &abd);
-    }*/    
+    }    
     
     RECT client = {};
     if (GetClientRect(m_hwnd, &client))
