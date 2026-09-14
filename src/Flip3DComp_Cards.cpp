@@ -82,27 +82,25 @@ void Flip3DComp::UpdateMultiWindowVisualExclusion()
     for (const auto& card : m_cards)
     {
         if (card.m_hwnd && IsWindow(card.m_hwnd))
-        {
             includeList.push_back(card.m_hwnd);
-        }
     }
 
     std::vector<HWND> excludeList;
     if (m_hwnd)
         excludeList.push_back(m_hwnd);
 
-    RECT monitorRect = { 0, 0, (LONG)m_monW, (LONG)m_monH };
+    RECT monitorRect = { (LONG)m_monOriginX, (LONG)m_monOriginY, (LONG)(m_monOriginX + m_monW), (LONG)(m_monOriginY + m_monH) };
     SIZE targetSize  = { (LONG)m_monW, (LONG)m_monH };
 
     MultiWindowVisual::Update(
         m_hMultiThumbId,
         includeList.data(),
-        (DWORD)includeList.size(),       
+        (DWORD)includeList.size(),
         excludeList.data(),
         (DWORD)excludeList.size(),
         &monitorRect,
         &targetSize,
-        1
+        0 
     );
 }
 
