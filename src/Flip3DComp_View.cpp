@@ -143,12 +143,9 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             DwmRegisterThumbnail(m_hwnd, hwndTarget, &card.m_hThumb);
             //
             DWM_THUMBNAIL_PROPERTIES props = {};
-            props.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_OPACITY | DWM_TNP_RECTDEST;
+            props.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_OPACITY;
             props.fVisible = TRUE;
             props.opacity = 255;
-            props.rcDestination = { (LONG)card.m_destX, (LONG)card.m_destY, 
-                                    (LONG)(card.m_destX + card.m_destW), 
-                                    (LONG)(card.m_destY + card.m_destH) };
             DwmUpdateThumbnailProperties(card.m_hThumb, &props);
         }
     }
