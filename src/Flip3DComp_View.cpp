@@ -100,7 +100,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
     
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
-        ShowWindowAsync(m_cards[(size_t)selIdx].m_hwnd, SW_SHOWNOACTIVATE);
+        DwmInvalidateIconicBitmaps(m_cards[(size_t)selIdx].m_hwnd);
         UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
     }
         
