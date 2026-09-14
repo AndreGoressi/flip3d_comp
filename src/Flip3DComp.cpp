@@ -261,8 +261,9 @@ bool Flip3DComp::CheckPendingThumbnail(HWND hwnd)
     if (!ThumbQuery::GetType(card.m_hThumb, &thumbType))
         return true; 
 
-    if (thumbType == ThumbnailType::BitmapPending)
+    if (thumbType == ThumbnailType::BitmapPending || thumbType == ThumbnailType::Iconic)
     {
+        DwmInvalidateIconicBitmaps(card.m_hwnd);
         card.m_thumbnailWasPending = true;
         return false; 
     }
