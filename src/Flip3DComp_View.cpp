@@ -138,7 +138,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
         //
         ShowWindow(hwndTarget, SW_HIDE);
-        PostMessageW(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
+        SendMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
         ShowWindow(hwndTarget, SW_SHOWNA);
     }
     ThumbnailAsWindowToForeground(hwndTarget);
