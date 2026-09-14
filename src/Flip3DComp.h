@@ -129,7 +129,7 @@ private:
     HRESULT CreateCardVisuals();
     //new
     bool CheckPendingThumbnail(HWND hwnd);
-    void RestoreAndBringToForeground(HWND hwnd);
+    void ThumbnailAsWindowToForeground(HWND hwnd);
     // ========================================================================
     // Per-frame update
     // ========================================================================
