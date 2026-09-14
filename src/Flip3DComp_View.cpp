@@ -92,7 +92,7 @@ void Flip3DComp::RestoreAndBringToForeground(HWND hwnd)
     }
 
     SetForegroundWindow(hwnd);
-    //SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+    SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 
     if (attached)
     {
