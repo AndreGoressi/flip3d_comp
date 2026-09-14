@@ -75,7 +75,7 @@ void Flip3DComp::RestoreAndBringToForeground(HWND hwnd)
     if (IsIconic(hwnd))
     {
         //
-        ShowWindowAsync(hWnd, SW_RESTORE);
+        ShowWindowAsync(hwnd, SW_RESTORE);
         //PostMessageW(hwnd, WM_SYSCOMMAND, SC_RESTORE, 0);
         //ShowWindow(hwnd, SW_SHOWNA);
         DwmInvalidateIconicBitmaps(hwnd);
