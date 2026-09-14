@@ -78,7 +78,7 @@ void Flip3DComp::ApplyFullscreenLayout()
         UINT state = SHAppBarMessage(ABM_GETSTATE, &abd);
         
         if (state & ABS_AUTOHIDE) {
-            h -= 9; 
+            h -= 3; 
         }
     }
 
