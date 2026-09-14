@@ -76,7 +76,6 @@ void Flip3DComp::ThumbnailAsWindowToForeground(HWND hWnd)
     {
         ShowWindowAsync(hWnd, SW_RESTORE);
     }
-    DwmFlush();
 
     DWORD dwTargetThreadId = GetWindowThreadProcessId(hWnd, NULL);
     DWORD dwCurrentThreadId = GetCurrentThreadId();
@@ -97,6 +96,7 @@ void Flip3DComp::ThumbnailAsWindowToForeground(HWND hWnd)
     {
         SetCursorPos(mousePos.x, mousePos.y);
     }
+    DwmFlush();
 }
 
 // ============================================================================
@@ -138,8 +138,8 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         //ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
         //
         UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
+        ThumbnailAsWindowToForeground(hwndTarget);
     }
-    ThumbnailAsWindowToForeground(hwndTarget);
     //
     m_selectedHwnd = hwndTarget;
     m_lastPaintOrder.clear();
