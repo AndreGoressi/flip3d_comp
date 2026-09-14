@@ -48,9 +48,6 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
             m_initError = L"Failed to create DWM thumbnail visuals.";
         return false;
     }
-
-    if (FAILED(CreateMultiWindowVisualStage())) {
-    }
     
     m_state = ViewState::Enter;
     m_animEnter.Restart(0.0f, 1.0f, kEnterExitDurationSec);
