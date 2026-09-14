@@ -258,20 +258,21 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_MOUSEWHEEL:
         OnWheel(GET_WHEEL_DELTA_WPARAM(wParam));
         return 0;
-
+        
     case WM_NCHITTEST: {
         POINT pt = { (LONG)(short)LOWORD(lParam), (LONG)(short)HIWORD(lParam) };
-        ScreenToClient(m_hwnd, &pt);
+        POINT clientPt = pt;
+        ScreenToClient(m_hwnd, &clientPt);
+
         RECT rc;
         GetClientRect(m_hwnd, &rc);
-        // Define a "hot zone" at the bottom for taskbar activation (2px strip)
-        int hotZoneHeight = 2; 
         
-        if (pt.y >= rc.bottom - hotZoneHeight) {
-            // Pass mouse events through to taskbar
+        int hotZoneHeight = 3; 
+        
+        if (clientPt.y >= rc.bottom - hotZoneHeight) {
             return HTTRANSPARENT;
         }
-        // Let your normal 3D scene handle the rest of the client area
+        
         return HTCLIENT;
     }
 
