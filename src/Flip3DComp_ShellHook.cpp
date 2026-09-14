@@ -174,11 +174,11 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     if (!m_dcompDevice || !m_sceneVisual || !card.m_hwnd)
         return E_INVALIDARG;
 
-    card.m_isMinimized = (IsIconic(card.m_hwnd) != 0);
+    /*card.m_isMinimized = (IsIconic(card.m_hwnd) != 0);
     if (card.m_isMinimized)
     {
         return S_FALSE; 
-    }
+    }*/
 
     LONG targetW = (LONG)std::max(1.0f, std::abs(card.m_targetSize.x) * m_monW);
     LONG targetH = (LONG)std::max(1.0f, std::abs(card.m_targetSize.y) * m_monH);
