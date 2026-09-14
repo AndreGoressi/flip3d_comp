@@ -100,8 +100,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
     
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
-        if (CheckPendingThumbnail(hwndTarget))
-            DwmInvalidateIconicBitmaps(hwndTarget);
+        CheckPendingThumbnail(hwndTarget);
         UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
         //ThumbnailAsWindowToForeground(hwndTarget);
     }
