@@ -111,7 +111,7 @@ HRESULT Flip3DComp::AccessibleWindowName(int index, BSTR* pszName) const
 // Flip3DComp::AccessibleCardScreenRect
 // Project the live 3D card quad to screen pixels (uDWM GetFlip3DWindowBoundingBox).
 // ============================================================================
-bool Flip3DComp::AccessibleCardScreenRect(int index, long* pxLeft, long* pyTop,
+/*bool Flip3DComp::AccessibleCardScreenRect(int index, long* pxLeft, long* pyTop,
                                              long* pcxWidth, long* pcyHeight) const
 {
     if (!pxLeft || !pyTop || !pcxWidth || !pcyHeight
@@ -164,6 +164,66 @@ bool Flip3DComp::AccessibleCardScreenRect(int index, long* pxLeft, long* pyTop,
 
     *pxLeft   = origin.x + (long)std::floor(minX);
     *pyTop    = origin.y + (long)std::floor(minY);
+    *pcxWidth  = (long)std::ceil(maxX - minX);
+    *pcyHeight = (long)std::ceil(maxY - minY);
+    if (*pcxWidth < 0)  *pcxWidth  = 0;
+    if (*pcyHeight < 0) *pcyHeight = 0;
+    return true;
+}*/
+
+bool Flip3DComp::AccessibleCardScreenRect(int index, long* pxLeft, long* pyTop,
+                                             long* pcxWidth, long* pcyHeight) const
+{
+    if (!pxLeft || !pyTop || !pcxWidth || !pcyHeight
+        || index < 0 || index >= (int)m_cards.size())
+        return false;
+
+    const CardModel& c = m_cards[(size_t)index];
+
+    const float p         = EnterProgress();
+    const auto  camera    = BuildCameraMatrix(p);
+    const float carouselSlot = GetCardDisplaySlot(index);
+
+    const float t        = ComputeCarouselBezierT(carouselSlot);
+    const float flatRank = ComputeFlatDepthRank(carouselSlot, p, index);
+    const auto  model    = BuildModelMatrix(c, t, p, flatRank);
+    const auto  mvp      = Math::Multiply(model, camera);
+
+    const float localW = 1.0f; 
+    const float localH = 1.0f;
+
+    auto project = [&](float px, float py) -> Vec2
+    {
+        const float x = px * mvp.m[0][0] + py * mvp.m[1][0] + mvp.m[3][0];
+        const float y = px * mvp.m[0][1] + py * mvp.m[1][1] + mvp.m[3][1];
+        float       w = px * mvp.m[0][3] + py * mvp.m[1][3] + mvp.m[3][3];
+        if (std::fabs(w) < 1e-6f)
+            w = 1e-6f;
+        return { x / w, y / w };
+    };
+
+    const Vec2 corners[4] = {
+        project(0.0f,   0.0f),
+        project(localW, 0.0f),
+        project(localW, localH),
+        project(0.0f,   localH),
+    };
+
+    float minX =  1e10f, minY =  1e10f;
+    float maxX = -1e10f, maxY = -1e10f;
+    for (const Vec2& v : corners)
+    {
+        minX = std::min(minX, v.x);
+        minY = std::min(minY, v.y);
+        maxX = std::max(maxX, v.x);
+        maxY = std::max(maxY, v.y);
+    }
+
+    POINT origin = { 0, 0 };
+    ClientToScreen(m_hwnd, &origin);
+
+    *pxLeft    = origin.x + (long)std::floor(minX);
+    *pyTop     = origin.y + (long)std::floor(minY);
     *pcxWidth  = (long)std::ceil(maxX - minX);
     *pcyHeight = (long)std::ceil(maxY - minY);
     if (*pcxWidth < 0)  *pcxWidth  = 0;
