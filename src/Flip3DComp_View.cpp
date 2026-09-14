@@ -139,7 +139,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         //
         ShowWindow(hwndTarget, SW_HIDE);
         SendMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
-        ShowWindowAsync(hwndTarget, SW_SHOWNA);
+        //ShowWindowAsync(hwndTarget, SW_SHOWNA);
     }
     ThumbnailAsWindowToForeground(hwndTarget);
     //
