@@ -210,7 +210,7 @@ bool Flip3DComp::InitializeDCompStage()
     //SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_NOACTIVATE);
     //
 
-    HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
+    /*HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar) {
         // Position your window just below the taskbar in z-order
         SetWindowPos(m_hwnd, taskbar, x, y, w, h, SWP_NOACTIVATE);
@@ -227,6 +227,19 @@ bool Flip3DComp::InitializeDCompStage()
         abd.hWnd = taskbar;
         SHAppBarMessage(ABM_ACTIVATE, &abd);
     }*/
+
+    // 1. Fenster normal positionieren (z.B. mit der Höhe minus Taskleiste oder Vollbild)
+    HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
+    if (taskbar) {
+        SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+        SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOACTIVATE);
+        
+        APPBARDATA abd = { sizeof(abd) };
+        abd.hWnd = taskbar;
+        SHAppBarMessage(ABM_ACTIVATE, &abd);
+    } else {
+        SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+    }
     
     if (m_hwnd)
     {
