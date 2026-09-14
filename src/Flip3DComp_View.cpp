@@ -94,11 +94,11 @@ void Flip3DComp::ThumbnailAsWindowToForeground(HWND hWnd)
         AttachThreadInput(dwCurrentThreadId, dwTargetThreadId, FALSE);
     }
 
-    POINT mousePos;
+    /*POINT mousePos;
     if (GetCursorPos(&mousePos))
     {
         SetCursorPos(mousePos.x, mousePos.y);
-    }
+    }*/
     DwmFlush();
 }
 
