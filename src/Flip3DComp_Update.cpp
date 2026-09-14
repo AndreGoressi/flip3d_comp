@@ -9,7 +9,6 @@
 //
 // ============================================================================
 #include "Flip3DComp.h"
-
 #include <algorithm>
 #include <cmath>
 #include <vector>
@@ -570,6 +569,8 @@ void Flip3DComp::TickSmoothScroll(float dtSeconds)
 // ============================================================================
 void Flip3DComp::Update(float dtSeconds)
 {
+    CheckPendingThumbnails();
+    //
     if (m_thumbnailsDirty)
         OnThumbnailSourceSizeChanged();
 
