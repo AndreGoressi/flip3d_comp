@@ -153,13 +153,35 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
         MONITORINFO primaryMi = QueryPrimaryMonitor();
         flatBounds = primaryMi.rcWork;
     }
-    else if (c.m_isMinimized)
+        //
+    /*else if (c.m_isMinimized)
     {
         // 2D minimize destination: taskbar tile position only.
         RECT minRect = {};
         if (m_pfnGetWindowMinimizeRect(h, &minRect) && !IsRectEmpty(&minRect))
             flatBounds = Math::BuildFinalMinRect(minRect, thumbAspect);
+    }*/
+
+    else if (c.m_isMinimized)
+    {
+        if (selectedRestore)
+        {
+            flatBounds = mi.rcWork;
+        }
+        else
+        {
+            RECT minRect = {};
+            if (m_pfnGetWindowMinimizeRect(h, &minRect) && !IsRectEmpty(&minRect))
+            {
+                flatBounds = Math::BuildFinalMinRect(minRect, thumbAspect);
+            }
+            else
+            {
+                flatBounds = mi.rcWork; 
+            }
+        }
     }
+    //
     else if (!FillRestoredScreenRect(h, mi, flatBounds))
     {
         flatBounds = mi.rcWork;
