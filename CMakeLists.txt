@@ -20,7 +20,6 @@ add_executable(Flip3DComp WIN32
     src/Flip3DAccessible.cpp
     src/Timeline.cpp
     src/LivePreview.cpp
-    src/MultiWindowVisual.cpp 
     src/WindowCompositionAttribute.cpp 
 )
 
