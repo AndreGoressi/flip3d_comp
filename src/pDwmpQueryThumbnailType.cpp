@@ -1,4 +1,4 @@
-#include "QueryThumbnail.h"
+#include "pDwmpQueryThumbnailType.h"
 
 static DwmpQueryThumbnailType_t g_pDwmpQueryThumbnailType = nullptr;
 static bool g_isInitialized = false;
