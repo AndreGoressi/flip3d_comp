@@ -74,7 +74,7 @@ void Flip3DComp::ThumbnailAsWindowToForeground(HWND hWnd)
 
     if (IsIconic(hWnd)) 
     {
-        ShowWindow(hWnd, SW_RESTORE);
+        ShowWindowAsync(hWnd, SW_RESTORE);
     }
 
     DWORD dwTargetThreadId = GetWindowThreadProcessId(hWnd, NULL);
@@ -94,11 +94,11 @@ void Flip3DComp::ThumbnailAsWindowToForeground(HWND hWnd)
         AttachThreadInput(dwCurrentThreadId, dwTargetThreadId, FALSE);
     }
 
-    POINT mousePos;
+    /*POINT mousePos;
     if (GetCursorPos(&mousePos))
     {
         SetCursorPos(mousePos.x, mousePos.y);
-    }
+    }*/
     DwmFlush();
 }
 
@@ -135,9 +135,9 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
     
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
-        ShowWindow(hwndTarget, SW_HIDE);
+        ShowWindowAsync(hwndTarget, SW_HIDE);
         //SendMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
-        ShowWindow(hwndTarget, SW_SHOWNA);
+        ShowWindowAsync(hwndTarget, SW_SHOWNA);
         //ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
         //
         UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
