@@ -123,7 +123,7 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
     normMonW = std::max(normMonW, 1.0f);
     normMonH = std::max(normMonH, 1.0f);
 
-    c.m_isMinimized    = !!IsIconic(h) && !selectedRestore;
+    c.m_isMinimized    = IsIconic(h) && !selectedRestore;
     c.m_isShellDesktop = (h == GetShellWindow());
 
     HMONITOR mon = MonitorFromWindow(h, MONITOR_DEFAULTTONEAREST);
