@@ -3,7 +3,6 @@
 // ============================================================================
 #include "Flip3DComp.h"
 #include "Flip3DAccessible.h"
-#include "pDwmpQueryThumbnailType.h"
 #include "pDwmpActivateLivePreview.h"
 
 #include <windowsx.h>
@@ -242,41 +241,4 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
     }
 
     return DefWindowProcW(m_hwnd, msg, wParam, lParam);
-}
-
-void Flip3DComp::CheckPendingThumbnail(HWND hwnd)
-{
-    if (!hwnd)
-        return;
-
-    const int idx = FindCardIndex(hwnd);
-    if (idx < 0)
-        return;
-
-    auto& card = m_cards[(size_t)idx];
-    if (!card.m_hThumb)
-        return;
-
-    ThumbnailType thumbType = ThumbnailType::Default;
-    if (!ThumbQuery::GetType(card.m_hThumb, &thumbType))
-        return; 
-
-    if (thumbType == ThumbnailType::BitmapPending || thumbType == ThumbnailType::Iconic)
-    {
-        if (!card.m_thumbnailWasPending)
-        {
-            DwmInvalidateIconicBitmaps(card.m_hwnd);
-            card.m_thumbnailWasPending = true;
-        }
-        return; 
-    }
-
-    if (card.m_thumbnailWasPending && thumbType == ThumbnailType::Bitmap)
-    {
-        card.m_thumbnailWasPending = false;
-        UpdateCardThumbnailDest(card);
-
-        if (m_dcompDevice)
-            m_dcompDevice->Commit();
-    }
 }
