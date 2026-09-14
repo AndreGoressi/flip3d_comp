@@ -263,8 +263,6 @@ void Flip3DComp::CheckPendingThumbnails()
             if (card.m_thumbnailWasPending && thumbType != ThumbnailType::BitmapPending)
             {
                 card.m_thumbnailWasPending = false;
-                RecreateThumbnail(card);
-                
                 if (m_dcompDevice)
                     m_dcompDevice->Commit();
             }
