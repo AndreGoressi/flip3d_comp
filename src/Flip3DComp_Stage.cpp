@@ -82,7 +82,16 @@ void Flip3DComp::ApplyFullscreenLayout()
         }
     }
 
-    SetWindowPos(m_hwnd, HWND_TOP, x, y, w, h, SWP_SHOWWINDOW);
+    if (taskbar)
+    {
+        SetWindowPos(m_hwnd, taskbar, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+    }
+    else
+    {
+        SetWindowPos(m_hwnd, HWND_TOP, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+    }
+
+    //SetWindowPos(m_hwnd, HWND_TOP, x, y, w, h, SWP_SHOWWINDOW);
     //
     /*HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
