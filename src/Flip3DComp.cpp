@@ -3,8 +3,8 @@
 // ============================================================================
 #include "Flip3DComp.h"
 #include "Flip3DAccessible.h"
-#include "QueryThumbnail.h"
-#include "LivePreview.h"
+#include "pDwmpQueryThumbnailType.h"
+#include "pDwmpActivateLivePreview.h"
 
 #include <windowsx.h>
 
