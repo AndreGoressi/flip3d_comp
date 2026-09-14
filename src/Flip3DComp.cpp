@@ -244,34 +244,41 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
     return DefWindowProcW(m_hwnd, msg, wParam, lParam);
 }
 
-void Flip3DComp::CheckPendingThumbnails()
+bool Flip3DComp::CheckPendingThumbnail(HWND hwnd)
 {
-    for (auto& card : m_cards)
+    if (!hwnd)
+        return false;
+
+    const int idx = FindCardIndex(hwnd);
+
+    if (idx < 0)
+        return false;
+
+    auto& card = m_cards[(size_t)idx];
+
+    if (!card.m_hThumb)
+        return false;
+
+    ThumbnailType thumbType = ThumbnailType::Default;
+
+    if (!ThumbQuery::GetType(card.m_hThumb, &thumbType))
+        return false;
+
+    if (thumbType == ThumbnailType::BitmapPending)
     {
-        if (!card.m_hwnd || !card.m_hThumb)
-            continue;
-
-        ThumbnailType thumbType = ThumbnailType::Default;
-
-        if (!ThumbQuery::GetType(card.m_hThumb, &thumbType))
-            continue;
-
-        if (thumbType == ThumbnailType::BitmapPending)
-        {
-            if (!card.m_thumbnailWasPending)
-            {
-                card.m_thumbnailWasPending = true;
-            }
-            continue;
-        }
-
-        if (card.m_thumbnailWasPending)
-        {
-            card.m_thumbnailWasPending = false;
-            UpdateCardThumbnailDest(card);
-
-            if (m_dcompDevice)
-                m_dcompDevice->Commit();
-        }
+        card.m_thumbnailWasPending = true;
+        return false;
     }
+
+    if (card.m_thumbnailWasPending)
+    {
+        card.m_thumbnailWasPending = false;
+
+        UpdateCardThumbnailDest(card);
+
+        if (m_dcompDevice)
+            m_dcompDevice->Commit();
+    }
+
+    return true;
 }
