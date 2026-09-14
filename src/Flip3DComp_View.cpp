@@ -97,14 +97,34 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         ExitView();
         return;
     }
-    
+
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
         CheckPendingThumbnail(hwndTarget);
         UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
-        //ThumbnailAsWindowToForeground(hwndTarget);
+        //
+        DWORD dwTargetThreadId = GetWindowThreadProcessId(hwndTarget, NULL);
+        DWORD dwCurrentThreadId = GetCurrentThreadId();
+        bool bAttached = false;
+        
+        if (dwCurrentThreadId != dwTargetThreadId && dwTargetThreadId != 0)
+        {
+            bAttached = AttachThreadInput(dwCurrentThreadId, dwTargetThreadId, TRUE);
+        }
+
+        if (bAttached)
+        {
+            AttachThreadInput(dwCurrentThreadId, dwTargetThreadId, FALSE);
+        }
+
+        POINT mousePos;
+        if (GetCursorPos(&mousePos))
+        {
+            SetCursorPos(mousePos.x, mousePos.y);
+        }
+        DwmFlush();
     }
-    DwmFlush();
+    
     //
     m_selectedHwnd = hwndTarget;
     m_lastPaintOrder.clear();
