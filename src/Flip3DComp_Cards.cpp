@@ -534,7 +534,7 @@ void Flip3DComp::RecreateThumbnail(CardModel& card)
     if (m_pfnCreateSharedThumbVisual)
     {
         DWM_THUMBNAIL_PROPERTIES props = {};
-        props.dwFlags = DWM_TNP_RECTDEST | DWM_TNP_VISIBLE | DWM_TNP_OPACITY | DWM_TNP_ENABLE3D;
+        props.dwFlags = DWM_TNP_RECTDESTINATION | DWM_TNP_VISIBLE | DWM_TNP_OPACITY | DWM_TNP_ENABLE3D;
         props.fVisible = TRUE;
         props.opacity = 255;
         props.rcDestination = { 0, 0, (LONG)card.m_srcWidth, (LONG)card.m_srcHeight };
