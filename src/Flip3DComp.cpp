@@ -127,7 +127,7 @@ LRESULT CALLBACK Flip3DComp::WndProc(HWND hwnd, UINT msg,
 // ============================================================================
 // Flip3DComp::HandleMessage
 // ============================================================================
-/*LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {
