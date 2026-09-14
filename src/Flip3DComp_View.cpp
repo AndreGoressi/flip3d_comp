@@ -75,9 +75,10 @@ void Flip3DComp::RestoreAndBringToForeground(HWND hwnd)
     if (IsIconic(hwnd))
     {
         //
-        ShowWindow(hwnd, SW_HIDE);
-        PostMessageW(hwnd, WM_SYSCOMMAND, SC_RESTORE, 0);
-        ShowWindow(hwnd, SW_SHOWNA);
+        //ShowWindow(hwnd, SW_HIDE);
+        //PostMessageW(hwnd, WM_SYSCOMMAND, SC_RESTORE, 0);
+        //ShowWindow(hwnd, SW_SHOWNA);
+        ShowWindowAsync(hwnd, SW_SHOWNOACTIVATE);
         //
     }
 
@@ -91,7 +92,7 @@ void Flip3DComp::RestoreAndBringToForeground(HWND hwnd)
     }
 
     SetForegroundWindow(hwnd);
-    SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+    //SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 
     if (attached)
     {
