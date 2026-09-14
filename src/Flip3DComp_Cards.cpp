@@ -334,9 +334,9 @@ HRESULT Flip3DComp::CreateCardVisuals()
 // Flip3DComp::UpdateCardThumbnailDest
 // Sync DWM thumbnail rcDestination to the current source pixel size.
 // ============================================================================
-void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
+void Flip3DComp::UpdateCardThumbnailDest(CardModel& card)
 {
-    if (!card.m_hThumb || card.m_thumbTexWidth <= 0 || card.m_thumbTexHeight <= 0)
+    if (!card.m_hThumb || card.m_srcWidth <= 0 || card.m_srcHeight <= 0)
         return;
 
     DWM_THUMBNAIL_PROPERTIES tp = {};
@@ -381,7 +381,6 @@ void Flip3DComp::OnThumbnailSourceSizeChanged()
                 if (card.m_thumbnailWasPending && thumbType != ThumbnailType::BitmapPending)
                 {
                     card.m_thumbnailWasPending = false;
-                    RecreateThumbnail(card); 
                     anyChange = true;
                     continue;
                 }
