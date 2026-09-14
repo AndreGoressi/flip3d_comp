@@ -117,9 +117,6 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             m_monW,
             m_monH);
     
-        RecreateThumbnail(
-            m_cards[(size_t)selIdx]);
-    
         if (m_dcompDevice)
             m_dcompDevice->Commit();
     }
