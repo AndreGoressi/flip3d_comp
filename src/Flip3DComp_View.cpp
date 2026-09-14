@@ -113,16 +113,12 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         }
 
         ShowWindowAsync(hwndTarget, SW_RESTORE);
-        DwmInvalidateIconicBitmaps(hwndTarget);
-
-        SetForegroundWindow(hwndTarget);
-        SetWindowPos(hwndTarget, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 
         if (attached)
         {
             AttachThreadInput(currentThreadId, targetThreadId, FALSE);
         }
-        DwmFlush();
+        //DwmFlush();
     }
     //
     m_selectedHwnd = hwndTarget;
