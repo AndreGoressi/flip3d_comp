@@ -1,6 +1,5 @@
-#pragma once
-
 #include <Windows.h>
+#include <dwmapi.h>
 
 using DwmpCreateSharedMultiWindowVisual_t = HRESULT(WINAPI*)(
     HWND hwndDestination, 
