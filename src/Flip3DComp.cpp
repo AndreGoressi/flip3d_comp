@@ -289,9 +289,11 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         if (screenPt.y >= mi.rcMonitor.bottom - 3) {
             HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
             if (taskbar) {
+                ShowWindow(taskbar, SW_SHOW);
                 SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOACTIVATE);
             }
         }
+
         m_hitHwnd = HitTest3DScene(
             (LONG)(short)LOWORD(lParam),
             (LONG)(short)HIWORD(lParam));
