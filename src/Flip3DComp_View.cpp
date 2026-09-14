@@ -109,7 +109,6 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             DwmUnregisterThumbnail(card.m_hThumb);
             card.m_hThumb = nullptr;
         }
-        //ShowWindow(hwndTarget, SW_RESTORE);
         DwmInvalidateIconicBitmaps(hwndTarget);
         DwmFlush();
 
