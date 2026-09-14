@@ -67,37 +67,31 @@ void Flip3DComp::SelectFront()
     SelectWindow(m_cards[(size_t)bestIdx].m_hwnd);
 }
 
-void Flip3DComp::RestoreAndBringToForeground(HWND hwnd)
+void Flip3DComp::ThumbnailAsWindowToForeground(HWND hWnd)
 {
-    if (!IsWindow(hwnd))
+    if (!IsWindow(hWnd)) 
         return;
 
-    if (IsIconic(hwnd))
+    if (IsIconic(hWnd)) 
     {
-        //
-        ShowWindowAsync(hwnd, SW_RESTORE);
-        //PostMessageW(hwnd, WM_SYSCOMMAND, SC_RESTORE, 0);
-        //ShowWindow(hwnd, SW_SHOWNA);
-        DwmInvalidateIconicBitmaps(hwnd);
-        //
-    }
-    DwmFlush();
-    //
-    DWORD targetThreadId = GetWindowThreadProcessId(hwnd, nullptr);
-    DWORD currentThreadId = GetCurrentThreadId();
-    bool attached = false;
-
-    if (currentThreadId != targetThreadId && targetThreadId != 0)
-    {
-        attached = AttachThreadInput(currentThreadId, targetThreadId, TRUE);
+        ShowWindowAsync(hWnd, SW_RESTORE);
     }
 
-    //SetForegroundWindow(hwnd);
-    //SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-
-    if (attached)
+    DWORD dwTargetThreadId = GetWindowThreadProcessId(hWnd, NULL);
+    DWORD dwCurrentThreadId = GetCurrentThreadId();
+    bool bAttached = false;
+    
+    if (dwCurrentThreadId != dwTargetThreadId && dwTargetThreadId != 0)
     {
-        AttachThreadInput(currentThreadId, targetThreadId, FALSE);
+        bAttached = AttachThreadInput(dwCurrentThreadId, dwTargetThreadId, TRUE);
+    }
+
+    SetForegroundWindow(hWnd);
+    SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+
+    if (bAttached)
+    {
+        AttachThreadInput(dwCurrentThreadId, dwTargetThreadId, FALSE);
     }
 
     POINT mousePos;
@@ -105,7 +99,7 @@ void Flip3DComp::RestoreAndBringToForeground(HWND hwnd)
     {
         SetCursorPos(mousePos.x, mousePos.y);
     }
-    //DwmFlush();
+    DwmFlush();
 }
 
 // ============================================================================
@@ -141,10 +135,14 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
     
     if (m_cards[(size_t)selIdx].m_isMinimized)
     {
-        RestoreAndBringToForeground(hwndTarget);
         UpdateCardGeometry(m_cards[(size_t)selIdx], m_monW, m_monH, /*selectedRestore=*/true);
+        //
+        ShowWindow(hwndTarget, SW_HIDE);
+        PostMessageW(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
+        ShowWindow(hwndTarget, SW_SHOWNA);
     }
-        
+    ThumbnailAsWindowToForeground(hwndTarget);
+    //
     m_selectedHwnd = hwndTarget;
     m_lastPaintOrder.clear();
 
