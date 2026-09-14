@@ -348,37 +348,55 @@ void Flip3DComp::UpdateCardThumbnailDest(CardModel& card)
 // card thumbnail posts independently, so the WndProc only sets m_thumbnailsDirty
 // and this runs once per frame, touching cards whose queried source size differs.
 // ============================================================================
+// ============================================================================
+// Flip3DComp::OnThumbnailSourceSizeChanged
+// ============================================================================
 void Flip3DComp::OnThumbnailSourceSizeChanged()
 {
+    m_thumbnailsDirty = false;
+
+    bool anyChange = false;
     for (auto& card : m_cards)
     {
-        if (!IsWindow(card.m_hwnd) || !card.m_hThumb)
+        if (!card.m_hwnd)
             continue;
 
-        ThumbnailType thumbType = ThumbnailType::Default;
-        if (ThumbQuery::GetType(card.m_hThumb, &thumbType))
+        if (card.m_hThumb)
         {
-            if (thumbType == ThumbnailType::BitmapPending)
+            ThumbnailType thumbType = ThumbnailType::Default;
+            if (ThumbQuery::GetType(card.m_hThumb, &thumbType))
             {
-                card.m_thumbnailWasPending = true;
-                continue; 
-            }
+                if (thumbType == ThumbnailType::BitmapPending)
+                {
+                    card.m_thumbnailWasPending = true;
+                    continue; 
+                }
 
-            if (card.m_thumbnailWasPending && thumbType != ThumbnailType::BitmapPending)
-            {
-                card.m_thumbnailWasPending = false;
-                continue;
+                if (card.m_thumbnailWasPending && thumbType != ThumbnailType::BitmapPending)
+                {
+                    card.m_thumbnailWasPending = false;
+                    RecreateThumbnail(card); 
+                    anyChange = true;
+                    continue;
+                }
             }
         }
-        // -------------------------------------------------------
-        SIZE querySize{};
-        if (m_pfnQueryThumbSize && SUCCEEDED(m_pfnQueryThumbSize(card.m_hwnd, FALSE, &querySize)))
-        {
-            if (querySize.cx != card.m_srcWidth || querySize.cy != card.m_srcHeight)
-            {
-                card.m_srcWidth = querySize.cx;
-                card.m_srcHeight = querySize.cy;
-            }
-        }
+
+        SIZE querySize = {};
+        if (FAILED(m_pfnQueryThumbSize(card.m_hwnd, FALSE, &querySize)))
+            continue;
+
+        const int queryW = (int)std::max(0L, querySize.cx);
+        const int queryH = (int)std::max(0L, querySize.cy);
+        if (queryW == card.m_srcWidth && queryH == card.m_srcHeight)
+            continue;
+
+        const bool selectedRestore = card.m_hwnd == m_selectedHwnd;
+        UpdateCardGeometry(card, m_monW, m_monH, selectedRestore);
+        UpdateCardThumbnailDest(card);
+        anyChange = true;
     }
+
+    if (anyChange && m_dcompDevice)
+        m_dcompDevice->Commit();
 }
