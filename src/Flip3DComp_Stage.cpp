@@ -134,7 +134,7 @@ bool Flip3DComp::InitializeDCompStage()
     const int h = mi.rcWork.bottom - mi.rcWork.top;
     //
     m_hwnd = CreateWindowExW(WS_EX_NOREDIRECTIONBITMAP | 
-                             WS_EX_TOPMOST | 
+                             //WS_EX_TOPMOST | 
                              WS_EX_TOOLWINDOW,
                              L"Flip3DCompClass",
                              L"",
