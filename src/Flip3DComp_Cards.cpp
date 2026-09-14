@@ -2,7 +2,6 @@
 // Flip3DComp_Cards.cpp — Card building + thumbnail visual creation + DWM API
 // ============================================================================
 #include "Flip3DComp.h"
-#include "MultiWindowVisual.h"
 #include <cmath>
 
 namespace {
@@ -48,61 +47,6 @@ leave:
 }
 
 } // namespace
-
-HRESULT Flip3DComp::CreateMultiWindowVisualStage()
-{
-    if (!m_dcompDevice || !m_sceneVisual)
-        return E_FAIL;
-
-    void* rawVisual = nullptr;
-    HRESULT hr = MultiWindowVisual::Create(m_hwnd, m_dcompDevice.Get(), &rawVisual, &m_hMultiThumbId);
-    if (FAILED(hr) || !rawVisual)
-        return hr;
-
-    m_multiWindowVisual.Attach(reinterpret_cast<IDCompositionVisual3*>(rawVisual));
-
-    m_multiWindowVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-    m_multiWindowVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-
-    hr = m_sceneVisual->AddVisual(m_multiWindowVisual.Get(), FALSE, nullptr);
-    if (FAILED(hr))
-        return hr;
-
-    UpdateMultiWindowVisualExclusion();
-
-    return S_OK;
-}
-
-void Flip3DComp::UpdateMultiWindowVisualExclusion()
-{
-    if (!m_hMultiThumbId)
-        return;
-
-    std::vector<HWND> includeList;
-    for (const auto& card : m_cards)
-    {
-        if (card.m_hwnd && IsWindow(card.m_hwnd))
-            includeList.push_back(card.m_hwnd);
-    }
-
-    std::vector<HWND> excludeList;
-    if (m_hwnd)
-        excludeList.push_back(m_hwnd);
-
-    RECT monitorRect = { (LONG)m_monOriginX, (LONG)m_monOriginY, (LONG)(m_monOriginX + m_monW), (LONG)(m_monOriginY + m_monH) };
-    SIZE targetSize  = { (LONG)m_monW, (LONG)m_monH };
-
-    MultiWindowVisual::Update(
-        m_hMultiThumbId,
-        includeList.data(),
-        (DWORD)includeList.size(),
-        excludeList.data(),
-        (DWORD)excludeList.size(),
-        &monitorRect,
-        &targetSize,
-        0 
-    );
-}
 
 void Flip3DComp::RecreateThumbnail(CardModel& card)
 {
