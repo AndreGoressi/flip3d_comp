@@ -277,7 +277,7 @@ bool Flip3DComp::CheckPendingThumbnail(HWND hwnd)
         UpdateCardThumbnailDest(card);
 
         if (m_dcompDevice)
-            m_dCompDevice->Commit();
+            m_dcompDevice->Commit();
     }
     return true;
 }
