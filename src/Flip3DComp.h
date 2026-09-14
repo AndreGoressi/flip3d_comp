@@ -128,7 +128,7 @@ private:
     void    UpdateCardThumbnailDest(CardModel& card);
     HRESULT CreateCardVisuals();
     //new
-    bool CheckPendingThumbnail(HWND hwnd);
+    void CheckPendingThumbnail(HWND hwnd);
     // ========================================================================
     // Per-frame update
     // ========================================================================
