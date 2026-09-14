@@ -2,6 +2,7 @@
 // Flip3DComp_Cards.cpp — Card building + thumbnail visual creation + DWM API
 // ============================================================================
 #include "Flip3DComp.h"
+#include "MultiWindowVisual.h"
 #include <cmath>
 
 namespace {
@@ -47,6 +48,57 @@ leave:
 }
 
 } // namespace
+
+HRESULT Flip3DComp::CreateMultiWindowVisualStage()
+{
+    if (!m_dcompDevice || !m_sceneVisual)
+        return E_FAIL;
+
+    void* rawVisual = nullptr;
+    HRESULT hr = MultiWindowVisual::Create(m_hwnd, m_dcompDevice.Get(), &rawVisual, &m_hMultiThumbId);
+    if (FAILED(hr) || !rawVisual)
+        return hr;
+
+    m_multiWindowVisual.Attach(reinterpret_cast<IDCompositionVisual3*>(rawVisual));
+
+    m_multiWindowVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+    m_multiWindowVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+
+    hr = m_sceneVisual->AddVisual(m_multiWindowVisual.Get(), FALSE, nullptr);
+    if (FAILED(hr))
+        return hr;
+
+    UpdateMultiWindowVisualExclusion();
+
+    return S_OK;
+}
+
+void Flip3DComp::UpdateMultiWindowVisualExclusion()
+{
+    if (!m_hMultiThumbId)
+        return;
+
+    std::vector<HWND> excludeList;
+    if (m_hwnd)
+        excludeList.push_back(m_hwnd);
+
+    HWND shellHwnd = GetShellWindow();
+    if (shellHwnd && shellHwnd != m_hwnd)
+        excludeList.push_back(shellHwnd);
+
+    RECT monitorRect = { 0, 0, (LONG)m_monW, (LONG)m_monH };
+    SIZE targetSize  = { (LONG)m_monW, (LONG)m_monH };
+
+    MultiWindowVisual::Update(
+        m_hMultiThumbId,
+        nullptr, 0,                      
+        excludeList.data(), 
+        (DWORD)excludeList.size(),       
+        &monitorRect,
+        &targetSize,
+        1                                
+    );
+}
 
 // ============================================================================
 // Flip3DComp::LoadThumbApi
@@ -383,7 +435,7 @@ void Flip3DComp::BuildCards()
 // ============================================================================
 // Flip3DComp::CreateCardVisuals
 // ============================================================================
-HRESULT Flip3DComp::CreateCardVisuals()
+/*HRESULT Flip3DComp::CreateCardVisuals()
 {
     if (!m_dcompDevice || !m_sceneVisual)
         return E_FAIL;
@@ -394,6 +446,68 @@ HRESULT Flip3DComp::CreateCardVisuals()
             continue;
 
         if (FAILED(CreateCardVisual(card)))
+            continue;
+    }
+
+    return S_OK;
+}*/
+
+// ============================================================================
+// Flip3DComp::CreateCardVisuals
+// ============================================================================
+HRESULT Flip3DComp::CreateCardVisuals()
+{
+    if (!m_dcompDevice || !m_sceneVisual)
+        return E_FAIL;
+
+    HRESULT hr = CreateMultiWindowVisualStage();
+    if (FAILED(hr))
+        return hr;
+
+    for (auto& card : m_cards)
+    {
+        if (!card.m_hwnd || card.m_containerVisual)
+            continue;
+
+        ComPtr<IDCompositionVisual2> container;
+        hr = m_dcompDevice->CreateVisual(&container);
+        if (FAILED(hr))
+            continue;
+
+        ComPtr<IDCompositionRectangleClip> clip;
+        if (SUCCEEDED(m_dcompDevice->CreateRectangleClip(&clip)))
+        {
+            float radius = 4.5f;
+            clip->SetLeft(0.f);
+            clip->SetTop(0.f);
+            clip->SetRight((float)card.m_srcWidth);
+            clip->SetBottom((float)card.m_srcHeight);
+            clip->SetTopLeftRadiusX(radius);
+            clip->SetTopLeftRadiusY(radius);
+            clip->SetTopRightRadiusX(radius);
+            clip->SetTopRightRadiusY(radius);
+            clip->SetBottomLeftRadiusX(radius);
+            clip->SetBottomLeftRadiusY(radius);
+            clip->SetBottomRightRadiusX(radius);
+            clip->SetBottomRightRadiusY(radius);
+
+            container->SetClip(clip.Get());
+        }
+
+        container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+        container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+
+        hr = container.As(&card.m_containerVisual);
+        if (FAILED(hr))
+            continue;
+
+        if (m_multiWindowVisual)
+        {
+            container->AddVisual(reinterpret_cast<IUnknown*>(m_multiWindowVisual.Get()), FALSE, nullptr);
+        }
+
+        hr = m_sceneVisual->AddVisual(container.Get(), TRUE, nullptr);
+        if (FAILED(hr))
             continue;
     }
 
