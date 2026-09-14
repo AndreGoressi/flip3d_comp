@@ -174,6 +174,12 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     if (!m_dcompDevice || !m_sceneVisual || !card.m_hwnd)
         return E_INVALIDARG;
 
+    card.m_isMinimized = (IsIconic(card.m_hwnd) != 0);
+    if (card.m_isMinimized)
+    {
+        return S_FALSE; 
+    }
+
     LONG targetW = (LONG)std::max(1.0f, std::abs(card.m_targetSize.x) * m_monW);
     LONG targetH = (LONG)std::max(1.0f, std::abs(card.m_targetSize.y) * m_monH);
 
@@ -226,9 +232,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
 
         container->SetClip(clip.Get());
     }
-    // -------------------------------------------------------------------------
 
-    //
     container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
     container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
 
@@ -246,8 +250,8 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     hr = m_sceneVisual->AddVisual(container.Get(), TRUE, nullptr);
     return hr;
 }
-
 // ============================================================================
+
 bool Flip3DComp::AddCardForWindow(HWND hwnd)
 {
     if (!hwnd || m_cards.size() >= (size_t)kMaxCards)
