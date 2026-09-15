@@ -95,7 +95,7 @@ constexpr float CardThumbnailQualityScale()
     case CardThumbnailQuality::Low:    return 0.25f;
     case CardThumbnailQuality::Medium: return 0.50f;
     case CardThumbnailQuality::High:    return 0.75f;
-    case CardThumbnailQuality::Native:   return 1.00f;
+    case CardThumbnailQuality::Native:   return 2.00f;
     }
     //return; //test
 }
