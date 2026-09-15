@@ -3,7 +3,7 @@
 // ============================================================================
 #include "Flip3DComp.h"
 #include "WindowCompositionAttribute.h"
-#include "CreateWindowInBand.h"
+#include "pCreateWindowInBand.h"
 //
 #include <algorithm>
 #include <vector>
@@ -121,7 +121,7 @@ bool Flip3DComp::InitializeDCompStage()
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
     //
-    m_hwnd = WindowInBand::CreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
+    m_hwnd = banding::CreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
                                               WS_EX_TOPMOST | 
                                               WS_EX_TOOLWINDOW,
                                               atom,
