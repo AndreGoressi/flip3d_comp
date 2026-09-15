@@ -63,14 +63,14 @@ void Flip3DComp::ApplyFullscreenLayout()
     MONITORINFO mi = { sizeof(mi) };
     HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
     if (hMon)
+    {
         GetMonitorInfoW(hMon, &mi);
-
-    int x = GetSystemMetrics(SM_CXFULLSCREEN); 
-    int y = GetSystemMetrics(SM_CYFULLSCREEN);
-    int w = GetSystemMetrics(SM_CXSCREEN);       
-    int h = GetSystemMetrics(SM_CYSCREEN);
-
-    SetWindowPos(m_hwnd, HWND_TOP, x, y, w, h, SWP_SHOWWINDOW);
+    }
+    const int x = mi.rcMonitor.left;
+    const int y = mi.rcMonitor.top;
+    const int w = mi.rcMonitor.right - mi.rcMonitor.left;
+    const int h = mi.rcMonitor.bottom - mi.rcMonitor.top;
+    SetWindowPos(hwnd, HWND_TOP, mi.rcWork.left, mi.rcWork.top, w, h, SWP_SHOWWINDOW);
     //
     HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
@@ -115,14 +115,10 @@ bool Flip3DComp::InitializeDCompStage()
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
 
-    /*const int x = mi.rcWork.left;
+    const int x = mi.rcWork.left;
     const int y = mi.rcWork.top;
     const int w = mi.rcWork.right - mi.rcWork.left;
-    const int h = mi.rcWork.bottom - mi.rcWork.top;*/
-    int x = GetSystemMetrics(SM_CXFULLSCREEN); 
-    int y = GetSystemMetrics(SM_CYFULLSCREEN);
-    int w = GetSystemMetrics(SM_CXSCREEN);       
-    int h = GetSystemMetrics(SM_CYSCREEN);
+    const int h = mi.rcWork.bottom - mi.rcWork.top;*
     //
     m_hwnd = CreateWindowExW(WS_EX_NOREDIRECTIONBITMAP | 
                              WS_EX_TOPMOST | 
@@ -136,7 +132,7 @@ bool Flip3DComp::InitializeDCompStage()
                              m_hInstance,
                              this);
     //
-    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_NOACTIVATE);
+    SetWindowPos(hwnd, HWND_TOPMOST, mi.rcWork.left, mi.rcWork.top, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
     //
     HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
