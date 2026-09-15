@@ -46,10 +46,9 @@ using CreateWindowInBand_t = HWND (WINAPI*)(
 using GetWindowBand_t =
 BOOL (WINAPI*)(HWND, PDWORD);
 
-namespace WindowInBand
+namespace banding
 {
     bool Initialize();
-
     HWND CreateWindowInBand(DWORD exStyle,
                             ATOM atom,
                             LPCWSTR title,
