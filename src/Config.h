@@ -65,11 +65,12 @@ enum class CardThumbnailQuality
     Medium,
     High,
     Native,
+    Test
 };
 
 constexpr float kRestoreRevealProgress = 0.18f;
 
-constexpr CardThumbnailQuality kCardThumbnailQuality = CardThumbnailQuality::Native; 
+constexpr CardThumbnailQuality kCardThumbnailQuality = CardThumbnailQuality::Test; 
 // This controls the DWM thumbnail resolution used by 3D window cards. By default Windows Vista & 7 have it set to a Medium value (0.50f)
 
 // Pre-computed camera poses (radians)
@@ -96,8 +97,9 @@ constexpr float CardThumbnailQualityScale()
     case CardThumbnailQuality::Medium: return 0.50f;
     case CardThumbnailQuality::High:    return 0.75f;
     case CardThumbnailQuality::Native:   return 1.00f;
+    case CardThumbnailQuality::Test:   return 2.00f;
     }
-    return 2.00f; //test
+    return 0.50f; //test
 }
 
 // Normalization Bezier coefficients (quadratic)
