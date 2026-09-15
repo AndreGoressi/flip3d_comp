@@ -118,7 +118,7 @@ bool Flip3DComp::InitializeDCompStage()
     HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
-    /
+    
     const int x = mi.rcWork.left;
     const int y = mi.rcWork.top;
     const int w = mi.rcWork.right - mi.rcWork.left;
