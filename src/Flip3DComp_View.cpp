@@ -116,10 +116,10 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         {
             DwmRegisterThumbnail(m_hwnd, hwndTarget, &card.m_hThumb);
         }
-    }*/
+    }*/    
 
     auto& card = m_cards[(size_t)selIdx];
-    if (card.m_isMinimized || IsIconic(hwndTarget))
+    if (card.m_isMinimized)
     {
         UpdateCardGeometry(card, m_monW, m_monH, /*selectedRestore=*/true);
 
@@ -130,13 +130,14 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         }
         
         DwmInvalidateIconicBitmaps(hwndTarget);
+        ShowWindowAsync(m_selectedHWND, SW_SHOWNOACTIVATE);
 
-        if (IsIconic(hwndTarget))
+        /*if (IsIconic(hwndTarget))
         {
             ShowWindow(hwndTarget, SW_RESTORE);
-        }
+        }*/
 
-        SetForegroundWindow(hwndTarget);
+        //SetForegroundWindow(hwndTarget);
 
         if (m_hwnd && hwndTarget)
         {
