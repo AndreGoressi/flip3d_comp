@@ -60,16 +60,16 @@ constexpr int    kMaxCards                 = 24;       // absolute max cards in 
 
 enum class CardThumbnailQuality
 {
+    VeryLow,
     Low,
-    MediumLow,
     Medium,
-    MediumHigh,
     High,
+    Native,
 };
 
 constexpr float kRestoreRevealProgress = 0.18f;
 
-constexpr CardThumbnailQuality kCardThumbnailQuality = CardThumbnailQuality::Medium; 
+constexpr CardThumbnailQuality kCardThumbnailQuality = CardThumbnailQuality::Native; 
 // This controls the DWM thumbnail resolution used by 3D window cards. By default Windows Vista & 7 have it set to a Medium value (0.50f)
 
 // Pre-computed camera poses (radians)
@@ -91,11 +91,11 @@ constexpr float CardThumbnailQualityScale()
 {
     switch (kCardThumbnailQuality)
     {
-    case CardThumbnailQuality::Low:    return 0.10f;
-    case CardThumbnailQuality::MediumLow:    return 0.25f;
+    case CardThumbnailQuality::VeryLow:    return 0.10f;
+    case CardThumbnailQuality::Low:    return 0.25f;
     case CardThumbnailQuality::Medium: return 0.50f;
-    case CardThumbnailQuality::MediumHigh:    return 0.75f;
-    case CardThumbnailQuality::High:   return 1.00f;
+    case CardThumbnailQuality::High:    return 0.75f;
+    case CardThumbnailQuality::Native:   return 1.00f;
     }
     return 1.00f;
 }
