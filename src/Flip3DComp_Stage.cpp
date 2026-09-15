@@ -143,12 +143,9 @@ bool Flip3DComp::InitializeDCompStage()
         SHAppBarMessage(ABM_ACTIVATE, &abd);
     }
     
-    //if (m_hwnd)
-    //{
-        BOOL exclude = TRUE;
-        DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
-        WindowCompositionAttribute::EnableBlurBehind(m_hwnd);
-    //}
+    BOOL exclude = TRUE;
+    DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
+    WindowCompositionAttribute::EnableBlurBehind(m_hwnd);
     //
     if (!m_hwnd)
         return false;
