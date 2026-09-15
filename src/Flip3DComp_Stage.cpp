@@ -64,9 +64,8 @@ void Flip3DComp::ApplyFullscreenLayout()
     MONITORINFO mi = { sizeof(mi) };
     HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
     if (hMon)
-    {
         GetMonitorInfoW(hMon, &mi);
-    }
+    //
     const int x = mi.rcMonitor.left;
     const int y = mi.rcMonitor.top;
     const int w = mi.rcMonitor.right - mi.rcMonitor.left;
@@ -86,8 +85,11 @@ void Flip3DComp::ApplyFullscreenLayout()
     RECT client = {};
     if (GetClientRect(m_hwnd, &client))
     {
-        m_width  = std::max(1u, (UINT)(client.right  - client.left));
-        m_height = std::max(1u, (UINT)(client.bottom - client.top));
+        UINT dpi = GetDpiForWindow(m_hwnd);
+        float scale = dpi / 96.0f;
+
+        m_width  = std::max(1u, (UINT)((client.right  - client.left) * scale));
+        m_height = std::max(1u, (UINT)((client.bottom - client.top) * scale));
     }
     UpdateMonitorRect();
 }
@@ -116,7 +118,7 @@ bool Flip3DComp::InitializeDCompStage()
     HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
-
+    /
     const int x = mi.rcWork.left;
     const int y = mi.rcWork.top;
     const int w = mi.rcWork.right - mi.rcWork.left;
@@ -157,10 +159,12 @@ bool Flip3DComp::InitializeDCompStage()
     RECT client = {};
     if (GetClientRect(m_hwnd, &client))
     {
-        m_width  = std::max(1u, (UINT)(client.right  - client.left));
-        m_height = std::max(1u, (UINT)(client.bottom - client.top));
-    }
+        UINT dpi = GetDpiForWindow(m_hwnd);
+        float scale = dpi / 96.0f;
 
+        m_width  = std::max(1u, (UINT)((client.right  - client.left) * scale));
+        m_height = std::max(1u, (UINT)((client.bottom - client.top) * scale));
+    }
     return true;
 }
 
