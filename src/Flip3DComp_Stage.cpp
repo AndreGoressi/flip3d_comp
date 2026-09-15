@@ -65,14 +65,10 @@ void Flip3DComp::ApplyFullscreenLayout()
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
 
-    /*const int x = mi.rcWork.left;
-    const int y = mi.rcWork.top;
-    const int w = mi.rcWork.right - mi.rcWork.left;
-    const int h = mi.rcWork.bottom - mi.rcWork.top;*/
-    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
-    const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    int x = GetSystemMetrics(SM_XVIRTUALSCREEN); 
+    int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    int w = GetSystemMetrics(SM_CXSCREEN);       
+    int h = GetSystemMetrics(SM_CYSCREEN);
 
     SetWindowPos(m_hwnd, HWND_TOP, x, y, w, h, SWP_SHOWWINDOW);
     //
@@ -123,10 +119,10 @@ bool Flip3DComp::InitializeDCompStage()
     const int y = mi.rcWork.top;
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;*/
-    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
-    const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    int x = GetSystemMetrics(SM_XVIRTUALSCREEN); 
+    int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    int w = GetSystemMetrics(SM_CXSCREEN);       
+    int h = GetSystemMetrics(SM_CYSCREEN);
     //
     m_hwnd = CreateWindowExW(WS_EX_NOREDIRECTIONBITMAP | 
                              WS_EX_TOPMOST | 
