@@ -71,9 +71,9 @@ bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
     if (!GetClassNameW(hwnd, cls, 63))
         return false;
 
-    return /*!_wcsicmp(cls, L"Shell_TrayWnd")
+    return !_wcsicmp(cls, L"Shell_TrayWnd")
     || !_wcsicmp(cls, L"Shell_SecondaryTrayWnd")
-        ||*/ !_wcsicmp(cls, L"WorkerW");
+        || !_wcsicmp(cls, L"WorkerW");
 }
 
 // ============================================================================
@@ -224,10 +224,10 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
         container->SetClip(clip.Get());
     }
 
-    container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+    container->SetBorderMode(DCOMPOSITION_BORDER_MODE_HARD);
     container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
 
-    card.m_visual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+    card.m_visual->SetBorderMode(DCOMPOSITION_BORDER_MODE_HARD);
     card.m_visual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
 
     hr = container->AddVisual(card.m_visual.Get(), FALSE, nullptr);
