@@ -70,7 +70,7 @@ void Flip3DComp::ApplyFullscreenLayout()
     const int y = mi.rcMonitor.top;
     const int w = mi.rcMonitor.right - mi.rcMonitor.left;
     const int h = mi.rcMonitor.bottom - mi.rcMonitor.top;
-    SetWindowPos(hwnd, HWND_TOP, mi.rcWork.left, mi.rcWork.top, w, h, SWP_SHOWWINDOW);
+    SetWindowPos(m_hwnd, HWND_TOP, mi.rcWork.left, mi.rcWork.top, w, h, SWP_SHOWWINDOW);
     //
     HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
@@ -132,7 +132,7 @@ bool Flip3DComp::InitializeDCompStage()
                              m_hInstance,
                              this);
     //
-    SetWindowPos(hwnd, HWND_TOPMOST, mi.rcWork.left, mi.rcWork.top, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+    SetWindowPos(m_hwnd, HWND_TOPMOST, mi.rcWork.left, mi.rcWork.top, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
     //
     HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
