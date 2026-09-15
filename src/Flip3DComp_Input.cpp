@@ -8,11 +8,30 @@
 // Modern smooth scroll: each WHEEL_DELTA notch nudges the scroll target by one
 // slot. Wheel down (delta < 0) scrolls front→back; wheel up scrolls back→front.
 // ============================================================================
+/*bool Flip3DComp::OnWheel(int wheelDelta)
+{
+    if (wheelDelta == 0 ||
+        m_state == ViewState::Exit ||
+        m_state == ViewState::ExitRepeatedRotate)
+        return false;
+
+    m_scrollTarget -= (float)wheelDelta / (float)WHEEL_DELTA;
+    return true;
+}*/
+
+// ============================================================================
+// Flip3DComp::OnWheel
+// Modern smooth scroll: each WHEEL_DELTA notch nudges the scroll target by one
+// slot. Wheel down (delta < 0) scrolls front→back; wheel up scrolls back→front.
+// ============================================================================
 bool Flip3DComp::OnWheel(int wheelDelta)
 {
     if (wheelDelta == 0 ||
         m_state == ViewState::Exit ||
         m_state == ViewState::ExitRepeatedRotate)
+        return false;
+    //
+    if (!m_hitHwnd)
         return false;
 
     m_scrollTarget -= (float)wheelDelta / (float)WHEEL_DELTA;
