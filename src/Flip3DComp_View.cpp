@@ -130,7 +130,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         }
         
         DwmInvalidateIconicBitmaps(hwndTarget);
-        ShowWindowAsync(m_selectedHWND, SW_SHOWNOACTIVATE);
+        ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
 
         /*if (IsIconic(hwndTarget))
         {
