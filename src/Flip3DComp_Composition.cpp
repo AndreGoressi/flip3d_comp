@@ -43,7 +43,7 @@ HRESULT Flip3DComp::InitComposition()
         return hr;
     sceneBase.As(&m_sceneVisual);
     //
-    m_sceneVisual->SetDepthMode(DCOMPOSITION_DEPTH_MODE_INHERIT); //DCOMPOSITION_DEPTH_MODE_SORTED test: DCOMPOSITION_DEPTH_MODE_INHERIT 
+    m_sceneVisual->SetDepthMode(DCOMPOSITION_DEPTH_MODE_SORTED);
     //
     ComPtr<IDCompositionVisual> rootBase;
     root.As(&rootBase);
