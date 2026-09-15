@@ -1,8 +1,8 @@
-#include "CreateWindowInBand.h"
+#include "pCreateWindowInBand.h"
 
 static CreateWindowInBand_t g_CreateWindowInBand = nullptr;
 
-bool WindowInBand::Initialize()
+bool banding::Initialize()
 {
     if (g_CreateWindowInBand)
         return true;
@@ -21,7 +21,7 @@ bool WindowInBand::Initialize()
     return g_CreateWindowInBand != nullptr;
 }
 
-HWND WindowInBand::CreateWindowInBand(DWORD exStyle,
+HWND banding::CreateWindowInBand(DWORD exStyle,
                                       ATOM atom,
                                       LPCWSTR title,
                                       DWORD style,
