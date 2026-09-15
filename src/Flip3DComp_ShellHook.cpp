@@ -225,10 +225,10 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     }
 
     container->SetBorderMode(DCOMPOSITION_BORDER_MODE_INHERIT);
-    container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+    container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_INHERIT);
 
     card.m_visual->SetBorderMode(DCOMPOSITION_BORDER_MODE_INHERIT);
-    card.m_visual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+    card.m_visual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_INHERIT);
 
     hr = container->AddVisual(card.m_visual.Get(), FALSE, nullptr);
     if (FAILED(hr))
