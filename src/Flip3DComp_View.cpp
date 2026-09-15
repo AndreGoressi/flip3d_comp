@@ -116,7 +116,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             thp.fVisible = TRUE;
             thp.rcDestination = { 0, 0, 0, 0 };
             DwmUpdateThumbnailProperties(card.m_hThumb, &thp);
-            DwmFlush();
+            //DwmFlush();
         }
     }
 
