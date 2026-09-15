@@ -3,6 +3,7 @@
 // ============================================================================
 #include "Flip3DComp.h"
 #include "WindowCompositionAttribute.h"
+#include "CreateWindowInBand.h"
 //
 #include <algorithm>
 #include <vector>
@@ -70,7 +71,8 @@ void Flip3DComp::ApplyFullscreenLayout()
     const int y = mi.rcMonitor.top;
     const int w = mi.rcMonitor.right - mi.rcMonitor.left;
     const int h = mi.rcMonitor.bottom - mi.rcMonitor.top;
-    SetWindowPos(m_hwnd, HWND_TOP, mi.rcWork.left, mi.rcWork.top, w, h, SWP_SHOWWINDOW);
+    //
+    SetWindowPos(m_hwnd, HWND_TOP, x, y, w, h, SWP_SHOWWINDOW);
     //
     HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
@@ -108,7 +110,7 @@ bool Flip3DComp::InitializeDCompStage()
         L"Flip3DCompClass",
         nullptr,
     };
-    RegisterClassExW(&wc);
+    ATOM atom = RegisterClassExW(&wc);
     //
     MONITORINFO mi = { sizeof(mi) };
     HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
@@ -120,19 +122,19 @@ bool Flip3DComp::InitializeDCompStage()
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
     //
-    m_hwnd = CreateWindowExW(WS_EX_NOREDIRECTIONBITMAP | 
-                             WS_EX_TOPMOST | 
-                             WS_EX_TOOLWINDOW,
-                             L"Flip3DCompClass",
-                             L"",
-                             WS_POPUP,
-                             x, y, w, h,
-                             nullptr, 
-                             nullptr,
-                             m_hInstance,
-                             this);
+    m_hwnd = WindowInBand::CreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
+                                              WS_EX_TOPMOST | 
+                                              WS_EX_TOOLWINDOW,
+                                              atom,
+                                              L"",
+                                              WS_POPUP,
+                                              x, y, w, h,
+                                              m_hInstance,
+                                              this,
+                                              ZBID_DESKTOP
+    );
     //
-    SetWindowPos(m_hwnd, HWND_TOPMOST, mi.rcWork.left, mi.rcWork.top, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
     //
     HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
