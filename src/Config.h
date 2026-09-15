@@ -97,7 +97,7 @@ constexpr float CardThumbnailQualityScale()
     case CardThumbnailQuality::High:    return 0.75f;
     case CardThumbnailQuality::Native:   return 1.00f;
     }
-    return; //test
+    //return; //test
 }
 
 // Normalization Bezier coefficients (quadratic)
