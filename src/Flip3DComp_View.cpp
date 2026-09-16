@@ -94,7 +94,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
     auto& card = m_cards[(size_t)selIdx];
     if (card.m_isMinimized)
     {
-        UpdateCardGeometry(card, m_monW, m_monH, /*selectedRestore=*/true);
+        //UpdateCardGeometry(card, m_monW, m_monH, /*selectedRestore=*/true);
         if (card.m_hThumb)
         {
             DwmUnregisterThumbnail(card.m_hThumb);
@@ -114,6 +114,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             thp.rcDestination = { 0, 0, 0, 0 };
             DwmUpdateThumbnailProperties(card.m_hThumb, &thp);
         }
+        UpdateCardGeometry(card, m_monW, m_monH, /*selectedRestore=*/true);
     }
 
     m_selectedHwnd = hwndTarget;
