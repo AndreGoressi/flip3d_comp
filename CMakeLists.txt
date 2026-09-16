@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(Flip3DComp WIN32
     src/resources.rc
-    src/PrepareForUIAccess.h
     src/main.cpp
     src/Flip3DComp.cpp
     src/Flip3DComp_Stage.cpp
@@ -20,6 +19,7 @@ add_executable(Flip3DComp WIN32
     src/Flip3DComp_Accessible.cpp
     src/Flip3DAccessible.cpp
     src/Timeline.cpp
+    src/PrepareForUIAccess.cpp
     src/pCreateWindowInBand.cpp
     src/pDwmpActivateLivePreview.cpp
     src/WindowCompositionAttribute.cpp
