@@ -531,7 +531,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                 float screenW = (float)(rcWin.right - rcWin.left);
                 float screenH = (float)(rcWin.bottom - rcWin.top);
                 
-                float gutter = 150.0f; 
+                float gutter = 160.0f; 
                 bool touchesLeft   = (screenX <= 5.0f);
                 bool touchesRight  = (abs((screenX + screenW) - m_monW) <= 5.0f);
                 bool touchesTop    = (screenY <= 5.0f);
