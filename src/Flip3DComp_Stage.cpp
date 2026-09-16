@@ -34,34 +34,6 @@ BOOL CALLBACK Flip3DComp::EnumWindowsProc(HWND hwnd, LPARAM lParam)
     return TRUE;
 }
 
-static bool IsStartOrSearchMenu(HWND hwnd)
-{
-    DWORD pid = 0;
-    GetWindowThreadProcessId(hwnd, &pid);
-    if (pid == 0) return false;
-
-    HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
-    if (!hProcess) return false;
-
-    wchar_t path[MAX_PATH] = { 0 };
-    DWORD size = MAX_PATH;
-    bool isSystemPopup = false;
-
-    if (QueryFullProcessImageNameW(hProcess, 0, path, &size))
-    {
-        wchar_t* exeName = wcsrchr(path, L'\\');
-        exeName = exeName ? exeName + 1 : path;
-
-        if (_wcsicmp(exeName, L"StartMenuExperienceHost.exe") == 0 ||
-            _wcsicmp(exeName, L"SearchHost.exe") == 0)
-        {
-            isSystemPopup = true;
-        }
-    }
-    CloseHandle(hProcess);
-    return isSystemPopup;
-}
-
 // ============================================================================
 // Flip3DComp::EnumerateWindows
 // ============================================================================
