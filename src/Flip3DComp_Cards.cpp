@@ -7,10 +7,10 @@
 
 namespace {
 
-MONITORINFO QueryPrimaryMonitor()
+MONITORINFO Flip3DComp::QueryPrimaryMonitor()
 {
     MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hPrimary = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+    HMONITOR hPrimary = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);f
     if (hPrimary)
         GetMonitorInfoW(hPrimary, &mi);
     return mi;
@@ -351,7 +351,7 @@ static RECT GetTrueWindowRect(HWND hwnd)
     return rc;
 }
 
-static std::vector<std::vector<HWND>> DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& workArea)
+std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& workArea)
 {
     std::vector<std::vector<HWND>> groups;
     //
