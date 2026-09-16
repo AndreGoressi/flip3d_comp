@@ -516,13 +516,29 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                 }
 
                 // Map screen coordinates relative to primary work area, then scale to card dimensions
-                float scaleX = card.m_srcWidth / m_monW;
+                /*float scaleX = card.m_srcWidth / m_monW;
                 float scaleY = card.m_srcHeight / m_monH;
                 //
                 int relX = (int)((rcWin.left - m_monOriginX) * scaleX);
                 int relY = (int)((rcWin.top - m_monOriginY) * scaleY);
                 int relW = (int)((rcWin.right - rcWin.left) * scaleX);
-                int relH = (int)((rcWin.bottom - rcWin.top) * scaleY);
+                int relH = (int)((rcWin.bottom - rcWin.top) * scaleY);*/
+
+                // Statt die volle Breite/Höhe zu nehmen, skalieren wir sie mit einem kleinen Innenabstand (Gutter)
+                float scaleX = card.m_srcWidth / m_monW;
+                float scaleY = card.m_srcHeight / m_monH;
+                // Basis-Position vom echten Bildschirm
+                float screenX = (float)(rcWin.left - m_monOriginX);
+                float screenY = (float)(rcWin.top - m_monOriginY);
+                float screenW = (float)(rcWin.right - rcWin.left);
+                float screenH = (float)(rcWin.bottom - rcWin.top);
+                // Gutter / Innenabstand definieren (z.B. 10 Pixel Rand rundherum und Spalt in der Mitte)
+                float gutter = 12.0f; 
+                //
+                int relX = (int)((screenX + gutter) * scaleX);
+                int relY = (int)((screenY + gutter) * scaleY);
+                int relW = (int)((screenW - (gutter * 2.0f)) * scaleX);
+                int relH = (int)((screenH - (gutter * 2.0f)) * scaleY);
                 //
                 HTHUMBNAIL subThumb = nullptr;
                 DWM_THUMBNAIL_PROPERTIES subTp = {};
