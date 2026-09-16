@@ -316,34 +316,42 @@ void Flip3DComp::UpdateMonitorRect()
     m_originalFrontHwnd = m_cards.empty() ? nullptr : m_cards[0].m_hwnd;
 }*/
 
+//#include <dwmapi.h>
+static RECT GetTrueWindowRect(HWND hwnd)
+{
+    RECT rc = {};
+    if (FAILED(DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rc, sizeof(rc))))
+    {
+        GetWindowRect(hwnd, &rc);
+    }
+    return rc;
+}
+
 static std::vector<std::vector<HWND>> DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& workArea)
 {
     std::vector<std::vector<HWND>> groups;
-    // Simple geometric grouping for side-by-side or stacked snap layouts
-    // We check pairs of windows to see if they share an edge and together form standard snap proportions
+    //
     for (size_t i = 0; i < hwnds.size(); ++i)
     {
-        RECT rc1;
-        if (!GetWindowRect(hwnds[i], &rc1)) continue;
-        //
+        RECT rc1 = GetTrueWindowRect(hwnds[i]);
+
         for (size_t j = i + 1; j < hwnds.size(); ++j)
         {
-            RECT rc2;
-            if (!GetWindowRect(hwnds[j], &rc2)) continue;
-            // Check if they are side-by-side (vertical touching edges, similar vertical span)
-            bool touchingHorizontally = (abs(rc1.right - rc2.left) <= 5 || abs(rc2.right - rc1.left) <= 5);
+            RECT rc2 = GetTrueWindowRect(hwnds[j]);
+            // Check horizontal adjacency (side-by-side snap) using true bounds
+            bool touchingHorizontally = (abs(rc1.right - rc2.left) <= 8 || abs(rc2.right - rc1.left) <= 8);
             bool verticalOverlap = (rc1.top < rc2.bottom && rc1.bottom > rc2.top);
-            //
+
             if (touchingHorizontally && verticalOverlap)
             {
                 groups.push_back({ hwnds[i], hwnds[j] });
             }
-            // Check if they are stacked vertically (horizontal touching edges, similar horizontal span)
+            // Check vertical adjacency (stacked snap) using true bounds
             else
             {
-                bool touchingVertically = (abs(rc1.bottom - rc2.top) <= 5 || abs(rc2.bottom - rc1.top) <= 5);
+                bool touchingVertically = (abs(rc1.bottom - rc2.top) <= 8 || abs(rc2.bottom - rc1.top) <= 8);
                 bool horizontalOverlap = (rc1.left < rc2.right && rc1.right > rc2.left);
-                //
+
                 if (touchingVertically && horizontalOverlap)
                 {
                     groups.push_back({ hwnds[i], hwnds[j] });
