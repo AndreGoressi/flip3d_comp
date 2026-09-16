@@ -147,14 +147,12 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
 
     if (isShell)
     {
-        // Check if we have active snap groups to restore instead of just showing the bare desktop
         MONITORINFO primaryMi = QueryPrimaryMonitor();
         std::vector<HWND> allHwnds = EnumerateWindows();
         std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
 
         if (!activeGroups.empty())
         {
-            // Restore/activate all windows belonging to active snap groups
             for (const auto& group : activeGroups)
             {
                 for (HWND groupHwnd : group)
@@ -164,16 +162,12 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
                         PostMessage(groupHwnd, WM_SYSCOMMAND, SC_RESTORE, 0);
                         ShowWindowAsync(groupHwnd, SW_RESTORE);
                     }
-                    else
-                    {
-                        ShowWindowAsync(groupHwnd, SW_SHOWNOACTIVATE);
-                    }
+                    SwitchToThisWindow(groupHwnd, TRUE);
                 }
             }
         }
         else
         {
-            // Standard desktop behavior if no groups are snapped
             if (HWND shellTray = FindWindowW(L"Shell_TrayWnd", nullptr))
                 PostMessageW(shellTray, 0x579, 1, 0);
         }
@@ -203,10 +197,10 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             card.m_hThumb = nullptr;
         }
         DwmInvalidateIconicBitmaps(hwndTarget);
-        //
+        
         PostMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
         ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
-        //
+        
         if (m_hwnd && hwndTarget)
         {
             DwmRegisterThumbnail(m_hwnd, hwndTarget, &card.m_hThumb);
@@ -233,7 +227,6 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         TickRepeatedRotate();
     }
 }
-
 
 
 
