@@ -116,7 +116,6 @@ bool Flip3DComp::InitializeDCompStage()
                                          0, 0, 0, 0,
                                          m_hInstance,
                                          this,
-                                         ZBID_DESKTOP |
                                          ZBID_UIACCESS
     );
     //
