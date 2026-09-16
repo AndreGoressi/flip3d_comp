@@ -645,6 +645,12 @@ static bool IsSystemFlyout(HWND hwndForeground)
                         _wcsicmp(exeName, L"Widgets.exe") == 0 ||
                         _wcsicmp(exeName, L"TabTip.exe") == 0)
                     {
+                        if (_wcsicmp(exeName, L"TextInputHost.exe") == 0 || 
+                            _wcsicmp(exeName, L"TabTip.exe") == 0)
+                        {
+                            
+                        }
+                        // -------------------------------------------------------------------------------
                         CloseHandle(hProcess);
                         return true;
                     }
