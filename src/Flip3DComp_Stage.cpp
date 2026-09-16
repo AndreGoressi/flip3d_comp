@@ -61,7 +61,7 @@ void Flip3DComp::ApplyFullscreenLayout()
     if (!m_hwnd)
         return;
 
-    /*MONITORINFO mi = { sizeof(mi) };
+    MONITORINFO mi = { sizeof(mi) };
     HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
@@ -71,7 +71,7 @@ void Flip3DComp::ApplyFullscreenLayout()
     const int w = mi.rcMonitor.right - mi.rcMonitor.left;
     const int h = mi.rcMonitor.bottom - mi.rcMonitor.top;
     //
-    SetWindowPos(m_hwnd, HWND_TOP, x, y, 0, 0, SWP_SHOWWINDOW);
+    SetWindowPos(m_hwnd, HWND_TOP, x, y, w, h, SWP_SHOWWINDOW);
     //
     HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
@@ -86,7 +86,7 @@ void Flip3DComp::ApplyFullscreenLayout()
     {
         SetWindowPos(taskbarSecondary, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
         taskbarSecondary = FindWindowExW(nullptr, taskbarSecondary, L"SecondaryTrayWnd", nullptr);
-    }*/
+    }
     //
     RECT client = {};
     if (GetClientRect(m_hwnd, &client))
@@ -105,7 +105,8 @@ bool Flip3DComp::InitializeDCompStage()
 {
     WNDCLASSEXW wc = {
         sizeof(wc),
-        CS_HREDRAW | CS_VREDRAW, //CS_CLASSDC
+        0,
+        //CS_HREDRAW | CS_VREDRAW, //CS_CLASSDC
         &Flip3DComp::WndProc,
         0, 0,
         m_hInstance,
@@ -140,12 +141,26 @@ bool Flip3DComp::InitializeDCompStage()
                                          0, 0, 0, 0,
                                          m_hInstance,
                                          this,
-                                         ZBID_DESKTOP
+                                         ZBID_UIACCESS
     );
     //
-    //SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+    if (!m_hwnd)
+        return false;
+
+    MONITORINFO mi = { sizeof(mi) };
+    POINT pt;
+    GetCursorPos(&pt);
+    HMONITOR hMon = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+    if (hMon)
+        GetMonitorInfoW(hMon, &mi);
+
+    const int x = mi.rcWork.left;
+    const int y = mi.rcWork.top;
+    const int w = mi.rcWork.right - mi.rcWork.left;
+    const int h = mi.rcWork.bottom - mi.rcWork.top;
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
     //
-    /*HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
+    HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
     {
         SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
@@ -158,15 +173,12 @@ bool Flip3DComp::InitializeDCompStage()
     {
         SetWindowPos(taskbarSecondary, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
         taskbarSecondary = FindWindowExW(nullptr, taskbarSecondary, L"SecondaryTrayWnd", nullptr);
-    }*/
+    }
     //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
     WindowCompositionAttribute::EnableBlurBehind(m_hwnd);
     //
-    if (!m_hwnd)
-        return false;
-
     m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
 
     RECT client = {};
