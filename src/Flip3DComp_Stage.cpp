@@ -61,12 +61,12 @@ void Flip3DComp::ApplyFullscreenLayout()
     if (!m_hwnd)
         return;
     
-    /*MONITORINFO mi = { sizeof(mi) };
+    MONITORINFO mi = { sizeof(mi) };
     HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
 
-    const int x = mi.rcWork.left;
+    /*const int x = mi.rcWork.left;
     const int y = mi.rcWork.top;
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;*/
