@@ -569,55 +569,59 @@ static bool IsSystemFlyout(HWND hwnd)
     DWORD pid = 0;
     GetWindowThreadProcessId(hwnd, &pid);
     if (pid == 0) return false;
-
     HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
-    if (!hProcess) return false;
-
-    wchar_t path[MAX_PATH] = { 0 };
-    DWORD size = MAX_PATH;
-    bool isSystemPopup = false;
-
-    if (QueryFullProcessImageNameW(hProcess, 0, path, &size))
+    if (hProcess)
     {
-        wchar_t* exeName = wcsrchr(path, L'\\');
-        exeName = exeName ? exeName + 1 : path;
-        if (_wcsicmp(exeName, L"StartMenuExperienceHost.exe") == 0 ||
-            _wcsicmp(exeName, L"SearchHost.exe") == 0 ||
-            _wcsicmp(exeName, L"ShellExperienceHost.exe") == 0 ||
-            _wcsicmp(exeName, L"InputApp.exe") == 0)
+        wchar_t path[MAX_PATH] = { 0 };
+        DWORD size = MAX_PATH;
+        if (QueryFullProcessImageNameW(hProcess, 0, path, &size))
         {
-            isSystemPopup = true;
+            wchar_t* exeName = wcsrchr(path, L'\\');
+            exeName = exeName ? exeName + 1 : path;
+            //
+            if (_wcsicmp(exeName, L"StartMenuExperienceHost.exe") == 0 ||
+                _wcsicmp(exeName, L"SearchHost.exe") == 0 ||
+                _wcsicmp(exeName, L"ShellExperienceHost.exe") == 0 ||
+                _wcsicmp(exeName, L"InputApp.exe") == 0 ||
+                _wcsicmp(exeName, L"Widgets.exe") == 0 ||           
+                _wcsicmp(exeName, L"QuickSettings.exe") == 0 ||      
+                _wcsicmp(exeName, L"TabTip.exe") == 0)             
+            {
+                CloseHandle(hProcess);
+                return true;
+            }
         }
+        CloseHandle(hProcess);
     }
 
-    CloseHandle(hProcess);
-    if (!isSystemPopup)
+    wchar_t windowClass[128] = { 0 };
+    if (GetClassNameW(hwnd, windowClass, 127))
     {
-        wchar_t windowClass[128] = { 0 };
-        if (GetClassNameW(hwnd, windowClass, 127))
+
+        if (_wcsicmp(windowClass, L"NativeHWNDHost") == 0 || 
+            _wcsicmp(windowClass, L"Windows.UI.Core.CoreWindow") == 0 ||
+            _wcsicmp(windowClass, L"Xaml_WindowClass") == 0 ||
+            _wcsicmp(windowClass, L"TaskListThumbnailWnd") == 0)
         {
-            if (_wcsicmp(windowClass, L"NativeHWNDHost") == 0 || 
-                _wcsicmp(windowClass, L"Windows.UI.Core.CoreWindow") == 0 ||
-                _wcsicmp(windowClass, L"Xaml_WindowClass") == 0)
+            HANDLE hProcCheck = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+            if (hProcCheck)
             {
-                HANDLE hProcCheck = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
-                if (hProcCheck)
+                wchar_t checkPath[MAX_PATH] = { 0 };
+                DWORD checkSize = MAX_PATH;
+                if (QueryFullProcessImageNameW(hProcCheck, 0, checkPath, &checkSize))
                 {
-                    wchar_t checkPath[MAX_PATH] = { 0 };
-                    DWORD checkSize = MAX_PATH;
-                    if (QueryFullProcessImageNameW(hProcCheck, 0, checkPath, &checkSize))
+                    if (wcsstr(checkPath, L"explorer.exe") != nullptr || 
+                        wcsstr(checkPath, L"ShellExperienceHost.exe") != nullptr)
                     {
-                        if (wcsstr(checkPath, L"explorer.exe") != nullptr)
-                        {
-                            isSystemPopup = true;
-                        }
+                        CloseHandle(hProcCheck);
+                        return true;
                     }
-                    CloseHandle(hProcCheck);
                 }
+                CloseHandle(hProcCheck);
             }
         }
     }
-    return isSystemPopup;
+    return false;
 }
 
 // ============================================================================
