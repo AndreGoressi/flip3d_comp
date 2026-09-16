@@ -168,7 +168,7 @@ int Flip3DComp::FindCardIndex(HWND hwnd) const
 }
 
 // ============================================================================
-HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
+/*HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
 {
     if (!m_dcompDevice || !m_sceneVisual || !card.m_hwnd)
         return E_INVALIDARG;
@@ -239,8 +239,115 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
 
     hr = m_sceneVisual->AddVisual(container.Get(), TRUE, nullptr);
     return hr;
-}
+}*/
 // ============================================================================
+
+HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
+{
+    // Validate base requirements (for groups, check that m_groupHwnds is not empty)
+    if (!m_dcompDevice || !m_sceneVisual)
+        return E_INVALIDARG;
+
+    if (!card.m_isGroup && !card.m_hwnd)
+        return E_INVALIDARG;
+
+    if (card.m_isGroup && card.m_groupHwnds.empty())
+        return E_INVALIDARG;
+
+    // Create the master container visual for this card
+    ComPtr<IDCompositionVisual2> container;
+    HRESULT hr = m_dcompDevice->CreateVisual(&container);
+    if (FAILED(hr))
+        return hr;
+
+    // Determine the list of window handles to process (either single or multiple for groups)
+    std::vector<HWND> targetHwnds;
+    if (card.m_isGroup) {
+        targetHwnds = card.m_groupHwnds;
+    } else {
+        targetHwnds.push_back(card.m_hwnd);
+    }
+    // Loop through each window handle and create/attach its shared thumbnail visual
+    size_t count = targetHwnds.size();
+    for (size_t i = 0; i < count; ++i)
+    {
+        HWND hwndTarget = targetHwnds[i];
+
+        DWM_THUMBNAIL_PROPERTIES tp = {};
+        tp.dwFlags     = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
+                       | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
+        tp.fVisible    = TRUE;
+        // If it's a group, split the destination rectangle horizontally (or scale accordingly)
+        // For simplicity with 2 split windows: left one takes first half, right takes second half
+        int subWidth = card.m_srcWidth / (int)count;
+        int subX = (int)i * subWidth;
+        tp.rcDestination = { subX, 0, subX + subWidth, card.m_srcHeight };
+
+        void* pv = nullptr;
+        hr = m_pfnCreateSharedThumbVisual(
+            m_hwnd,
+            hwndTarget,
+            DWM_TNF_DWMWINDOW,
+            &tp,
+            m_dcompDevice.Get(),
+            &pv,
+            &card.m_hThumb); // Note: For multi-thumbs you might want a vector of hThumbs, but for basic cleanup keeping one or the last works for now
+
+        if (FAILED(hr) || !pv)
+            continue; // Skip failed sub-windows gracefully
+
+        ComPtr<IDCompositionVisual> thumbBase;
+        thumbBase.Attach((IDCompositionVisual*)pv);
+        //
+        ComPtr<IDCompositionVisual3> subVisual;
+        if (SUCCEEDED(thumbBase.As(&subVisual)))
+        {
+            subVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+            subVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+            // If it's a group, offset each sub-visual horizontally using DirectComposition translation
+            if (card.m_isGroup)
+            {
+                subVisual->SetOffsetX((float)subX);
+                subVisual->SetOffsetY(0.0f);
+            }
+            // Keep reference to the primary visual if needed, or add directly to container
+            if (i == 0 && !card.m_isGroup) {
+                card.m_visual = subVisual; // Save reference for single cards
+            }
+            container->AddVisual(subVisual.Get(), FALSE, nullptr);
+        }
+    }
+    // Apply global rounded corner clipping to the container visual
+    ComPtr<IDCompositionRectangleClip> clip;
+    if (SUCCEEDED(m_dcompDevice->CreateRectangleClip(&clip)))
+    {
+        float radius = 12.f / 2.f;
+        clip->SetLeft(0.f);
+        clip->SetTop(0.f);
+        clip->SetRight((float)card.m_srcWidth);
+        clip->SetBottom((float)card.m_srcHeight);
+        clip->SetTopLeftRadiusX(radius);
+        clip->SetTopLeftRadiusY(radius);
+        clip->SetTopRightRadiusX(radius);
+        clip->SetTopRightRadiusY(radius);
+        clip->SetBottomLeftRadiusX(radius);
+        clip->SetBottomLeftRadiusY(radius);
+        clip->SetBottomRightRadiusX(radius);
+        clip->SetBottomRightRadiusY(radius);
+
+        container->SetClip(clip.Get());
+    }
+    container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+    container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+    // Assign container to card model
+    hr = container.As(&card.m_containerVisual);
+    if (FAILED(hr))
+        return hr;
+
+    // Attach to the main scene graph visual
+    hr = m_sceneVisual->AddVisual(container.Get(), TRUE, nullptr);
+    return hr;
+}
 
 bool Flip3DComp::AddCardForWindow(HWND hwnd)
 {
