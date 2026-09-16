@@ -446,8 +446,8 @@ void Flip3DComp::UpdateMonitorRect()
     if (layoutChanged)
     {
         for (auto& card : m_cards)
-            UpdateCardGeometry(card, m_monW, m_monH);
-            //UpdateNormalCardGeometry(card, m_monW, m_monH);
+            //UpdateCardGeometry(card, m_monW, m_monH);
+            UpdateNormalCardGeometry(card, m_monW, m_monH);
     }
 }
 
@@ -491,8 +491,8 @@ void Flip3DComp::BuildCards()
         CardModel c;
         c.m_hwnd                 = h;
         c.m_initialCarouselIndex = carouselIndex++;
-        //UpdateCardGeometry(c, m_monW, m_monH);
-        UpdateNormalCardGeometry(c, m_monW, m_monH);
+        UpdateCardGeometry(c, m_monW, m_monH);
+        //UpdateNormalCardGeometry(c, m_monW, m_monH);
         m_cards.push_back(std::move(c));
     }
 
