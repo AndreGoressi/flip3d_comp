@@ -463,7 +463,7 @@ void Flip3DComp::BuildCards()
 // ============================================================================
 // Flip3DComp::CreateCardVisuals
 // ============================================================================
-HRESULT Flip3DComp::CreateCardVisuals()
+/*HRESULT Flip3DComp::CreateCardVisuals()
 {
     if (!m_dcompDevice || !m_sceneVisual)
         return E_FAIL;
@@ -477,6 +477,29 @@ HRESULT Flip3DComp::CreateCardVisuals()
             continue;
     }
 
+    return S_OK;
+}*/
+
+HRESULT Flip3DComp::CreateCardVisuals()
+{
+    if (!m_dcompDevice || !m_sceneVisual)
+        return E_FAIL;
+
+    for (auto& card : m_cards)
+    {
+        // Skip if already initialized, but allow cards that either have a single hwnd OR are a group with hwnds
+        if (card.m_containerVisual)
+            continue;
+
+        if (!card.m_isGroup && !card.m_hwnd)
+            continue;
+
+        if (card.m_isGroup && card.m_groupHwnds.empty())
+            continue;
+
+        if (FAILED(CreateCardVisual(card)))
+            continue;
+    }
     return S_OK;
 }
 
