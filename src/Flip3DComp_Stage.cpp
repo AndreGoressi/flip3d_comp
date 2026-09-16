@@ -62,7 +62,7 @@ void Flip3DComp::ApplyFullscreenLayout()
         return;
 
     MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+    HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
     //
@@ -71,7 +71,7 @@ void Flip3DComp::ApplyFullscreenLayout()
     const int w = mi.rcMonitor.right - mi.rcMonitor.left;
     const int h = mi.rcMonitor.bottom - mi.rcMonitor.top;
     //
-    SetWindowPos(m_hwnd, HWND_TOP, x, y, w, h, SWP_SHOWWINDOW);
+    SetWindowPos(m_hwnd, HWND_TOP, x, y, 0, 0, SWP_SHOWWINDOW);
     //
     HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
@@ -80,8 +80,14 @@ void Flip3DComp::ApplyFullscreenLayout()
         APPBARDATA abd = { sizeof(abd) };
         abd.hWnd = taskbar;
         SHAppBarMessage(ABM_ACTIVATE, &abd);
-    }    
-    
+    }
+    HWND taskbarSecondary = FindWindowW(L"SecondaryTrayWnd", nullptr);
+    while (taskbarSecondary)
+    {
+        SetWindowPos(taskbarSecondary, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+        taskbarSecondary = FindWindowExW(nullptr, taskbarSecondary, L"SecondaryTrayWnd", nullptr);
+    }
+    //
     RECT client = {};
     if (GetClientRect(m_hwnd, &client))
     {
@@ -112,7 +118,8 @@ bool Flip3DComp::InitializeDCompStage()
     ATOM atom = RegisterClassExW(&wc);
     //
     MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+    POINT pt; GetCursorPos(&pt);
+    HMONITOR hMon = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
     
@@ -143,7 +150,13 @@ bool Flip3DComp::InitializeDCompStage()
         abd.hWnd = taskbar;
         SHAppBarMessage(ABM_ACTIVATE, &abd);
     }
-    
+    HWND taskbarSecondary = FindWindowW(L"SecondaryTrayWnd", nullptr);
+    while (taskbarSecondary)
+    {
+        SetWindowPos(taskbarSecondary, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+        taskbarSecondary = FindWindowExW(nullptr, taskbarSecondary, L"SecondaryTrayWnd", nullptr);
+    }
+    //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
     WindowCompositionAttribute::EnableBlurBehind(m_hwnd);
