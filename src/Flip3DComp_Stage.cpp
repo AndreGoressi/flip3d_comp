@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <vector>
 #include <Windows.h>
+#include <psapi.h>
 
 struct Flip3DComp::EnumContext
 {
@@ -33,10 +34,38 @@ BOOL CALLBACK Flip3DComp::EnumWindowsProc(HWND hwnd, LPARAM lParam)
     return TRUE;
 }
 
+static bool IsStartOrSearchMenu(HWND hwnd)
+{
+    DWORD pid = 0;
+    GetWindowThreadProcessId(hwnd, &pid);
+    if (pid == 0) return false;
+
+    HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    if (!hProcess) return false;
+
+    wchar_t path[MAX_PATH] = { 0 };
+    DWORD size = MAX_PATH;
+    bool isSystemPopup = false;
+
+    if (QueryFullProcessImageNameW(hProcess, 0, path, &size))
+    {
+        wchar_t* exeName = wcsrchr(path, L'\\');
+        exeName = exeName ? exeName + 1 : path;
+
+        if (_wcsicmp(exeName, L"StartMenuExperienceHost.exe") == 0 ||
+            _wcsicmp(exeName, L"SearchHost.exe") == 0)
+        {
+            isSystemPopup = true;
+        }
+    }
+    CloseHandle(hProcess);
+    return isSystemPopup;
+}
+
 // ============================================================================
 // Flip3DComp::EnumerateWindows
 // ============================================================================
-std::vector<HWND> Flip3DComp::EnumerateWindows()
+/*std::vector<HWND> Flip3DComp::EnumerateWindows()
 {
     EnumContext ctx = { this };
     EnumWindows(EnumWindowsProc, (LPARAM)&ctx);
@@ -49,6 +78,27 @@ std::vector<HWND> Flip3DComp::EnumerateWindows()
             ctx.hwnds.push_back(shell);
     }
     //
+    return ctx.hwnds;
+}*/
+
+std::vector<HWND> Flip3DComp::EnumerateWindows()
+{
+    EnumContext ctx = { this };
+    EnumWindows(EnumWindowsProc, (LPARAM)&ctx);
+    HWND shell = GetShellWindow();
+    if (shell && shell != m_hwnd && QualifiesForView(shell))
+    {
+        auto it = std::find(ctx.hwnds.begin(), ctx.hwnds.end(), shell);
+        if (it == ctx.hwnds.end() && ctx.hwnds.size() < (size_t)kMaxCards)
+            ctx.hwnds.push_back(shell);
+    }
+    ctx.hwnds.erase(
+        std::remove_if(ctx.hwnds.begin(), ctx.hwnds.end(), [](HWND hwnd) {
+            return IsStartOrSearchMenu(hwnd);
+        }),
+        ctx.hwnds.end()
+    );
+    // -----------------------------------------------------------------
     return ctx.hwnds;
 }
 
