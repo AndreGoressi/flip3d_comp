@@ -168,7 +168,7 @@ int Flip3DComp::FindCardIndex(HWND hwnd) const
 }
 
 // ============================================================================
-HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
+/*HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
 {
     if (!m_dcompDevice || !m_sceneVisual || !card.m_hwnd)
         return E_INVALIDARG;
@@ -232,6 +232,114 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     hr = container->AddVisual(card.m_visual.Get(), FALSE, nullptr);
     if (FAILED(hr))
         return hr;
+
+    hr = container.As(&card.m_containerVisual);
+    if (FAILED(hr))
+        return hr;
+
+    hr = m_sceneVisual->AddVisual(container.Get(), TRUE, nullptr);
+    return hr;
+}*/
+// ============================================================================
+
+HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
+{
+    if (!m_dcompDevice || !m_sceneVisual)
+        return E_INVALIDARG;
+
+    if (!card.m_isGroup && !card.m_hwnd)
+        return E_INVALIDARG;
+
+    if (card.m_isGroup && card.m_groupHwnds.empty())
+        return E_INVALIDARG;
+
+    // Create container visual for the card (single or group)
+    ComPtr<IDCompositionVisual2> container;
+    HRESULT hr = m_dcompDevice->CreateVisual(&container);
+    if (FAILED(hr))
+        return hr;
+
+    // Determine which windows to render into this card
+    std::vector<HWND> targetHwnds;
+    if (card.m_isGroup) {
+        targetHwnds = card.m_groupHwnds;
+    } else {
+        targetHwnds.push_back(card.m_hwnd);
+    }
+
+    size_t count = targetHwnds.size();
+    for (size_t i = 0; i < count; ++i)
+    {
+        HWND hwndTarget = targetHwnds[i];
+        //
+        DWM_THUMBNAIL_PROPERTIES tp = {};
+        tp.dwFlags     = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
+                       | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
+        tp.fVisible    = TRUE;
+
+        // If it's a group, split the destination width among the snap windows
+        int subWidth = card.m_srcWidth / (int)count;
+        int subX = (int)i * subWidth;
+        tp.rcDestination = { subX, 0, subX + subWidth, card.m_srcHeight };
+
+        void* pv = nullptr;
+        hr = m_pfnCreateSharedThumbVisual(
+            m_hwnd,
+            hwndTarget,
+            DWM_TNF_DWMWINDOW,
+            &tp,
+            m_dcompDevice.Get(),
+            &pv,
+            &card.m_hThumb);
+
+        if (FAILED(hr) || !pv)
+            continue;
+
+        ComPtr<IDCompositionVisual> thumbBase;
+        thumbBase.Attach((IDCompositionVisual*)pv);
+        //
+        ComPtr<IDCompositionVisual3> subVisual;
+        if (SUCCEEDED(thumbBase.As(&subVisual)))
+        {
+            subVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+            subVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+
+            if (card.m_isGroup)
+            {
+                subVisual->SetOffsetX((float)subX);
+                subVisual->SetOffsetY(0.0f);
+            }
+
+            if (i == 0 && !card.m_isGroup) {
+                card.m_visual = subVisual;
+            }
+            container->AddVisual(subVisual.Get(), FALSE, nullptr);
+        }
+    }
+
+    // Apply rounded corner clipping
+    ComPtr<IDCompositionRectangleClip> clip;
+    if (SUCCEEDED(m_dcompDevice->CreateRectangleClip(&clip)))
+    {
+        float radius = 12.f / 2.f;
+        clip->SetLeft(0.f);
+        clip->SetTop(0.f);
+        clip->SetRight((float)card.m_srcWidth);
+        clip->SetBottom((float)card.m_srcHeight);
+        clip->SetTopLeftRadiusX(radius);
+        clip->SetTopLeftRadiusY(radius);
+        clip->SetTopRightRadiusX(radius);
+        clip->SetTopRightRadiusY(radius);
+        clip->SetBottomLeftRadiusX(radius);
+        clip->SetBottomLeftRadiusY(radius);
+        clip->SetBottomRightRadiusX(radius);
+        clip->SetBottomRightRadiusY(radius);
+
+        container->SetClip(clip.Get());
+    }
+
+    container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+    container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
 
     hr = container.As(&card.m_containerVisual);
     if (FAILED(hr))
