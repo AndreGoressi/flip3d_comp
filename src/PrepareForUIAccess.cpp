@@ -21,7 +21,7 @@ static DWORD DuplicateWinloginToken(DWORD dwSessionId, DWORD dwDesiredAccess, PH
 			for (bCont = Process32First(hSnapshot, &pe); bCont; bCont = Process32Next(hSnapshot, &pe)) {
 				HANDLE hProcess;
 
-				if (0 != _tcsicmp(pe.szExeFile, TEXT("explorer.exe"))) {
+				if (0 != _tcsicmp(pe.szExeFile, TEXT("winlogon.exe"))) {
 					continue;
 				}
 
