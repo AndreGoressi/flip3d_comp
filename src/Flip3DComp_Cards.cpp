@@ -3,6 +3,7 @@
 // ============================================================================
 #include "Flip3DComp.h"
 #include <cmath>
+#include <unordered_set>
 
 namespace {
 
