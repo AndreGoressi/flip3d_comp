@@ -56,47 +56,6 @@ std::vector<HWND> Flip3DComp::EnumerateWindows()
 // Flip3DComp::ApplyFullscreenLayout
 // uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
 // ============================================================================
-/*void Flip3DComp::ApplyFullscreenLayout()
-{
-    if (!m_hwnd)
-        return;
-
-    MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
-    if (hMon)
-        GetMonitorInfoW(hMon, &mi);
-    //
-    const int x = mi.rcMonitor.left;
-    const int y = mi.rcMonitor.top;
-    const int w = mi.rcMonitor.right - mi.rcMonitor.left;
-    const int h = mi.rcMonitor.bottom - mi.rcMonitor.top;
-    //
-    SetWindowPos(m_hwnd, HWND_TOP, x, y, w, h, SWP_SHOWWINDOW);
-    //
-    HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
-    if (taskbar)
-    {
-        //SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-        APPBARDATA abd = { sizeof(abd) };
-        abd.hWnd = taskbar;
-        SHAppBarMessage(ABM_ACTIVATE, &abd);
-    }
-    HWND taskbarSecondary = FindWindowW(L"SecondaryTrayWnd", nullptr);
-    while (taskbarSecondary)
-    {
-        //SetWindowPos(taskbarSecondary, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-        taskbarSecondary = FindWindowExW(nullptr, taskbarSecondary, L"SecondaryTrayWnd", nullptr);
-    }
-    //
-    RECT client = {};
-    if (GetClientRect(m_hwnd, &client))
-    {
-        m_width  = std::max(1u, (UINT)(client.right  - client.left));
-        m_height = std::max(1u, (UINT)(client.bottom - client.top));
-    }
-    UpdateMonitorRect();
-}*/
-
 void Flip3DComp::ApplyFullscreenLayout()
 {
     if (!m_hwnd)
@@ -119,7 +78,6 @@ void Flip3DComp::ApplyFullscreenLayout()
         m_width  = std::max(1u, (UINT)(client.right  - client.left));
         m_height = std::max(1u, (UINT)(client.bottom - client.top));
     }
-    
     UpdateMonitorRect();
 }
 
