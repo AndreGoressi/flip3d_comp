@@ -66,14 +66,10 @@ void Flip3DComp::ApplyFullscreenLayout()
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
     //
-    /*const int x = mi.rcMonitor.left;
+    const int x = mi.rcMonitor.left;
     const int y = mi.rcMonitor.top;
     const int w = mi.rcMonitor.right - mi.rcMonitor.left;
-    const int h = mi.rcMonitor.bottom - mi.rcMonitor.top;*/
-    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
-    const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    const int h = mi.rcMonitor.bottom - mi.rcMonitor.top;
     //
     SetWindowPos(m_hwnd, HWND_TOP, x, y, w, h, SWP_SHOWWINDOW);
     //
@@ -152,7 +148,7 @@ bool Flip3DComp::InitializeDCompStage()
     const int h = mi.rcWork.bottom - mi.rcWork.top;
     SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
     //
-    HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
+    /*HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
     {
         //SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
@@ -165,7 +161,7 @@ bool Flip3DComp::InitializeDCompStage()
     {
         //SetWindowPos(taskbarSecondary, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
         taskbarSecondary = FindWindowExW(nullptr, taskbarSecondary, L"SecondaryTrayWnd", nullptr);
-    }
+    }*/
     //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
