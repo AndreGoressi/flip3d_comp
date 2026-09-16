@@ -340,48 +340,54 @@ void Flip3DComp::BuildCards()
     }
 
     auto hwnds = EnumerateWindows();
-    //
+
     MONITORINFO primaryMi = QueryPrimaryMonitor();
     m_monW       = (float)std::max(1L, primaryMi.rcWork.right  - primaryMi.rcWork.left);
     m_monH       = (float)std::max(1L, primaryMi.rcWork.bottom - primaryMi.rcWork.top);
     m_monOriginX = (float)primaryMi.rcWork.left;
     m_monOriginY = (float)primaryMi.rcWork.top;
 
-    std::unordered_set<std::wstring> seenExecutables; 
+    std::unordered_set<std::wstring> seenExecutables;
     int carouselIndex = 0;
 
     for (auto h : hwnds)
     {
         DWORD pid = 0;
         GetWindowThreadProcessId(h, &pid);
-        if (pid == 0) continue;
+        
+        std::wstring appKey;
+        bool hasValidExe = false;
 
-        bool skipCard = false;
-        HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
-        if (hProcess)
+        if (pid != 0)
         {
-            wchar_t path[MAX_PATH] = { 0 };
-            DWORD size = MAX_PATH;
-            if (QueryFullProcessImageNameW(hProcess, 0, path, &size))
+            HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+            if (hProcess)
             {
-                wchar_t* exeName = wcsrchr(path, L'\\');
-                exeName = exeName ? exeName + 1 : path;
-                std::wstring exe(exeName);
-                if (seenExecutables.find(exe) != seenExecutables.end())
+                wchar_t path[MAX_PATH] = { 0 };
+                DWORD size = MAX_PATH;
+                if (QueryFullProcessImageNameW(hProcess, 0, path, &size))
                 {
-                    skipCard = true;
+                    wchar_t* exeName = wcsrchr(path, L'\\');
+                    exeName = exeName ? exeName + 1 : path;
+                    appKey = exeName;
+                    hasValidExe = true;
                 }
-                else
-                {
-                    seenExecutables.insert(exe);
-                }
+                CloseHandle(hProcess);
             }
-            CloseHandle(hProcess);
         }
 
-        if (skipCard)
-            continue;
-        // ---------------------------------------
+        if (!hasValidExe || appKey.empty())
+        {
+            appKey = L"HWND_" + std::to_wstring(reinterpret_cast<uintptr_t>(h));
+        }
+
+        if (seenExecutables.find(appKey) != seenExecutables.end())
+        {
+            continue; 
+        }
+
+        seenExecutables.insert(appKey);
+
         CardModel c;
         c.m_hwnd                   = h;
         c.m_initialCarouselIndex = carouselIndex++;
