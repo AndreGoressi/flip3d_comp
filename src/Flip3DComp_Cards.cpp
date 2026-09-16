@@ -5,8 +5,6 @@
 #include <cmath>
 #include <unordered_set>
 
-namespace {
-
 MONITORINFO Flip3DComp::QueryPrimaryMonitor()
 {
     MONITORINFO mi = { sizeof(mi) };
@@ -15,7 +13,7 @@ MONITORINFO Flip3DComp::QueryPrimaryMonitor()
         GetMonitorInfoW(hPrimary, &mi);
     return mi;
 }
-
+namespace {
 // 2D screen anchor for non-minimized-tile layouts (extended frame or restore rect).
 bool FillRestoredScreenRect(HWND h, const MONITORINFO& mi, RECT& out)
 {
