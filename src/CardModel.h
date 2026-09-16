@@ -19,12 +19,13 @@ using Microsoft::WRL::ComPtr;
 struct CardModel
 {
     // ---- Window identity ----
-    HWND                m_hwnd        = nullptr;   // source window handle
-    int                 m_initialCarouselIndex = 0;  // order at Flip3D enter (before rotates)
-    HTHUMBNAIL          m_hThumb      = nullptr;   // DWM shared thumbnail handle
+    HWND                 m_hwnd        = nullptr;   // source window handle (für Einzelfenster)
+    int                  m_initialCarouselIndex = 0;  // order at Flip3D enter (before rotates)
+    HTHUMBNAIL           m_hThumb      = nullptr;   // DWM shared thumbnail handle
 
-    //new
-    bool m_thumbnailWasPending = false;
+    // ---- NEW: For Snap Layout / Multitasking Groups ----
+    bool                 m_isGroup     = false;     // true, if it's a combo window/card
+    std::vector<HWND>    m_groupHwnds;
 
     // ---- DirectComposition visuals ----
     ComPtr<IDCompositionVisual3> m_visual;          // thumbnail content visual (DWM)
