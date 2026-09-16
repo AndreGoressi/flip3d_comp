@@ -76,7 +76,7 @@ void Flip3DComp::ApplyFullscreenLayout()
     HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
     {
-        SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+        //SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
         APPBARDATA abd = { sizeof(abd) };
         abd.hWnd = taskbar;
         SHAppBarMessage(ABM_ACTIVATE, &abd);
@@ -84,7 +84,7 @@ void Flip3DComp::ApplyFullscreenLayout()
     HWND taskbarSecondary = FindWindowW(L"SecondaryTrayWnd", nullptr);
     while (taskbarSecondary)
     {
-        SetWindowPos(taskbarSecondary, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+        //SetWindowPos(taskbarSecondary, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
         taskbarSecondary = FindWindowExW(nullptr, taskbarSecondary, L"SecondaryTrayWnd", nullptr);
     }
     //
@@ -105,8 +105,7 @@ bool Flip3DComp::InitializeDCompStage()
 {
     WNDCLASSEXW wc = {
         sizeof(wc),
-        0,
-        //CS_HREDRAW | CS_VREDRAW, //CS_CLASSDC
+        0, //CS_HREDRAW | CS_VREDRAW, //CS_CLASSDC
         &Flip3DComp::WndProc,
         0, 0,
         m_hInstance,
@@ -120,17 +119,6 @@ bool Flip3DComp::InitializeDCompStage()
     if (!res) {
         DWORD dwError = GetLastError();
     }
-    //
-    /*MONITORINFO mi = { sizeof(mi) };
-    POINT pt; GetCursorPos(&pt);
-    HMONITOR hMon = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-    if (hMon)
-        GetMonitorInfoW(hMon, &mi);
-    
-    const int x = mi.rcWork.left;
-    const int y = mi.rcWork.top;
-    const int w = mi.rcWork.right - mi.rcWork.left;
-    const int h = mi.rcWork.bottom - mi.rcWork.top;*/
     //
     m_hwnd = banding::CreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
                                          WS_EX_TOPMOST | 
@@ -163,7 +151,7 @@ bool Flip3DComp::InitializeDCompStage()
     HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
     {
-        SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+        //SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
         APPBARDATA abd = { sizeof(abd) };
         abd.hWnd = taskbar;
         SHAppBarMessage(ABM_ACTIVATE, &abd);
@@ -171,7 +159,7 @@ bool Flip3DComp::InitializeDCompStage()
     HWND taskbarSecondary = FindWindowW(L"SecondaryTrayWnd", nullptr);
     while (taskbarSecondary)
     {
-        SetWindowPos(taskbarSecondary, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+        //SetWindowPos(taskbarSecondary, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
         taskbarSecondary = FindWindowExW(nullptr, taskbarSecondary, L"SecondaryTrayWnd", nullptr);
     }
     //
