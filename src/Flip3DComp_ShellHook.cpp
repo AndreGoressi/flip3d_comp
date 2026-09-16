@@ -247,77 +247,98 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     if (!m_dcompDevice || !m_sceneVisual)
         return E_INVALIDARG;
 
-    if (!card.m_isGroup && !card.m_hwnd)
+    if (!card.m_isGroup && !card.m_hwnd && !card.m_isShellDesktop)
         return E_INVALIDARG;
 
     if (card.m_isGroup && card.m_groupHwnds.empty())
         return E_INVALIDARG;
 
-    // Create container visual for the card (single or group)
+    // Create container visual for the card
     ComPtr<IDCompositionVisual2> container;
     HRESULT hr = m_dcompDevice->CreateVisual(&container);
     if (FAILED(hr))
         return hr;
 
-    // Determine which windows to render into this card
-    std::vector<HWND> targetHwnds;
-    if (card.m_isGroup) {
-        targetHwnds = card.m_groupHwnds;
-    } else {
-        targetHwnds.push_back(card.m_hwnd);
-    }
-
-    size_t count = targetHwnds.size();
-    for (size_t i = 0; i < count; ++i)
+    // 1. Render the primary source (either the single window or the desktop background)
+    HWND primarySourceHwnd = card.m_isGroup ? nullptr : card.m_hwnd;
+    if (primarySourceHwnd)
     {
-        HWND hwndTarget = targetHwnds[i];
-        //
         DWM_THUMBNAIL_PROPERTIES tp = {};
-        tp.dwFlags     = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
-                       | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
+        tp.dwFlags     = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
         tp.fVisible    = TRUE;
-
-        // If it's a group, split the destination width among the snap windows
-        int subWidth = card.m_srcWidth / (int)count;
-        int subX = (int)i * subWidth;
-        tp.rcDestination = { subX, 0, subX + subWidth, card.m_srcHeight };
+        tp.rcDestination = { 0, 0, card.m_srcWidth, card.m_srcHeight };
 
         void* pv = nullptr;
         hr = m_pfnCreateSharedThumbVisual(
-            m_hwnd,
-            hwndTarget,
-            DWM_TNF_DWMWINDOW,
-            &tp,
-            m_dcompDevice.Get(),
-            &pv,
-            &card.m_hThumb);
+            m_hwnd, primarySourceHwnd, DWM_TNF_DWMWINDOW, &tp,
+            m_dcompDevice.Get(), &pv, &card.m_hThumb);
 
-        if (FAILED(hr) || !pv)
-            continue;
-
-        ComPtr<IDCompositionVisual> thumbBase;
-        thumbBase.Attach((IDCompositionVisual*)pv);
-        //
-        ComPtr<IDCompositionVisual3> subVisual;
-        if (SUCCEEDED(thumbBase.As(&subVisual)))
+        if (SUCCEEDED(hr) && pv)
         {
-            subVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-            subVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-
-            if (card.m_isGroup)
+            ComPtr<IDCompositionVisual> thumbBase;
+            thumbBase.Attach((IDCompositionVisual*)pv);
+            if (SUCCEEDED(thumbBase.As(&card.m_visual)))
             {
-                subVisual->SetOffsetX((float)subX);
-                subVisual->SetOffsetY(0.0f);
+                card.m_visual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+                card.m_visual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+                container->AddVisual(card.m_visual.Get(), FALSE, nullptr);
             }
-
-            if (i == 0 && !card.m_isGroup) {
-                card.m_visual = subVisual;
-            }
-            container->AddVisual(subVisual.Get(), FALSE, nullptr);
         }
     }
+    // 2. SPECIAL: If this is the Desktop card, also render any active snap groups on top of it!
+    if (card.m_isShellDesktop)
+    {
+        MONITORINFO primaryMi = QueryPrimaryMonitor();
+        std::vector<HWND> allHwnds = EnumerateWindows();
+        std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
 
-    // Apply rounded corner clipping
+        for (const auto& group : activeGroups)
+        {
+            for (HWND groupHwnd : group)
+            {
+                // Get true window bounds to calculate relative position on the desktop card
+                RECT rcWin = {};
+                if (FAILED(DwmGetWindowAttribute(groupHwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
+                {
+                    GetWindowRect(groupHwnd, &rcWin);
+                }
+
+                // Map screen coordinates relative to primary work area, then scale to card dimensions
+                float scaleX = card.m_srcWidth / m_monW;
+                float scaleY = card.m_srcHeight / m_monH;
+                //
+                int relX = (int)((rcWin.left - m_monOriginX) * scaleX);
+                int relY = (int)((rcWin.top - m_monOriginY) * scaleY);
+                int relW = (int)((rcWin.right - rcWin.left) * scaleX);
+                int relH = (int)((rcWin.bottom - rcWin.top) * scaleY);
+                //
+                HTHUMBNAIL subThumb = nullptr;
+                DWM_THUMBNAIL_PROPERTIES subTp = {};
+                subTp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
+                subTp.fVisible = TRUE;
+                subTp.rcDestination = { 0, 0, relW, relH };
+                //
+                void* subPv = nullptr;
+                if (SUCCEEDED(m_pfnCreateSharedThumbVisual(m_hwnd, groupHwnd, DWM_TNF_DWMWINDOW, &subTp, m_dcompDevice.Get(), &subPv, &subThumb)))
+                {
+                    ComPtr<IDCompositionVisual> subThumbBase;
+                    subThumbBase.Attach((IDCompositionVisual*)subPv);
+                    
+                    ComPtr<IDCompositionVisual3> subVisual;
+                    if (SUCCEEDED(subThumbBase.As(&subVisual)))
+                    {
+                        subVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+                        subVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+                        subVisual->SetOffsetX((float)relX);
+                        subVisual->SetOffsetY((float)relY);
+
+                        container->AddVisual(subVisual.Get(), FALSE, nullptr);
+                    }
+                }
+            }
+        }
+    }
+    // Apply global rounded corner clipping to the container visual
     ComPtr<IDCompositionRectangleClip> clip;
     if (SUCCEEDED(m_dcompDevice->CreateRectangleClip(&clip)))
     {
@@ -334,10 +355,9 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
         clip->SetBottomLeftRadiusY(radius);
         clip->SetBottomRightRadiusX(radius);
         clip->SetBottomRightRadiusY(radius);
-
+        //
         container->SetClip(clip.Get());
     }
-
     container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
     container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
 
