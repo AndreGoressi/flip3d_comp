@@ -240,6 +240,7 @@ void Flip3DComp::UpdateNormalCardGeometry(CardModel& c, float normMonW, float no
     normMonH = std::max(normMonH, 1.0f);
 
     const bool selectedRestore = (h == m_selectedHwnd);
+    c.m_isMinimized    = IsIconic(h) && !selectedRestore;
     c.m_isShellDesktop = (h == GetShellWindow());
 
     HMONITOR mon = MonitorFromWindow(h, MONITOR_DEFAULTTONEAREST);
@@ -252,8 +253,6 @@ void Flip3DComp::UpdateNormalCardGeometry(CardModel& c, float normMonW, float no
     else
         mi = QueryPrimaryMonitor();
 
-    const bool selectedRestore = c.m_hwnd == m_selectedHwnd;
-    
     SIZE srcSize = {};
     BOOL queryExtended = selectedRestore ? TRUE : FALSE;
     if (FAILED(m_pfnQueryThumbSize(h, queryExtended, &srcSize))
@@ -280,7 +279,6 @@ void Flip3DComp::UpdateNormalCardGeometry(CardModel& c, float normMonW, float no
 
     c.m_srcWidth  = std::max(1, (int)(thumbW * scale));
     c.m_srcHeight = std::max(1, (int)(thumbH * scale));
-
 
     RECT flatBounds = {};
 
