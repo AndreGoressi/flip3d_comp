@@ -104,7 +104,7 @@ static DWORD CreateUIAccessToken(PHANDLE phToken) {
 	return dwErr;
 }
 
-static BOOL CheckForUIAccess(DWORD *pdwErr, DWORD *pfUIAccess) {
+static BOOL CheckForUIAccess(DWORD *pdwErr, BOOL *pfUIAccess) {
 	BOOL result = FALSE;
 	HANDLE hToken;
 
