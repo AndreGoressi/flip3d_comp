@@ -69,7 +69,7 @@ void Flip3DComp::SelectFront()
 // ============================================================================
 // Flip3DComp::SelectWindow — uDWM: BeginExitView then ExitRepeatedRotate
 // ============================================================================
-void Flip3DComp::SelectWindow(HWND hwndTarget)
+/*void Flip3DComp::SelectWindow(HWND hwndTarget)
 {
     if (!hwndTarget || !IsWindow(hwndTarget))
         return;
@@ -100,7 +100,6 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
     auto& card = m_cards[(size_t)selIdx];
     if (card.m_isMinimized)
     {
-        //UpdateCardGeometry(card, m_monW, m_monH, /*selectedRestore=*///true);
         if (card.m_hThumb)
         {
             DwmUnregisterThumbnail(card.m_hThumb);
@@ -120,7 +119,104 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             thp.rcDestination = { 0, 0, 0, 0 };
             DwmUpdateThumbnailProperties(card.m_hThumb, &thp);
         }
-        UpdateCardGeometry(card, m_monW, m_monH, /*selectedRestore=*/true);
+        UpdateCardGeometry(card, m_monW, m_monH, true);
+    }
+
+    m_selectedHwnd = hwndTarget;
+    m_lastPaintOrder.clear();
+
+    FreezeCarouselVisuals();
+    BeginExitView();
+
+    const int selIdxAfter = FindCardIndex(hwndTarget);
+    if (selIdxAfter > 0)
+    {
+        m_rRepeatedRotateRate = -(kExitDurationSec / (float)selIdxAfter);
+        m_state = ViewState::ExitRepeatedRotate;
+        TickRepeatedRotate();
+    }
+}*/
+
+
+void Flip3DComp::SelectWindow(HWND hwndTarget)
+{
+    if (!hwndTarget || !IsWindow(hwndTarget))
+        return;
+
+    const bool isShell = (hwndTarget == GetShellWindow());
+
+    if (isShell)
+    {
+        // Check if we have active snap groups to restore instead of just showing the bare desktop
+        MONITORINFO primaryMi = QueryPrimaryMonitor();
+        std::vector<HWND> allHwnds = EnumerateWindows();
+        std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
+
+        if (!activeGroups.empty())
+        {
+            // Restore/activate all windows belonging to active snap groups
+            for (const auto& group : activeGroups)
+            {
+                for (HWND groupHwnd : group)
+                {
+                    if (IsIconic(groupHwnd))
+                    {
+                        PostMessage(groupHwnd, WM_SYSCOMMAND, SC_RESTORE, 0);
+                        ShowWindowAsync(groupHwnd, SW_RESTORE);
+                    }
+                    else
+                    {
+                        ShowWindowAsync(groupHwnd, SW_SHOWNOACTIVATE);
+                    }
+                }
+            }
+        }
+        else
+        {
+            // Standard desktop behavior if no groups are snapped
+            if (HWND shellTray = FindWindowW(L"Shell_TrayWnd", nullptr))
+                PostMessageW(shellTray, 0x579, 1, 0);
+        }
+    }
+    else if (!IsWindowEnabled(hwndTarget))
+    {
+        SwitchToThisWindow(GetLastActivePopup(GetAncestor(hwndTarget, GA_ROOTOWNER)), TRUE);
+    }
+    else
+    {
+        SwitchToThisWindow(hwndTarget, TRUE);
+    }
+
+    const int selIdx = FindCardIndex(hwndTarget);
+    if (selIdx < 0)
+    {
+        ExitView();
+        return;
+    }
+
+    auto& card = m_cards[(size_t)selIdx];
+    if (card.m_isMinimized)
+    {
+        if (card.m_hThumb)
+        {
+            DwmUnregisterThumbnail(card.m_hThumb);
+            card.m_hThumb = nullptr;
+        }
+        DwmInvalidateIconicBitmaps(hwndTarget);
+        //
+        PostMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
+        ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
+        //
+        if (m_hwnd && hwndTarget)
+        {
+            DwmRegisterThumbnail(m_hwnd, hwndTarget, &card.m_hThumb);
+            DWM_THUMBNAIL_PROPERTIES thp = {};
+            thp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION;
+            thp.fVisible = TRUE;
+            thp.rcDestination = { 0, 0, 0, 0 };
+            DwmUpdateThumbnailProperties(card.m_hThumb, &thp);
+        }
+        UpdateCardGeometry(card, m_monW, m_monH, true);
     }
 
     m_selectedHwnd = hwndTarget;
@@ -137,6 +233,9 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         TickRepeatedRotate();
     }
 }
+
+
+
 
 // ============================================================================
 // Flip3DComp::HitTest3DScene
