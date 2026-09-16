@@ -113,7 +113,7 @@ void Flip3DComp::UnloadThumbApi()
 //   - NormalizeWindowSize + world mapping via shared PRIMARY rcWork (normMon*)
 //   - GetMonitorToWorldTransform on primary m_rcMonitor for all cards
 // ============================================================================
-/*void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
+void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
                                        bool selectedRestore)
 {
     HWND h = c.m_hwnd;
@@ -222,7 +222,7 @@ void Flip3DComp::UnloadThumbApi()
 
     c.m_originalPos = { worldX, worldY, 0.0f };
     c.m_flatPos     = { worldX, worldY, 0.0f };
-}*/
+}
 
 // ============================================================================
 // Flip3DComp::UpdateNormalCardGeometry & Flip3DComp::UpdateRestoredMinimizedCardGeometry
@@ -446,8 +446,8 @@ void Flip3DComp::UpdateMonitorRect()
     if (layoutChanged)
     {
         for (auto& card : m_cards)
-            //UpdateCardGeometry(card, m_monW, m_monH);
-            UpdateNormalCardGeometry(card, m_monW, m_monH);
+            UpdateCardGeometry(card, m_monW, m_monH);
+            //UpdateNormalCardGeometry(card, m_monW, m_monH);
     }
 }
 
@@ -491,8 +491,8 @@ void Flip3DComp::BuildCards()
         CardModel c;
         c.m_hwnd                 = h;
         c.m_initialCarouselIndex = carouselIndex++;
-        //UpdateCardGeometry(c, m_monW, m_monH);
-        UpdateNormalCardGeometry(c, m_monW, m_monH);
+        UpdateCardGeometry(c, m_monW, m_monH);
+        //UpdateNormalCardGeometry(c, m_monW, m_monH);
         m_cards.push_back(std::move(c));
     }
 
@@ -563,8 +563,8 @@ void Flip3DComp::OnThumbnailSourceSizeChanged()
             continue;
 
         const bool selectedRestore = card.m_hwnd == m_selectedHwnd;
-        //UpdateCardGeometry(card, m_monW, m_monH, selectedRestore);
-        UpdateRestoredMinimizedCardGeometry(card, m_monW, m_monH);
+        UpdateCardGeometry(card, m_monW, m_monH, selectedRestore);
+        //UpdateRestoredMinimizedCardGeometry(card, m_monW, m_monH);
         UpdateCardThumbnailDest(card);
         anyChange = true;
     }
