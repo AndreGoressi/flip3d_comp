@@ -564,7 +564,7 @@ void Flip3DComp::TickSmoothScroll(float dtSeconds)
     StepCarouselScroll(dtSeconds, /*notifyFrontChange=*/true);
 }
 
-static bool IsStartOrSearchMenu(HWND hwnd)
+static bool IsSystemFlyout(HWND hwnd)
 {
     DWORD pid = 0;
     GetWindowThreadProcessId(hwnd, &pid);
@@ -581,15 +581,42 @@ static bool IsStartOrSearchMenu(HWND hwnd)
     {
         wchar_t* exeName = wcsrchr(path, L'\\');
         exeName = exeName ? exeName + 1 : path;
-
         if (_wcsicmp(exeName, L"StartMenuExperienceHost.exe") == 0 ||
-            _wcsicmp(exeName, L"SearchHost.exe") == 0)
+            _wcsicmp(exeName, L"SearchHost.exe") == 0 ||
+            _wcsicmp(exeName, L"ShellExperienceHost.exe") == 0 ||
+            _wcsicmp(exeName, L"InputApp.exe") == 0)
         {
             isSystemPopup = true;
         }
     }
 
     CloseHandle(hProcess);
+    if (!isSystemPopup)
+    {
+        wchar_t windowClass[128] = { 0 };
+        if (GetClassNameW(hwnd, windowClass, 127))
+        {
+            if (_wcsicmp(windowClass, L"NativeHWNDHost") == 0 || 
+                _wcsicmp(windowClass, L"Windows.UI.Core.CoreWindow") == 0 ||
+                _wcsicmp(windowClass, L"Xaml_WindowClass") == 0)
+            {
+                HANDLE hProcCheck = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+                if (hProcCheck)
+                {
+                    wchar_t checkPath[MAX_PATH] = { 0 };
+                    DWORD checkSize = MAX_PATH;
+                    if (QueryFullProcessImageNameW(hProcCheck, 0, checkPath, &checkSize))
+                    {
+                        if (wcsstr(checkPath, L"explorer.exe") != nullptr)
+                        {
+                            isSystemPopup = true;
+                        }
+                    }
+                    CloseHandle(hProcCheck);
+                }
+            }
+        }
+    }
     return isSystemPopup;
 }
 
@@ -599,13 +626,20 @@ static bool IsStartOrSearchMenu(HWND hwnd)
 void Flip3DComp::Update(float dtSeconds)
 {
     HWND hwndForeground = GetForegroundWindow();
-    if (IsStartOrSearchMenu(hwndForeground))
+    bool isSystemOpen = IsSystemFlyout(hwndForeground);
+    
+    static bool s_lastWasSystemOpen = false;
+    if (isSystemOpen != s_lastWasSystemOpen)
     {
-        SetWindowPos(m_hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-    }
-    else
-    {
-        SetWindowPos(m_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        s_lastWasSystemOpen = isSystemOpen;
+        if (isSystemOpen)
+        {
+            SetWindowPos(m_hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        }
+        else
+        {
+            SetWindowPos(m_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        }
     }
     // --------------------------------------------------------------------------
     if (m_thumbnailsDirty)
