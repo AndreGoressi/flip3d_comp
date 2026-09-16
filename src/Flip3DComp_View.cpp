@@ -228,7 +228,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
     return bestHwnd;
 }*/
 
-HWND Flip3DCompApp::HitTest3DScene(LONG screenX, LONG screenY) const
+HWND Flip3DComp::HitTest3DScene(LONG screenX, LONG screenY) const
 {
     if (m_cards.empty())
         return nullptr;
