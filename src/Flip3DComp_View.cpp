@@ -102,7 +102,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         DwmInvalidateIconicBitmaps(hwndTarget);
         //
         LONG_PTR style = GetWindowLongPtr(hwndTarget, GWL_STYLE);
-        SetWindowLongPtr(hwnd, GWL_STYLE, style & ~WS_VISIBLE);
+        SetWindowLongPtr(hwndTarget, GWL_STYLE, style & ~WS_VISIBLE);
         //
         SendMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
         style = GetWindowLongPtr(hwndTarget, GWL_STYLE);
