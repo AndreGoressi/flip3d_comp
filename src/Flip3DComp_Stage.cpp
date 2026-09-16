@@ -74,7 +74,7 @@ void Flip3DComp::ApplyFullscreenLayout()
     const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
     const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
     const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW |SWP_NOACTIVATE);
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
 
     RECT client = {};
     if (GetClientRect(m_hwnd, &client))
@@ -116,7 +116,8 @@ bool Flip3DComp::InitializeDCompStage()
                                          0, 0, 0, 0,
                                          m_hInstance,
                                          this,
-                                         ZBID_UIACCESS
+                                         ZBID_UIACCESS | 
+                                         ZBID_DESKTOP
     );
     //
     if (!m_hwnd)
