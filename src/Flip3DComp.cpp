@@ -56,7 +56,6 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     m_prevFrame = std::chrono::steady_clock::now();
     //
     LivePreview::Activate(TRUE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
-    SetCapture(m_hwnd);
     //
     EnterFlip3DWindowMode();
     InitAccessibility();
