@@ -385,7 +385,6 @@ void Flip3DComp::BuildCards()
         }
     }
     auto hwnds = EnumerateWindows();
-
     // Query primary monitor work area dimensions
     MONITORINFO primaryMi = QueryPrimaryMonitor();
     m_monW       = (float)std::max(1L, primaryMi.rcWork.right  - primaryMi.rcWork.left);
@@ -394,30 +393,42 @@ void Flip3DComp::BuildCards()
     m_monOriginY = (float)primaryMi.rcWork.top;
 
     int carouselIndex = 0;
-
-    // --- STEP 1: Add all individual open windows as single cards ---
+    // --- STEP 1: Detect active snap groups first ---
+    std::vector<std::vector<HWND>> detectedSnapGroups = DetectActiveSnapGroups(hwnds, primaryMi.rcWork);
+    // Build a flat lookup set of all windows that are already part of a snap group
+    std::unordered_set<HWND> groupedHwnds;
+    for (const auto& group : detectedSnapGroups)
+    {
+        if (group.size() >= 2)
+        {
+            for (HWND h : group)
+                groupedHwnds.insert(h);
+        }
+    }
+    // --- STEP 2: Add ONLY non-grouped individual open windows as single cards ---
     for (auto h : hwnds)
     {
+        // Skip windows that belong to a snap group so they don't appear twice
+        if (groupedHwnds.find(h) != groupedHwnds.end())
+            continue;
+
         CardModel c;
-        c.m_hwnd                  = h;
-        c.m_isGroup               = false;
-        c.m_initialCarouselIndex  = carouselIndex++;
+        c.m_hwnd                = h;
+        c.m_isGroup             = false;
+        c.m_initialCarouselIndex = carouselIndex++;
         UpdateCardGeometry(c, m_monW, m_monH);
         m_cards.push_back(std::move(c));
     }
-    // --- STEP 2: Detect active snap groups and add them as combined group cards ---
-    // Scans for windows sharing snap layouts side-by-side or stacked
-    std::vector<std::vector<HWND>> detectedSnapGroups = DetectActiveSnapGroups(hwnds, primaryMi.rcWork);
-    //
+    // --- STEP 3: Add the combined group cards for the detected snap layouts ---
     for (const auto& groupHwnds : detectedSnapGroups)
     {
-        if (groupHwnds.size() < 2) continue; // Only valid for layouts with 2 or more windows
+        if (groupHwnds.size() < 2) continue;
 
         CardModel groupCard;
-        groupCard.m_hwnd                  = nullptr; // No single window handle for groups
-        groupCard.m_groupHwnds            = groupHwnds;
-        groupCard.m_isGroup               = true;
-        groupCard.m_initialCarouselIndex  = carouselIndex++;
+        groupCard.m_hwnd                = nullptr; 
+        groupCard.m_groupHwnds          = groupHwnds;
+        groupCard.m_isGroup             = true;
+        groupCard.m_initialCarouselIndex = carouselIndex++;
         // Calculate geometry covering the entire snapped region for the group card
         UpdateCardGeometry(groupCard, m_monW, m_monH);
         m_cards.push_back(std::move(groupCard));
