@@ -272,7 +272,7 @@ void Flip3DComp::UpdateMonitorRect()
 // ============================================================================
 // Flip3DComp::BuildCards
 // ============================================================================
-void Flip3DComp::BuildCards()
+/*void Flip3DComp::BuildCards()
 {
     m_cards.clear();
 
@@ -313,6 +313,69 @@ void Flip3DComp::BuildCards()
         m_cards.push_back(std::move(c));
     }
 
+    m_originalFrontHwnd = m_cards.empty() ? nullptr : m_cards[0].m_hwnd;
+}*/
+
+void Flip3DComp::BuildCards()
+{
+    m_cards.clear();
+    // Initialize D3D11 device if not already available
+    if (!m_d3dDevice)
+    {
+        D3D_FEATURE_LEVEL fl = D3D_FEATURE_LEVEL_11_0;
+        HRESULT hr = D3D11CreateDevice(
+            nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
+            D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+            &fl, 1, D3D11_SDK_VERSION,
+            &m_d3dDevice, nullptr, nullptr);
+
+        if (FAILED(hr))
+        {
+            D3D11CreateDevice(
+                nullptr, D3D_DRIVER_TYPE_WARP, nullptr,
+                D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+                &fl, 1, D3D11_SDK_VERSION,
+                &m_d3dDevice, nullptr, nullptr);
+        }
+    }
+    auto hwnds = EnumerateWindows();
+
+    // Query primary monitor work area dimensions
+    MONITORINFO primaryMi = QueryPrimaryMonitor();
+    m_monW       = (float)std::max(1L, primaryMi.rcWork.right  - primaryMi.rcWork.left);
+    m_monH       = (float)std::max(1L, primaryMi.rcWork.bottom - primaryMi.rcWork.top);
+    m_monOriginX = (float)primaryMi.rcWork.left;
+    m_monOriginY = (float)primaryMi.rcWork.top;
+
+    int carouselIndex = 0;
+
+    // --- STEP 1: Add all individual open windows as single cards ---
+    for (auto h : hwnds)
+    {
+        CardModel c;
+        c.m_hwnd                  = h;
+        c.m_isGroup               = false;
+        c.m_initialCarouselIndex  = carouselIndex++;
+        UpdateCardGeometry(c, m_monW, m_monH);
+        m_cards.push_back(std::move(c));
+    }
+    // --- STEP 2: Detect active snap groups and add them as combined group cards ---
+    // Scans for windows sharing snap layouts side-by-side or stacked
+    std::vector<std::vector<HWND>> detectedSnapGroups = DetectActiveSnapGroups(hwnds, primaryMi.rcWork);
+    //
+    for (const auto& groupHwnds : detectedSnapGroups)
+    {
+        if (groupHwnds.size() < 2) continue; // Only valid for layouts with 2 or more windows
+
+        CardModel groupCard;
+        groupCard.m_hwnd                  = nullptr; // No single window handle for groups
+        groupCard.m_groupHwnds            = groupHwnds;
+        groupCard.m_isGroup               = true;
+        groupCard.m_initialCarouselIndex  = carouselIndex++;
+        // Calculate geometry covering the entire snapped region for the group card
+        UpdateCardGeometry(groupCard, m_monW, m_monH);
+        m_cards.push_back(std::move(groupCard));
+    }
     m_originalFrontHwnd = m_cards.empty() ? nullptr : m_cards[0].m_hwnd;
 }
 
