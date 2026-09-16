@@ -131,13 +131,6 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {
-    case WM_MOUSEWHEEL:
-    {
-        short zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
-        const int direction = (zDelta > 0) ? -1 : 1;
-        RotateBy(direction);
-        return 0; 
-    }
     case WM_SIZE:
         if (wParam == SIZE_MINIMIZED)
         {
