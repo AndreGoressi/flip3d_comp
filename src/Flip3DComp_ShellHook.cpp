@@ -254,7 +254,7 @@ bool Flip3DComp::AddCardForWindow(HWND hwnd)
     CardModel card;
     card.m_hwnd                 = hwnd;
     card.m_initialCarouselIndex = (int)m_cards.size();
-    UpdateCardGeometry(card, m_monW, m_monH);
+    UpdateRegularCardGeometry(card, m_monW, m_monH);
 
     if (FAILED(CreateCardVisual(card)))
         return false;
