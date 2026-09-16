@@ -32,9 +32,9 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
         SetForegroundWindow(hwndProgman);
     }
     // -------------------------------------------------------------------
-    LivePreview::Activate(TRUE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
-
     BuildCards();
+
+    LivePreview::Activate(TRUE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
 
     if (!InitializeDCompStage())
     {
