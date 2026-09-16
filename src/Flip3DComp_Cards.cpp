@@ -272,7 +272,7 @@ void Flip3DComp::UpdateMonitorRect()
 // ============================================================================
 // Flip3DComp::BuildCards
 // ============================================================================
-/*void Flip3DComp::BuildCards()
+void Flip3DComp::BuildCards()
 {
     m_cards.clear();
 
@@ -313,87 +313,6 @@ void Flip3DComp::UpdateMonitorRect()
         m_cards.push_back(std::move(c));
     }
 
-    m_originalFrontHwnd = m_cards.empty() ? nullptr : m_cards[0].m_hwnd;
-}*/
-
-void Flip3DComp::BuildCards()
-{
-    m_cards.clear();
-
-    if (!m_d3dDevice)
-    {
-        D3D_FEATURE_LEVEL fl = D3D_FEATURE_LEVEL_11_0;
-        HRESULT hr = D3D11CreateDevice(
-            nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
-            D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-            &fl, 1, D3D11_SDK_VERSION,
-            &m_d3dDevice, nullptr, nullptr);
-
-        if (FAILED(hr))
-        {
-            D3D11CreateDevice(
-                nullptr, D3D_DRIVER_TYPE_WARP, nullptr,
-                D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-                &fl, 1, D3D11_SDK_VERSION,
-                &m_d3dDevice, nullptr, nullptr);
-        }
-    }
-
-    auto hwnds = EnumerateWindows();
-
-    MONITORINFO primaryMi = QueryPrimaryMonitor();
-    m_monW       = (float)std::max(1L, primaryMi.rcWork.right  - primaryMi.rcWork.left);
-    m_monH       = (float)std::max(1L, primaryMi.rcWork.bottom - primaryMi.rcWork.top);
-    m_monOriginX = (float)primaryMi.rcWork.left;
-    m_monOriginY = (float)primaryMi.rcWork.top;
-
-    std::unordered_set<std::wstring> seenExecutables;
-    int carouselIndex = 0;
-
-    for (auto h : hwnds)
-    {
-        DWORD pid = 0;
-        GetWindowThreadProcessId(h, &pid);
-        
-        std::wstring appKey;
-        bool hasValidExe = false;
-
-        if (pid != 0)
-        {
-            HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
-            if (hProcess)
-            {
-                wchar_t path[MAX_PATH] = { 0 };
-                DWORD size = MAX_PATH;
-                if (QueryFullProcessImageNameW(hProcess, 0, path, &size))
-                {
-                    wchar_t* exeName = wcsrchr(path, L'\\');
-                    exeName = exeName ? exeName + 1 : path;
-                    appKey = exeName;
-                    hasValidExe = true;
-                }
-                CloseHandle(hProcess);
-            }
-        }
-
-        if (!hasValidExe || appKey.empty())
-        {
-            appKey = L"HWND_" + std::to_wstring(reinterpret_cast<uintptr_t>(h));
-        }
-
-        if (seenExecutables.find(appKey) != seenExecutables.end())
-        {
-            continue; 
-        }
-
-        seenExecutables.insert(appKey);
-
-        CardModel c;
-        c.m_hwnd                   = h;
-        c.m_initialCarouselIndex = carouselIndex++;
-        UpdateCardGeometry(c, m_monW, m_monH);
-        m_cards.push_back(std::move(c));
-    }
     m_originalFrontHwnd = m_cards.empty() ? nullptr : m_cards[0].m_hwnd;
 }
 
