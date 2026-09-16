@@ -56,7 +56,7 @@ std::vector<HWND> Flip3DComp::EnumerateWindows()
 // Flip3DComp::ApplyFullscreenLayout
 // uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
 // ============================================================================
-void Flip3DComp::ApplyFullscreenLayout()
+/*void Flip3DComp::ApplyFullscreenLayout()
 {
     if (!m_hwnd)
         return;
@@ -94,6 +94,32 @@ void Flip3DComp::ApplyFullscreenLayout()
         m_width  = std::max(1u, (UINT)(client.right  - client.left));
         m_height = std::max(1u, (UINT)(client.bottom - client.top));
     }
+    UpdateMonitorRect();
+}*/
+
+void Flip3DComp::ApplyFullscreenLayout()
+{
+    if (!m_hwnd)
+        return;
+    
+    MONITORINFO mi = { sizeof(mi) };
+    HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
+    if (hMon)
+        GetMonitorInfoW(hMon, &mi);
+
+    const int x = mi.rcWork.left;
+    const int y = mi.rcWork.top;
+    const int w = mi.rcWork.right - mi.rcWork.left;
+    const int h = mi.rcWork.bottom - mi.rcWork.top;
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+
+    RECT client = {};
+    if (GetClientRect(m_hwnd, &client))
+    {
+        m_width  = std::max(1u, (UINT)(client.right  - client.left));
+        m_height = std::max(1u, (UINT)(client.bottom - client.top));
+    }
+    
     UpdateMonitorRect();
 }
 
@@ -147,21 +173,6 @@ bool Flip3DComp::InitializeDCompStage()
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
     SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
-    //
-    /*HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
-    if (taskbar)
-    {
-        //SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-        APPBARDATA abd = { sizeof(abd) };
-        abd.hWnd = taskbar;
-        SHAppBarMessage(ABM_ACTIVATE, &abd);
-    }
-    HWND taskbarSecondary = FindWindowW(L"SecondaryTrayWnd", nullptr);
-    while (taskbarSecondary)
-    {
-        //SetWindowPos(taskbarSecondary, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-        taskbarSecondary = FindWindowExW(nullptr, taskbarSecondary, L"SecondaryTrayWnd", nullptr);
-    }*/
     //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
