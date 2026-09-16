@@ -134,10 +134,10 @@ bool Flip3DComp::InitializeDCompStage()
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;*/
 
-    int x = CW_USEDEFAULT,
-    int y = CW_USEDEFAULT,
-    int w = CW_USEDEFAULT,
-    int h = CW_USEDEFAULT,
+    int x = CW_USEDEFAULT;
+    int y = CW_USEDEFAULT;
+    int w = CW_USEDEFAULT;
+    int h = CW_USEDEFAULT;
     SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
     //
     BOOL exclude = TRUE;
