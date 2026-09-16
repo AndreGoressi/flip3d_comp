@@ -8,7 +8,7 @@
 MONITORINFO Flip3DComp::QueryPrimaryMonitor()
 {
     MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hPrimary = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);f
+    HMONITOR hPrimary = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
     if (hPrimary)
         GetMonitorInfoW(hPrimary, &mi);
     return mi;
