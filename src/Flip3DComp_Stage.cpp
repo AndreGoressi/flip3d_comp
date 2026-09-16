@@ -65,7 +65,7 @@ static bool IsStartOrSearchMenu(HWND hwnd)
 // ============================================================================
 // Flip3DComp::EnumerateWindows
 // ============================================================================
-/*std::vector<HWND> Flip3DComp::EnumerateWindows()
+std::vector<HWND> Flip3DComp::EnumerateWindows()
 {
     EnumContext ctx = { this };
     EnumWindows(EnumWindowsProc, (LPARAM)&ctx);
@@ -79,29 +79,7 @@ static bool IsStartOrSearchMenu(HWND hwnd)
     }
     //
     return ctx.hwnds;
-}*/
-
-std::vector<HWND> Flip3DComp::EnumerateWindows()
-{
-    EnumContext ctx = { this };
-    EnumWindows(EnumWindowsProc, (LPARAM)&ctx);
-    HWND shell = GetShellWindow();
-    if (shell && shell != m_hwnd && QualifiesForView(shell))
-    {
-        auto it = std::find(ctx.hwnds.begin(), ctx.hwnds.end(), shell);
-        if (it == ctx.hwnds.end() && ctx.hwnds.size() < (size_t)kMaxCards)
-            ctx.hwnds.push_back(shell);
-    }
-    ctx.hwnds.erase(
-        std::remove_if(ctx.hwnds.begin(), ctx.hwnds.end(), [](HWND hwnd) {
-            return IsStartOrSearchMenu(hwnd);
-        }),
-        ctx.hwnds.end()
-    );
-    // -----------------------------------------------------------------
-    return ctx.hwnds;
 }
-
 // ============================================================================
 // Flip3DComp::ApplyFullscreenLayout
 // uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
