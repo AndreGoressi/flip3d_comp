@@ -316,6 +316,44 @@ void Flip3DComp::UpdateMonitorRect()
     m_originalFrontHwnd = m_cards.empty() ? nullptr : m_cards[0].m_hwnd;
 }*/
 
+static std::vector<std::vector<HWND>> DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& workArea)
+{
+    std::vector<std::vector<HWND>> groups;
+    // Simple geometric grouping for side-by-side or stacked snap layouts
+    // We check pairs of windows to see if they share an edge and together form standard snap proportions
+    for (size_t i = 0; i < hwnds.size(); ++i)
+    {
+        RECT rc1;
+        if (!GetWindowRect(hwnds[i], &rc1)) continue;
+        //
+        for (size_t j = i + 1; j < hwnds.size(); ++j)
+        {
+            RECT rc2;
+            if (!GetWindowRect(hwnds[j], &rc2)) continue;
+            // Check if they are side-by-side (vertical touching edges, similar vertical span)
+            bool touchingHorizontally = (abs(rc1.right - rc2.left) <= 5 || abs(rc2.right - rc1.left) <= 5);
+            bool verticalOverlap = (rc1.top < rc2.bottom && rc1.bottom > rc2.top);
+            //
+            if (touchingHorizontally && verticalOverlap)
+            {
+                groups.push_back({ hwnds[i], hwnds[j] });
+            }
+            // Check if they are stacked vertically (horizontal touching edges, similar horizontal span)
+            else
+            {
+                bool touchingVertically = (abs(rc1.bottom - rc2.top) <= 5 || abs(rc2.bottom - rc1.top) <= 5);
+                bool horizontalOverlap = (rc1.left < rc2.right && rc1.right > rc2.left);
+                //
+                if (touchingVertically && horizontalOverlap)
+                {
+                    groups.push_back({ hwnds[i], hwnds[j] });
+                }
+            }
+        }
+    }
+    return groups;
+}
+
 void Flip3DComp::BuildCards()
 {
     m_cards.clear();
