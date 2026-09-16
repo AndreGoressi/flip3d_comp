@@ -89,7 +89,7 @@ bool Flip3DComp::InitializeDCompStage()
 {
     WNDCLASSEXW wc = {
         sizeof(wc),
-        0, //CS_HREDRAW | CS_VREDRAW, //CS_CLASSDC
+        CS_CLASSDC,
         &Flip3DComp::WndProc,
         0, 0,
         m_hInstance,
