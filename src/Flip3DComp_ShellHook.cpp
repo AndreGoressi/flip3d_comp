@@ -58,7 +58,7 @@ bool Flip3DComp::IsFlip3DViewActive() const
     return m_state != ViewState::Inactive;
 }
 
-bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
+/*bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
 {
     if (!hwnd)
         return true;
@@ -73,6 +73,52 @@ bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
     return !_wcsicmp(cls, L"Shell_TrayWnd")
     || !_wcsicmp(cls, L"Shell_SecondaryTrayWnd")
         || !_wcsicmp(cls, L"WorkerW");
+}*/
+
+bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
+{
+    if (!hwnd)
+        return true;
+
+    if (hwnd == m_hwnd)
+        return true;
+
+    wchar_t cls[64] = {};
+    if (GetClassNameW(hwnd, cls, 63))
+    {
+        if (!_wcsicmp(cls, L"Shell_TrayWnd") ||
+            !_wcsicmp(cls, L"Shell_SecondaryTrayWnd") ||
+            !_wcsicmp(cls, L"WorkerW"))
+        {
+            return true;
+        }
+    }
+
+    DWORD pid = 0;
+    GetWindowThreadProcessId(hwnd, &pid);
+    if (pid != 0)
+    {
+        HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+        if (hProcess)
+        {
+            wchar_t path[MAX_PATH] = { 0 };
+            DWORD size = MAX_PATH;
+            if (QueryFullProcessImageNameW(hProcess, 0, path, &size))
+            {
+                wchar_t* exeName = wcsrchr(path, L'\\');
+                exeName = exeName ? exeName + 1 : path;
+
+                if (_wcsicmp(exeName, L"StartMenuExperienceHost.exe") == 0 ||
+                    _wcsicmp(exeName, L"SearchHost.exe") == 0)
+                {
+                    CloseHandle(hProcess);
+                    return true; 
+                }
+            }
+            CloseHandle(hProcess);
+        }
+    }
+    return false;
 }
 
 // ============================================================================
