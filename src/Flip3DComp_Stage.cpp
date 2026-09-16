@@ -146,7 +146,7 @@ bool Flip3DComp::InitializeDCompStage()
     const int y = mi.rcWork.top;
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
-    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
     //
     HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
     if (taskbar)
