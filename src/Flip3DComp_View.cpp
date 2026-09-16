@@ -16,6 +16,7 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
         return;
 
     LivePreview::Activate(FALSE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
+    ReleaseCapture();
 
     if (commitScroll)
         CommitCarouselScroll();
