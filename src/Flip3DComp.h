@@ -124,9 +124,8 @@ private:
     /*void    UpdateCardGeometry(CardModel& card, float normMonW, float normMonH,
                                bool selectedRestore = false);*/
     //new
-    void UpdateCardLayout(CardModel& c, float thumbW, float thumbH, float normMonW, float normMonH, const RECT& flatBounds);
-    void UpdateRegularCardGeometry(CardModel& c, float normMonW, float normMonH);
-    void UpdateMinimizedCardGeometry(CardModel& c, float normMonW, float normMonH, bool selectedRestore);
+    void UpdateNormalCardGeometry(CardModel& c, float normMonW, float normMonH);
+    void UpdateRestoredMinimizedCardGeometry(CardModel& c, float normMonW, float normMonH);
 
     void    OnThumbnailSourceSizeChanged();
     void    UpdateCardThumbnailDest(CardModel& card);
