@@ -645,12 +645,6 @@ static bool IsSystemFlyout(HWND hwndForeground)
                         _wcsicmp(exeName, L"Widgets.exe") == 0 ||
                         _wcsicmp(exeName, L"TabTip.exe") == 0)
                     {
-                        if (_wcsicmp(exeName, L"TextInputHost.exe") == 0 || 
-                            _wcsicmp(exeName, L"TabTip.exe") == 0)
-                        {
-                            
-                        }
-                        // -------------------------------------------------------------------------------
                         CloseHandle(hProcess);
                         return true;
                     }
@@ -670,7 +664,7 @@ void Flip3DComp::Update(float dtSeconds)
 {
     HWND hwndForeground = GetForegroundWindow();
     bool isSystemFlyoutOpen = IsSystemFlyout(hwndForeground);
-    
+    //
     static bool s_lastWasSystemFlyoutOpen = false;
     if (isSystemFlyoutOpen != s_lastWasSystemFlyoutOpen)
     {
