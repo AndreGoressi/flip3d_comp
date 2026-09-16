@@ -113,7 +113,7 @@ void Flip3DComp::UnloadThumbApi()
 //   - NormalizeWindowSize + world mapping via shared PRIMARY rcWork (normMon*)
 //   - GetMonitorToWorldTransform on primary m_rcMonitor for all cards
 // ============================================================================
-void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
+/*void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
                                        bool selectedRestore)
 {
     HWND h = c.m_hwnd;
@@ -222,6 +222,134 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
 
     c.m_originalPos = { worldX, worldY, 0.0f };
     c.m_flatPos     = { worldX, worldY, 0.0f };
+}*/
+
+void Flip3DComp::UpdateCardLayout(CardModel& c, float thumbW, float thumbH, float normMonW, float normMonH, const RECT& flatBounds)
+{
+    float maxResW = normMonW * 0.5f;
+    float maxResH = normMonH * 0.5f;
+    float scale = std::min({maxResW / thumbW, maxResH / thumbH, 1.0f});
+
+    c.m_srcWidth  = std::max(1, (int)(thumbW * scale));
+    c.m_srcHeight = std::max(1, (int)(thumbH * scale));
+
+    Math::WorldSizesFromThumbPixels(
+        thumbW, thumbH, normMonW, normMonH,
+        c.m_flatSize, c.m_targetSize, c.m_occupancy);
+
+    c.m_aspectRatio = thumbW / thumbH;
+
+    const float qualityScale = CardThumbnailQualityScale();
+    c.m_srcWidth  = std::max(1, (int)std::lround(thumbW * qualityScale));
+    c.m_srcHeight = std::max(1, (int)std::lround(thumbH * qualityScale));
+
+    float flatW = thumbW;
+    float flatH = thumbH;
+
+    if (c.m_isShellDesktop || c.m_isMinimized)
+    {
+        flatW = (float)std::max(1L, flatBounds.right  - flatBounds.left);
+        flatH = (float)std::max(1L, flatBounds.bottom - flatBounds.top);
+    }
+
+    c.m_flatSize = { flatW / normMonW, flatH / normMonH };
+
+    float anchorX = (float)flatBounds.left;
+    float anchorY = (float)flatBounds.top;
+    if (m_rtl)
+    {
+        const float relX = anchorX - m_monOriginX;
+        anchorX = m_monOriginX + (normMonW - (flatW + relX));
+    }
+
+    float worldX = 0.0f;
+    float worldY = 0.0f;
+    Math::MonitorToWorldTopLeft(
+        anchorX, anchorY,
+        m_monOriginX, m_monOriginY, normMonW, normMonH,
+        worldX, worldY);
+
+    c.m_originalPos = { worldX, worldY, 0.0f };
+    c.m_flatPos     = { worldX, worldY, 0.0f };
+}
+
+void Flip3DComp::UpdateRegularCardGeometry(CardModel& c, float normMonW, float normMonH)
+{
+    HWND h = c.m_hwnd;
+    if (!h) return;
+
+    normMonW = std::max(normMonW, 1.0f);
+    normMonH = std::max(normMonH, 1.0f);
+
+    c.m_isMinimized = false;
+    c.m_isShellDesktop = (h == GetShellWindow());
+
+    HMONITOR mon = MonitorFromWindow(h, MONITOR_DEFAULTTONEAREST);
+    if (!mon) mon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+
+    MONITORINFO mi = { sizeof(mi) };
+    if (mon) GetMonitorInfoW(mon, &mi);
+    else mi = QueryPrimaryMonitor();
+
+    SIZE srcSize = {};
+    if (FAILED(m_pfnQueryThumbSize(h, FALSE, &srcSize)) || srcSize.cx < 1 || srcSize.cy < 1)
+        return;
+
+    float thumbW = (float)srcSize.cx;
+    float thumbH = (float)srcSize.cy;
+
+    RECT flatBounds = {};
+    if (c.m_isShellDesktop)
+    {
+        MONITORINFO primaryMi = QueryPrimaryMonitor();
+        flatBounds = primaryMi.rcWork;
+    }
+    else if (!FillRestoredScreenRect(h, mi, flatBounds))
+    {
+        flatBounds = mi.rcWork;
+    }
+
+    if (IsRectEmpty(&flatBounds))
+        flatBounds = mi.rcWork;
+
+    UpdateCardLayout(c, thumbW, thumbH, normMonW, normMonH, flatBounds);
+}
+
+void Flip3DComp::UpdateMinimizedCardGeometry(CardModel& c, float normMonW, float normMonH, bool selectedRestore)
+{
+    HWND h = c.m_hwnd;
+    if (!h) return;
+
+    normMonW = std::max(normMonW, 1.0f);
+    normMonH = std::max(normMonH, 1.0f);
+
+    c.m_isMinimized = !selectedRestore;
+    c.m_isShellDesktop = false;
+
+    SIZE srcSize = {};
+    if (FAILED(m_pfnQueryThumbSize(h, FALSE, &srcSize)) || srcSize.cx < 1 || srcSize.cy < 1)
+        return;
+
+    float thumbW = (float)srcSize.cx;
+    float thumbH = (float)srcSize.cy;
+    const float thumbAspect = thumbH / thumbW;
+
+    RECT flatBounds = {};
+    RECT minRect = {};
+    
+    if (m_pfnGetWindowMinimizeRect(h, &minRect) && !IsRectEmpty(&minRect))
+    {
+        flatBounds = Math::BuildFinalMinRect(minRect, thumbAspect);
+    }
+    else
+    {
+        MONITORINFO mi = { sizeof(mi) };
+        HMONITOR mon = MonitorFromWindow(h, MONITOR_DEFAULTTONEAREST);
+        if (mon) GetMonitorInfoW(mon, &mi);
+        else mi = QueryPrimaryMonitor();
+        flatBounds = mi.rcWork;
+    }
+    UpdateCardLayout(c, thumbW, thumbH, normMonW, normMonH, flatBounds);
 }
 
 // ============================================================================
@@ -264,7 +392,8 @@ void Flip3DComp::UpdateMonitorRect()
     if (layoutChanged)
     {
         for (auto& card : m_cards)
-            UpdateCardGeometry(card, m_monW, m_monH);
+            //UpdateCardGeometry(card, m_monW, m_monH);
+            UpdateRegularCardGeometry(card, m_monW, m_monH);
     }
 }
 
@@ -308,7 +437,8 @@ void Flip3DComp::BuildCards()
         CardModel c;
         c.m_hwnd                 = h;
         c.m_initialCarouselIndex = carouselIndex++;
-        UpdateCardGeometry(c, m_monW, m_monH);
+        //UpdateCardGeometry(c, m_monW, m_monH);
+        UpdateRegularCardGeometry(c, m_monW, m_monH);
         m_cards.push_back(std::move(c));
     }
 
@@ -379,7 +509,8 @@ void Flip3DComp::OnThumbnailSourceSizeChanged()
             continue;
 
         const bool selectedRestore = card.m_hwnd == m_selectedHwnd;
-        UpdateCardGeometry(card, m_monW, m_monH, selectedRestore);
+        //UpdateCardGeometry(card, m_monW, m_monH, selectedRestore);
+        UpdateMinimizedCardGeometry(card, m_monW, m_monH, selectedRestore);
         UpdateCardThumbnailDest(card);
         anyChange = true;
     }
