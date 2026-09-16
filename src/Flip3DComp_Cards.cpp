@@ -530,7 +530,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                 float screenW = (float)(rcWin.right - rcWin.left);
                 float screenH = (float)(rcWin.bottom - rcWin.top);
                 //
-                float gutter = 32.0f; 
+                float gutter = 100.0f; 
                 int relX = (int)((screenX + gutter) * scaleX);
                 int relY = (int)((screenY + gutter) * scaleY);
                 int relW = (int)((screenW - (gutter * 2.0f)) * scaleX);
