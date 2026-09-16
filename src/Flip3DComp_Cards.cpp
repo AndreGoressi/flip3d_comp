@@ -525,16 +525,27 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                 int relH = (int)((rcWin.bottom - rcWin.top) * scaleY);*/
                 float scaleX = card.m_srcWidth / m_monW;
                 float scaleY = card.m_srcHeight / m_monH;
+                
                 float screenX = (float)(rcWin.left - m_monOriginX);
                 float screenY = (float)(rcWin.top - m_monOriginY);
                 float screenW = (float)(rcWin.right - rcWin.left);
                 float screenH = (float)(rcWin.bottom - rcWin.top);
-                //
-                float gutter = 100.0f; 
-                int relX = (int)((screenX + gutter) * scaleX);
-                int relY = (int)((screenY + gutter) * scaleY);
-                int relW = (int)((screenW - (gutter * 2.0f)) * scaleX);
-                int relH = (int)((screenH - (gutter * 2.0f)) * scaleY);
+                
+                float gutter = 150.0f; 
+                bool touchesLeft   = (screenX <= 5.0f);
+                bool touchesRight  = (abs((screenX + screenW) - m_monW) <= 5.0f);
+                bool touchesTop    = (screenY <= 5.0f);
+                bool touchesBottom = (abs((screenY + screenH) - m_monH) <= 5.0f);
+                
+                float adjustedX = screenX + (touchesLeft ? gutter : gutter * 0.5f);
+                float adjustedY = screenY + (touchesTop ? gutter : gutter * 0.5f);
+                float adjustedW = screenW - ((touchesLeft ? gutter : gutter * 0.5f) + (touchesRight ? gutter : gutter * 0.5f));
+                float adjustedH = screenH - ((touchesTop ? gutter : gutter * 0.5f) + (touchesBottom ? gutter : gutter * 0.5f));
+                
+                int relX = (int)(adjustedX * scaleX);
+                int relY = (int)(adjustedY * scaleY);
+                int relW = (int)(adjustedW * scaleX);
+                int relH = (int)(adjustedH * scaleY);
                 //
                 HTHUMBNAIL subThumb = nullptr;
                 DWM_THUMBNAIL_PROPERTIES subTp = {};
