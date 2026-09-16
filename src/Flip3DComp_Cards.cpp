@@ -528,51 +528,56 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
         {
             for (HWND groupHwnd : group)
             {
-                // Get true window bounds to calculate relative position on the desktop card
-                RECT rcWin = {};
-                if (FAILED(DwmGetWindowAttribute(groupHwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
-                {
-                    GetWindowRect(groupHwnd, &rcWin);
-                }
 
-                // Map screen coordinates relative to primary work area, then scale to card dimensions
-                /*float scaleX = card.m_srcWidth / m_monW;
-                float scaleY = card.m_srcHeight / m_monH;
-                //
-                int relX = (int)((rcWin.left - m_monOriginX) * scaleX);
-                int relY = (int)((rcWin.top - m_monOriginY) * scaleY);
-                int relW = (int)((rcWin.right - rcWin.left) * scaleX);
-                int relH = (int)((rcWin.bottom - rcWin.top) * scaleY);*/
+                RECT rcWin = {};
+                if (IsIconic(groupHwnd))
+                {
+                    WINDOWPLACEMENT wp = { sizeof(wp) };
+                    if (GetWindowPlacement(groupHwnd, &wp))
+                    {
+                        rcWin = wp.rcNormalPosition;
+                    }
+                }
+                else
+                {
+                    if (FAILED(DwmGetWindowAttribute(groupHwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
+                    {
+                        GetWindowRect(groupHwnd, &rcWin);
+                    }
+                }
+                if (rcWin.right <= rcWin.left || rcWin.bottom <= rcWin.top)
+                    continue;
+
                 float scaleX = card.m_srcWidth / m_monW;
                 float scaleY = card.m_srcHeight / m_monH;
-                
+
                 float screenX = (float)(rcWin.left - m_monOriginX);
                 float screenY = (float)(rcWin.top - m_monOriginY);
                 float screenW = (float)(rcWin.right - rcWin.left);
                 float screenH = (float)(rcWin.bottom - rcWin.top);
-                
-                float gutter = 160.0f; 
+
+                float gutter = 160.0f; // Oder dein angepasster Wert
                 bool touchesLeft   = (screenX <= 5.0f);
                 bool touchesRight  = (abs((screenX + screenW) - m_monW) <= 5.0f);
                 bool touchesTop    = (screenY <= 5.0f);
                 bool touchesBottom = (abs((screenY + screenH) - m_monH) <= 5.0f);
-                
+
                 float adjustedX = screenX + (touchesLeft ? gutter : gutter * 0.5f);
                 float adjustedY = screenY + (touchesTop ? gutter : gutter * 0.5f);
                 float adjustedW = screenW - ((touchesLeft ? gutter : gutter * 0.5f) + (touchesRight ? gutter : gutter * 0.5f));
                 float adjustedH = screenH - ((touchesTop ? gutter : gutter * 0.5f) + (touchesBottom ? gutter : gutter * 0.5f));
-                
+
                 int relX = (int)(adjustedX * scaleX);
                 int relY = (int)(adjustedY * scaleY);
                 int relW = (int)(adjustedW * scaleX);
                 int relH = (int)(adjustedH * scaleY);
-                //
+
                 HTHUMBNAIL subThumb = nullptr;
                 DWM_THUMBNAIL_PROPERTIES subTp = {};
                 subTp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
                 subTp.fVisible = TRUE;
                 subTp.rcDestination = { 0, 0, relW, relH };
-                //
+
                 void* subPv = nullptr;
                 if (SUCCEEDED(m_pfnCreateSharedThumbVisual(m_hwnd, groupHwnd, DWM_TNF_DWMWINDOW, &subTp, m_dcompDevice.Get(), &subPv, &subThumb)))
                 {
