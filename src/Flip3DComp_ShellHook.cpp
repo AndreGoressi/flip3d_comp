@@ -49,7 +49,6 @@ bool Flip3DComp::QualifiesForView(HWND hwnd) const
             && cloaked != 0)
             return false;
     }
-
     return true;
 }
 
@@ -254,7 +253,8 @@ bool Flip3DComp::AddCardForWindow(HWND hwnd)
     CardModel card;
     card.m_hwnd                 = hwnd;
     card.m_initialCarouselIndex = (int)m_cards.size();
-    UpdateNormalCardGeometry(card, m_monW, m_monH);
+    UpdateCardGeometry(card, m_monW, m_monH);
+    //UpdateNormalCardGeometry(card, m_monW, m_monH);
 
     if (FAILED(CreateCardVisual(card)))
         return false;
