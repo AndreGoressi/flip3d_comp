@@ -269,6 +269,30 @@ void Flip3DComp::UpdateMonitorRect()
     }
 }
 
+bool Flip3DComp::AddCardForWindow(HWND hwnd)
+{
+    if (!hwnd || !IsWindow(hwnd))
+        return false;
+    // Check if a card for this window already exists
+    if (FindCardIndex(hwnd) >= 0)
+        return true;
+
+    CardModel c;
+    c.m_hwnd = hwnd;
+    c.m_isGroup = false;
+    c.m_initialCarouselIndex = (int)m_cards.size();
+    
+    UpdateCardGeometry(c, m_monW, m_monH);
+
+    if (SUCCEEDED(CreateCardVisual(c)))
+    {
+        m_cards.push_back(std::move(c));
+        return true;
+    }
+
+    return false;
+}
+
 // ============================================================================
 // Flip3DComp::BuildCards
 // ============================================================================
