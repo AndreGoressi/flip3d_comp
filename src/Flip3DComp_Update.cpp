@@ -564,19 +564,50 @@ void Flip3DComp::TickSmoothScroll(float dtSeconds)
     StepCarouselScroll(dtSeconds, /*notifyFrontChange=*/true);
 }
 
+static bool IsStartOrSearchMenu(HWND hwnd)
+{
+    DWORD pid = 0;
+    GetWindowThreadProcessId(hwnd, &pid);
+    if (pid == 0) return false;
+
+    HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    if (!hProcess) return false;
+
+    wchar_t path[MAX_PATH] = { 0 };
+    DWORD size = MAX_PATH;
+    bool isSystemPopup = false;
+
+    if (QueryFullProcessImageNameW(hProcess, 0, path, &size))
+    {
+        wchar_t* exeName = wcsrchr(path, L'\\');
+        exeName = exeName ? exeName + 1 : path;
+
+        if (_wcsicmp(exeName, L"StartMenuExperienceHost.exe") == 0 ||
+            _wcsicmp(exeName, L"SearchHost.exe") == 0)
+        {
+            isSystemPopup = true;
+        }
+    }
+
+    CloseHandle(hProcess);
+    return isSystemPopup;
+}
+
 // ============================================================================
 // Flip3DComp::Update
 // ============================================================================
 void Flip3DComp::Update(float dtSeconds)
 {
-    /*for (auto& card : m_cards)
+    HWND hwndForeground = GetForegroundWindow();
+    if (IsStartOrSearchMenu(hwndForeground))
     {
-        if (card.m_hwnd)
-        {
-            CheckPendingThumbnail(card.m_hwnd);
-        }
-    }*/
-    //
+        SetWindowPos(m_hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    }
+    else
+    {
+        SetWindowPos(m_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    }
+    // --------------------------------------------------------------------------
     if (m_thumbnailsDirty)
         OnThumbnailSourceSizeChanged();
 
