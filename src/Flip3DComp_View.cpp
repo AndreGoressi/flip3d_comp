@@ -97,18 +97,18 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         return;
     }
 
-    //auto& card = m_cards[(size_t)selIdx];
-    /*if (card.m_isMinimized)
+    auto& card = m_cards[(size_t)selIdx];
+    if (card.m_isMinimized)
     {
         //UpdateCardGeometry(card, m_monW, m_monH, /*selectedRestore=*///true);
-        /*if (card.m_hThumb)
+        if (card.m_hThumb)
         {
             DwmUnregisterThumbnail(card.m_hThumb);
             card.m_hThumb = nullptr;
         }
         DwmInvalidateIconicBitmaps(hwndTarget);
         //
-        //PostMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
+        PostMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
         ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
         //
         if (m_hwnd && hwndTarget)
@@ -119,29 +119,6 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             thp.fVisible = TRUE;
             thp.rcDestination = { 0, 0, 0, 0 };
             DwmUpdateThumbnailProperties(card.m_hThumb, &thp);
-        }
-        //UpdateCardGeometry(card, m_monW, m_monH, /*selectedRestore=*///true);
-    //}
-    auto& card = m_cards[(size_t)selIdx];
-    if (card.m_isMinimized)
-    {
-        if (card.m_hThumb)
-        {
-            DwmUnregisterThumbnail(card.m_hThumb);
-            card.m_hThumb = nullptr;
-        }
-        // Remove old container visual from the scene graph if present
-        if (card.m_containerVisual && m_sceneVisual)
-        {
-            m_sceneVisual->RemoveVisual(card.m_containerVisual.Get());
-            card.m_containerVisual.Reset();
-        }
-        DwmInvalidateIconicBitmaps(hwndTarget);
-        ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
-        // Re-create the modern DirectComposition shared thumbnail visual
-        if (m_dcompDevice && m_sceneVisual)
-        {
-            CreateCardVisual(card);
         }
         UpdateCardGeometry(card, m_monW, m_monH, /*selectedRestore=*/true);
     }
