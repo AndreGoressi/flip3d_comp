@@ -1,4 +1,4 @@
-#include "uiaccess.h"
+#include "PrepareForUIAccess.h"
 #include <tlhelp32.h>
 #include <tchar.h>
 
