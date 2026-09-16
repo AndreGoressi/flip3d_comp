@@ -121,8 +121,8 @@ private:
     void    BuildCards();
     void    UpdateMonitorRect();
 
-    /*void    UpdateCardGeometry(CardModel& card, float normMonW, float normMonH,
-                               bool selectedRestore = false);*/
+    void    UpdateCardGeometry(CardModel& card, float normMonW, float normMonH,
+                               bool selectedRestore = false);
     //new
     void UpdateNormalCardGeometry(CardModel& c, float normMonW, float normMonH);
     void UpdateRestoredMinimizedCardGeometry(CardModel& c, float normMonW, float normMonH);
