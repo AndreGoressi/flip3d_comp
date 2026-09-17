@@ -499,8 +499,6 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     if (FAILED(hr))
         return hr;
 
-    container->SetOpacity(0.0f);
-
     HWND primarySourceHwnd = card.m_isGroup ? nullptr : card.m_hwnd;
     if (primarySourceHwnd)
     {
