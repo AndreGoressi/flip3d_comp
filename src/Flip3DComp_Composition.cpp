@@ -65,7 +65,8 @@ HRESULT CreateSharedWashSurface(ID3D11Device* d3d,
             ComPtr<ID3D11DeviceContext> ctx;
             d3d->GetImmediateContext(&ctx);
             //Acrylic-Tint
-            const float wash[4] = { 0.12f, 0.12f, 0.12f, 0.65f };
+            //const float wash[4] = { 0.12f, 0.12f, 0.12f, 0.65f };
+            const float wash[4] = { 0.05f, 0.05f, 0.05f, 0.30f };
             ctx->ClearRenderTargetView(rtv.Get(), wash);
         }
         bg->EndDraw();
@@ -333,7 +334,7 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
             if (SUCCEEDED(dcompDevice3->CreateGaussianBlurEffect(&blurEffect)))
             {
                 if (SUCCEEDED(blurEffect->SetInput(0, thumbBase.Get(), 0)) &&
-                    SUCCEEDED(blurEffect->SetStandardDeviation(25.0f)) &&
+                    SUCCEEDED(blurEffect->SetStandardDeviation(/*25.0f*/80.0f)) &&
                     SUCCEEDED(blurEffect->SetBorderMode(D2D1_BORDER_MODE_HARD)) &&
                     SUCCEEDED(shellContainer->SetEffect(blurEffect.Get())))
                 {
