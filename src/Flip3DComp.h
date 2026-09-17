@@ -91,11 +91,6 @@ private:
     // ========================================================================
 
     HRESULT InitComposition();
-    HRESULT CreateShellBackdrop();
-    void    DestroyMonitorBackdrops();
-    void    UpdateBackdropLayout();
-    bool    RebuildMonitorBackdropsIfNeeded();
-
     // ========================================================================
     // Window enumeration
     // ========================================================================
@@ -132,8 +127,6 @@ private:
     void    OnThumbnailSourceSizeChanged();
     void    UpdateCardThumbnailDest(CardModel& card);
     HRESULT CreateCardVisuals();
-    //new
-    void CheckPendingThumbnail(HWND hwnd);
     // ========================================================================
     // Per-frame update
     // ========================================================================
@@ -254,17 +247,6 @@ private:
     HWND                    m_hwnd          = nullptr;
     std::wstring            m_initError;
 
-    // Per-monitor shell thumbnail + dark wash (client coords = virtual desktop).
-    struct MonitorBackdrop
-    {
-        RECT                        rcMonitor = {};
-        RECT                        rcWork    = {};
-        ComPtr<IDCompositionVisual3> washVisual;
-        ComPtr<IDCompositionVisual3> shellContainer;
-        ComPtr<IDCompositionVisual3> shellThumb;
-        HTHUMBNAIL                  hShellThumb = nullptr;
-    };
-
     // ---- Dimensions ----
     UINT                    m_width         = 1600;
     UINT                    m_height        = 900;
@@ -274,8 +256,6 @@ private:
     float                   m_monOriginY    = 0.0f;   // primary rcWork.top  (screen px)
     float                   m_viewX         = 0.0f;   // primary rcWork origin in client px
     float                   m_viewY         = 0.0f;
-    std::vector<MonitorBackdrop> m_monitorBackdrops;
-    ComPtr<IDCompositionSurface> m_washSurface;
     bool                    m_minimized     = false;
     bool                    m_rtl           = false;
     bool                    m_thumbnailsDirty = false; // coalesce WM 0x327 bursts
