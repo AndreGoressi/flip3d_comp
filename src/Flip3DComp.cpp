@@ -34,7 +34,7 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     // -------------------------------------------------------------------
     BuildCards();
 
-    LivePreview::Activate(TRUE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
+    //LivePreview::Activate(TRUE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
 
     if (!InitializeDCompStage())
     {
