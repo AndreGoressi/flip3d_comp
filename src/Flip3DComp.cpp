@@ -64,7 +64,7 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     EnterFlip3DWindowMode();
     InitAccessibility();
 
-    LivePreview::Activate(TRUE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
+    LivePreview::Activate(TRUE, m_selectedHwnd, m_hwnd, PeekType::Window);
     // First-frame layout + DComp commit before ShowWindow (avoids blank flash).
     Update(0.0f);
 
