@@ -165,7 +165,7 @@ bool Flip3DComp::InitializeDCompStage()
     //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
-    WindowCompositionAttribute::EnableBlurBehind(m_hwnd);
+    //WindowCompositionAttribute::EnableBlurBehind(m_hwnd);
     //
     m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
 
