@@ -328,20 +328,24 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
         if (FAILED(hr))
             continue;
 
-        ComPtr<IDCompositionFilterEffect> blurEffect;
-        if (SUCCEEDED(m_dcompDevice->CreateFilterEffect(CLSID_D2D1GaussianBlur, &blurEffect)))
+        ComPtr<IDCompositionDevice3> dcompDevice3;
+        if (SUCCEEDED(m_dcompDevice.As(&dcompDevice3)))
         {
-            blurEffect->SetInput(0, thumbBase.Get(), 0);
-            blurEffect->SetProperty(0, 25.0f); 
-            shellContainer->SetEffect(blurEffect.Get());
+            ComPtr<IDCompositionGaussianBlurEffect> blurEffect;
+            if (SUCCEEDED(dcompDevice3->CreateGaussianBlurEffect(&blurEffect)))
+            {
+                blurEffect->SetInput(0, thumbBase.Get(), 0);
+                blurEffect->SetStandardDeviation(25.0f);
+                blurEffect->SetOptimization(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_HIGH_QUALITY);
+                shellContainer->SetEffect(blurEffect.Get());
+            }
         }
-        else
+        if (!mon.shellContainer->GetContent())
         {
             hr = shellContainer->AddVisual(thumbBase.Get(), FALSE, nullptr);
             if (FAILED(hr))
                 continue;
         }
-
         /*hr = mon.shellContainer->AddVisual(mon.shellThumb.Get(), FALSE, nullptr);
         if (FAILED(hr))
             continue;*/
