@@ -144,6 +144,8 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
     if (!hwndTarget || !IsWindow(hwndTarget))
         return;
 
+    LivePreview::Activate(FALSE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
+    //
     const bool isShell = (hwndTarget == GetShellWindow());
     if (isShell)
     {
