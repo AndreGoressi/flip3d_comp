@@ -88,7 +88,8 @@ bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
 
     return !_wcsicmp(cls, L"Shell_TrayWnd")
         || !_wcsicmp(cls, L"Shell_SecondaryTrayWnd")
-        || !_wcsicmp(cls, L"WorkerW");
+        || !_wcsicmp(cls, L"WorkerW")
+        || !WindowCompositionAttribute::EnableBlurBehind(hwnd);
 }
 
 // ============================================================================
