@@ -5,7 +5,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(Flip3DComp WIN32
-    src/flip3d_comp.manifest
     src/resources.rc
     src/main.cpp
     src/Flip3DComp.cpp
