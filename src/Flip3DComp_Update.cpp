@@ -595,15 +595,6 @@ void Flip3DComp::Update(float dtSeconds)
     if (m_sceneVisual)
         m_sceneVisual->SetOpacity(1.0f);
     
-    for (auto& mon : m_monitorBackdrops)
-    {
-
-        if (mon.washVisual)
-            mon.washVisual->SetOpacity(washProgress * kDesktopWashOpacityScale); 
-        if (mon.shellContainer)
-            mon.shellContainer->SetOpacity(1.0f);
-    }
-
     if (m_state == ViewState::Enter && !m_animEnter.IsActive())
     {
         m_state = ViewState::Interactive;
@@ -892,7 +883,7 @@ float Flip3DComp::ComputeUpdateAlpha(const CardModel& card, float enterProgress,
         && (int)m_cards.size() > kMaxVisibleCards
         && carouselSlot >= (float)kMaxVisibleCards - 1.0f)
     {
-        rotationOpacity = kDesktopWashOpacityScale;
+        rotationOpacity = 0.55f;
     }
 
     if (m_state == ViewState::ExitRepeatedRotate && m_rotateTimeline.IsActive())
