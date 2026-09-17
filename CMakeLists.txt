@@ -27,6 +27,8 @@ add_executable(Flip3DComp WIN32
 
 set_target_properties(Flip3DComp PROPERTIES
     OUTPUT_NAME "flip3d"
+    LINK_FLAGS "/MANIFEST:EMBED /MANIFESTUAC:NO"
+    OUTPUT_NAME "flip3d"
 )
 
 target_include_directories(Flip3DComp PRIVATE src)
