@@ -9,6 +9,29 @@
 #include <vector>
 #include <Windows.h>
 #include <psapi.h>
+#include <wingdi.h>
+
+bool IsDisplayExtended()
+{
+    UINT32 pathCount = 0, modeCount = 0;
+    if (GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &pathCount, &modeCount) != ERROR_SUCCESS)
+        return false;
+
+    std::vector<DISPLAYCONFIG_PATH_INFO> paths(pathCount);
+    std::vector<DISPLAYCONFIG_MODE_INFO> modes(modeCount);
+    if (QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &pathCount, paths.data(),
+                            &modeCount, modes.data(), nullptr) != ERROR_SUCCESS)
+        return false;
+
+    std::set<std::pair<LUID, UINT32>> sources;
+    for (const auto& p : paths)
+    {
+        auto key = std::make_pair(p.sourceInfo.adapterId, p.sourceInfo.id);
+        if (!sources.insert(key).second)
+            return false; 
+    }
+    return pathCount > 1; 
+}
 
 struct Flip3DComp::EnumContext
 {
@@ -63,7 +86,7 @@ void Flip3DComp::ApplyFullscreenLayout()
     
     MONITORINFO mi = { sizeof(mi) };
     HMONITOR hMon = nullptr;
-    if (GetSystemMetrics(SM_CMONITORS) > 1)
+    if (GetSystemMetrics(SM_CMONITORS) > 1 && IsDisplayExtended())
     {
         hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
     }
@@ -128,7 +151,7 @@ bool Flip3DComp::InitializeDCompStage()
 
     MONITORINFO mi = { sizeof(mi) };
     HMONITOR hMon = nullptr;
-    if (GetSystemMetrics(SM_CMONITORS) > 1)
+    if (GetSystemMetrics(SM_CMONITORS) > 1 && IsDisplayExtended())
     {
         hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
     }
