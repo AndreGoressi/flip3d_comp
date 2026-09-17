@@ -134,75 +134,60 @@ void Flip3DComp::SelectFront()
     }
 }*/
 
-
 void Flip3DComp::SelectWindow(HWND hwndTarget)
 {
     if (!hwndTarget || !IsWindow(hwndTarget))
         return;
 
-    const bool isShell = (hwndTarget == GetShellWindow());
-    if (isShell)
+    MONITORINFO primaryMi = QueryPrimaryMonitor();
+    std::vector<HWND> allHwnds = EnumerateWindows();
+    std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
+    //
+    if (!activeGroups.empty())
     {
-        MONITORINFO primaryMi = QueryPrimaryMonitor();
-        std::vector<HWND> allHwnds = EnumerateWindows();
-        std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
-        //
-                if (!activeGroups.empty())
-        {
-            for (const auto& group : activeGroups)
-            {
-                for (HWND groupHwnd : group)
-                {
-                    if (IsIconic(groupHwnd))
-                    {
-                        ShowWindowAsync(groupHwnd, SW_SHOWNOACTIVATE);
-                    }
-                    SwitchToThisWindow(groupHwnd, TRUE);
-                }
-            }
-        }
-        //
-        if (!activeGroups.empty())
-        {
-            for (const auto& group : activeGroups)
-            {
-                for (HWND groupHwnd : group)
-                {
-                    if (IsIconic(groupHwnd))
-                    {
-                        ShowWindowAsync(groupHwnd, SW_SHOWNOACTIVATE);
-                    }
-                    SwitchToThisWindow(groupHwnd, TRUE);
-                }
-            }
-        }
-        std::unordered_set<HWND> groupedHwnds;
         for (const auto& group : activeGroups)
-            for (HWND h : group)
-                groupedHwnds.insert(h);
-
-        for (HWND h : allHwnds)
         {
-            if (groupedHwnds.count(h) || h == GetShellWindow() || !IsWindow(h))
-                continue;
-            if (!IsWindowVisible(h) || IsIconic(h))
-                continue;
-
-            RECT rc = {};
-            if (FAILED(DwmGetWindowAttribute(h, DWMWA_EXTENDED_FRAME_BOUNDS, &rc, sizeof(rc))))
-                GetWindowRect(h, &rc);
-
-            const bool looksSnapped =
-                (rc.right - rc.left) < (primaryMi.rcWork.right - primaryMi.rcWork.left) - 8
-                || (rc.bottom - rc.top) < (primaryMi.rcWork.bottom - primaryMi.rcWork.top) - 8;
-            if (!looksSnapped)
-                continue;
-
-            /*ShowWindow(h, SW_RESTORE);
-            SetForegroundWindow(h);
-            ShowWindow(h, SW_MINIMIZE);*/
+            for (HWND groupHwnd : group)
+            {
+                if (IsIconic(groupHwnd))
+                {
+                    ShowWindowAsync(groupHwnd, SW_SHOWNOACTIVATE);
+                }
+                SwitchToThisWindow(groupHwnd, TRUE);
+            }
         }
     }
+    std::unordered_set<HWND> groupedHwnds;
+    for (const auto& group : activeGroups)
+        for (HWND h : group)
+            groupedHwnds.insert(h);
+
+    for (HWND h : allHwnds)
+    {
+        if (groupedHwnds.count(h) || h == GetShellWindow() || !IsWindow(h))
+            continue;
+        if (!IsWindowVisible(h) || IsIconic(h))
+            continue;
+
+        RECT rc = {};
+        if (FAILED(DwmGetWindowAttribute(h, DWMWA_EXTENDED_FRAME_BOUNDS, &rc, sizeof(rc))))
+            GetWindowRect(h, &rc);
+
+        const bool looksSnapped =
+            (rc.right - rc.left) < (primaryMi.rcWork.right - primaryMi.rcWork.left) - 8
+            || (rc.bottom - rc.top) < (primaryMi.rcWork.bottom - primaryMi.rcWork.top) - 8;
+        if (!looksSnapped)
+            continue;
+
+        /*ShowWindow(h, SW_RESTORE);
+        SetForegroundWindow(h);
+        ShowWindow(h, SW_MINIMIZE);*/
+    }
+    /*if (isShell)
+    {
+        if (HWND shellTray = FindWindowW(L"Shell_TrayWnd", nullptr))
+            PostMessageW(shellTray, 0x579, 1, 0);
+    }*/
     else if (!IsWindowEnabled(hwndTarget))
     {
         SwitchToThisWindow(GetLastActivePopup(GetAncestor(hwndTarget, GA_ROOTOWNER)), TRUE);
