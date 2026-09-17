@@ -58,7 +58,7 @@ bool Flip3DComp::IsFlip3DViewActive() const
     return m_state != ViewState::Inactive;
 }
 
-/*bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
+bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
 {
     if (!hwnd)
         return true;
@@ -73,24 +73,6 @@ bool Flip3DComp::IsFlip3DViewActive() const
     return !_wcsicmp(cls, L"Shell_TrayWnd")
     || !_wcsicmp(cls, L"Shell_SecondaryTrayWnd")
         || !_wcsicmp(cls, L"WorkerW");
-}*/
-
-bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
-{
-    if (!hwnd)
-        return true;
-
-    if (hwnd == m_hwnd)
-        return true;
-
-    wchar_t cls[64] = {};
-    if (!GetClassNameW(hwnd, cls, 63))
-        return false;
-
-    return !_wcsicmp(cls, L"Shell_TrayWnd")
-        || !_wcsicmp(cls, L"Shell_SecondaryTrayWnd")
-        || !_wcsicmp(cls, L"WorkerW")
-        || !WindowCompositionAttribute::EnableBlurBehind(hwnd);
 }
 
 // ============================================================================
