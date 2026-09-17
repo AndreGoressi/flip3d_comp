@@ -80,7 +80,7 @@ HRESULT CreateSharedWashSurface(ID3D11Device* d3d,
 // ============================================================================
 // Flip3DComp::InitComposition
 // ============================================================================
-HRESULT Flip3DCompApp::InitComposition()
+HRESULT Flip3DComp::InitComposition()
 {
     if (!m_d3dDevice)
         return E_FAIL;
@@ -364,9 +364,9 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
 }
 
 // ============================================================================
-// Flip3DCompApp::CreateShellBackdrop
+// Flip3DComp::CreateShellBackdrop
 // ============================================================================
-HRESULT Flip3DCompApp::CreateShellBackdrop()
+HRESULT Flip3DComp::CreateShellBackdrop()
 {
     if (!RebuildMonitorBackdropsIfNeeded())
     {
