@@ -311,6 +311,6 @@ private:
     DwmpQueryWindowThumbnailSourceSize_fn m_pfnQueryThumbSize          = nullptr;
     GetWindowMinimizeRect_fn              m_pfnGetWindowMinimizeRect    = nullptr;
     //new
-    DwmpCreateSharedMultiWindowVisual m_pfnCreateSharedMultiWindowVisual = nullptr;
-    DwmpUpdateSharedMultiWindowVisual m_pfnUpdateSharedMultiWindowVisual = nullptr;
+    DwmpCreateSharedMultiWindowVisual_fn    m_pfnCreateSharedMultiWindowVisual = nullptr;
+    DwmpUpdateSharedMultiWindowVisual_fn    m_pfnUpdateSharedMultiWindowVisual = nullptr;
 };
