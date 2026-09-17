@@ -24,13 +24,7 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
 
     if (!LoadThumbApi())
         return false;
-
-    HWND hwndProgman = FindWindowW(L"Progman", nullptr);
-    if (hwndProgman)
-    {
-        SetForegroundWindow(hwndProgman);
-    }
-    // -------------------------------------------------------------------
+    //
     BuildCards();
     //
     if (!InitializeDCompStage())
