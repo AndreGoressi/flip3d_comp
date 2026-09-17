@@ -103,9 +103,6 @@ constexpr float CardThumbnailQualityScale()
 // Normalization Bezier coefficients (quadratic)
 constexpr float kNormalizationBezier[3] = { 1.0f, 0.85f, 0.75f };
 
-// uDWM c_dFlipRotationPercent — steady desktop wash while Flip3D is open
-constexpr float kDesktopWashOpacityScale = 0.55f;
-
 // uDWM CTopLevelWindow3D::GetFinalMinRect / flip3d BuildFinalMinRect
 constexpr float kFinalMinRectWidthPercentage = 0.6f;
 constexpr float kFinalMinRectLeftPercentage  = 0.3f;
