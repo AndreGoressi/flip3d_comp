@@ -2,7 +2,6 @@
 // Flip3DComp_Composition.cpp — DirectComposition device init, desktop wash
 // ============================================================================
 #include "Flip3DComp.h"
-
 #include <algorithm>
 #include <cmath>
 #include <cwchar>
@@ -65,17 +64,17 @@ HRESULT CreateSharedWashSurface(ID3D11Device* d3d,
         {
             ComPtr<ID3D11DeviceContext> ctx;
             d3d->GetImmediateContext(&ctx);
-            const float wash[4] = { 0.04f, 0.05f, 0.08f, 1.0f };
+            //Acrylic-Tint
+            const float wash[4] = { 0.12f, 0.12f, 0.12f, 0.65f };
             ctx->ClearRenderTargetView(rtv.Get(), wash);
         }
         bg->EndDraw();
     }
-
     outSurface = std::move(bg);
     return outSurface ? S_OK : E_FAIL;
 }
 
-} // namespa
+} // namespace
 
 // ============================================================================
 // Flip3DComp::InitComposition
@@ -110,9 +109,9 @@ HRESULT Flip3DComp::InitComposition()
     if (FAILED(hr))
         return hr;
     sceneBase.As(&m_sceneVisual);
-    //
+    
     m_sceneVisual->SetDepthMode(DCOMPOSITION_DEPTH_MODE_TREE);
-    //
+    
     ComPtr<IDCompositionVisual> rootBase;
     root.As(&rootBase);
     rootBase->AddVisual(m_sceneVisual.Get(), FALSE, nullptr);
@@ -152,8 +151,6 @@ void Flip3DComp::DestroyMonitorBackdrops()
 
 // ============================================================================
 // Flip3DComp::UpdateBackdropLayout
-// Per-monitor wash (rcMonitor) and shell thumbnail (rcWork crop).
-// Client coordinates match the virtual-desktop–sized Flip3D window.
 // ============================================================================
 void Flip3DComp::UpdateBackdropLayout()
 {
@@ -214,8 +211,8 @@ void Flip3DComp::UpdateBackdropLayout()
             tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_RECTSOURCE
                          | DWM_TNP_DISABLEFORCECVI;
             tp.fVisible  = TRUE;
-            tp.rcSource       = rcSource;
-            tp.rcDestination  = { 0, 0, shellW, shellH };
+            tp.rcSource      = rcSource;
+            tp.rcDestination = { 0, 0, shellW, shellH };
             DwmUpdateThumbnailProperties(mon.hShellThumb, &tp);
         }
     }
@@ -223,7 +220,6 @@ void Flip3DComp::UpdateBackdropLayout()
     if (m_dcompDevice)
         m_dcompDevice->Commit();
 }
-
 
 // ============================================================================
 // Flip3DComp::RebuildMonitorBackdropsIfNeeded
@@ -329,36 +325,32 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
         if (FAILED(hr))
             continue;
 
-        hr = shellContainer->AddVisual(thumbBase.Get(), FALSE, nullptr);
-        if (FAILED(hr))
-            continue;
-
-        bool blurOk = false;
         ComPtr<IDCompositionDevice3> dcompDevice3;
         if (SUCCEEDED(m_dcompDevice.As(&dcompDevice3)))
         {
             ComPtr<IDCompositionGaussianBlurEffect> blurEffect;
             if (SUCCEEDED(dcompDevice3->CreateGaussianBlurEffect(&blurEffect)))
             {
-                HRESULT bhr = blurEffect->SetInput(0, nullptr, 0); 
-                if (SUCCEEDED(bhr))
-                    bhr = blurEffect->SetStandardDeviation(20.0f);
-                if (SUCCEEDED(bhr))
-                    bhr = blurEffect->SetBorderMode(D2D1_BORDER_MODE_HARD);
-                if (SUCCEEDED(bhr))
-                    bhr = shellContainer->SetEffect(blurEffect.Get());
-                blurOk = SUCCEEDED(bhr);
+                if (SUCCEEDED(blurEffect->SetInput(0, thumbBase.Get(), 0)) &&
+                    SUCCEEDED(blurEffect->SetStandardDeviation(25.0f)) &&
+                    SUCCEEDED(blurEffect->SetBorderMode(D2D1_BORDER_MODE_HARD)))
+                {
+                    shellContainer->SetEffect(blurEffect.Get());
+                }
             }
         }
-        if (!blurOk)
-            shellContainer->SetEffect(nullptr); 
+
+        if (!shellContainer->GetContent())
+        {
+            shellContainer->AddVisual(thumbBase.Get(), FALSE, nullptr);
+        }
 
         ComPtr<IDCompositionVisual2> washVis;
         hr = m_dcompDevice->CreateVisual(&washVis);
         if (FAILED(hr))
             continue;
-        //hr = washVis->SetContent(m_washSurface.Get());
-        hr = washVis->SetContent(nullptr);
+        
+        hr = washVis->SetContent(m_washSurface.Get());
         if (FAILED(hr))
             continue;
         hr = washVis.As(&mon.washVisual);
