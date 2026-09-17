@@ -113,6 +113,8 @@ private:
     //
     MONITORINFO QueryPrimaryMonitor();
     std::vector<std::vector<HWND>> DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork);
+    void RebuildDesktopGroupThumbnails(CardModel& card);
+    void RefreshDesktopGroupThumbnailsIfStale();
     //
     bool    AddCardForWindow(HWND hwnd);
     void    RemoveCardAt(size_t index);
