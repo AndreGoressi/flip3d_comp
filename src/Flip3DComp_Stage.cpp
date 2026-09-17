@@ -56,13 +56,25 @@ std::vector<HWND> Flip3DComp::EnumerateWindows()
 // Flip3DComp::ApplyFullscreenLayout
 // uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
 // ============================================================================
+// ============================================================================
+// Flip3DComp::ApplyFullscreenLayout
+// uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
+// ============================================================================
 void Flip3DComp::ApplyFullscreenLayout()
 {
     if (!m_hwnd)
         return;
     
     MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
+    HMONITOR hMon = nullptr;
+    if (GetSystemMetrics(SM_CMONITORS) > 1)
+    {
+        hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+    }
+    else
+    {
+        hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
+    }
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
 
@@ -119,9 +131,15 @@ bool Flip3DComp::InitializeDCompStage()
         return false;
 
     MONITORINFO mi = { sizeof(mi) };
-    POINT pt;
-    GetCursorPos(&pt);
-    HMONITOR hMon = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+    HMONITOR hMon = nullptr;
+    if (GetSystemMetrics(SM_CMONITORS) > 1)
+    {
+        hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+    }
+    else
+    {
+        hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
+    }
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
 
