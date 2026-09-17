@@ -682,8 +682,6 @@ void Flip3DComp::Update(float dtSeconds)
     if (m_thumbnailsDirty)
         OnThumbnailSourceSizeChanged();
 
-    RefreshDesktopGroupThumbnailsIfStale();
-
     if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
         dtSeconds *= 0.05f;
 
