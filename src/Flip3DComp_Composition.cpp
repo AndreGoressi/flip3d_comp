@@ -357,7 +357,8 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
         hr = m_dcompDevice->CreateVisual(&washVis);
         if (FAILED(hr))
             continue;
-        hr = washVis->SetContent(m_washSurface.Get());
+        //hr = washVis->SetContent(m_washSurface.Get());
+        hr = washVis->SetContent(nullptr);
         if (FAILED(hr))
             continue;
         hr = washVis.As(&mon.washVisual);
