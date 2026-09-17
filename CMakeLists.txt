@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(Flip3DComp WIN32
     src/resources.rc
+    src/flip3d_comp.manifest
     src/main.cpp
     src/Flip3DComp.cpp
     src/Flip3DComp_Stage.cpp
