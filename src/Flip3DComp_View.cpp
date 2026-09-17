@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <unordered_set>
 
 // ============================================================================
 // Flip3DComp::ExitView
@@ -150,6 +151,21 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         std::vector<HWND> allHwnds = EnumerateWindows();
         std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
         //
+                if (!activeGroups.empty())
+        {
+            for (const auto& group : activeGroups)
+            {
+                for (HWND groupHwnd : group)
+                {
+                    if (IsIconic(groupHwnd))
+                    {
+                        ShowWindowAsync(groupHwnd, SW_SHOWNOACTIVATE);
+                    }
+                    SwitchToThisWindow(groupHwnd, TRUE);
+                }
+            }
+        }
+        //
         if (!activeGroups.empty())
         {
             for (const auto& group : activeGroups)
@@ -164,11 +180,32 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
                 }
             }
         }
-        /*else
+        std::unordered_set<HWND> groupedHwnds;
+        for (const auto& group : activeGroups)
+            for (HWND h : group)
+                groupedHwnds.insert(h);
+
+        for (HWND h : allHwnds)
         {
-            if (HWND shellTray = FindWindowW(L"Shell_TrayWnd", nullptr))
-                PostMessageW(shellTray, 0x579, 1, 0);
-        }*/
+            if (groupedHwnds.count(h) || h == GetShellWindow() || !IsWindow(h))
+                continue;
+            if (!IsWindowVisible(h) || IsIconic(h))
+                continue;
+
+            RECT rc = {};
+            if (FAILED(DwmGetWindowAttribute(h, DWMWA_EXTENDED_FRAME_BOUNDS, &rc, sizeof(rc))))
+                GetWindowRect(h, &rc);
+
+            const bool looksSnapped =
+                (rc.right - rc.left) < (primaryMi.rcWork.right - primaryMi.rcWork.left) - 8
+                || (rc.bottom - rc.top) < (primaryMi.rcWork.bottom - primaryMi.rcWork.top) - 8;
+            if (!looksSnapped)
+                continue;
+
+            /*ShowWindow(h, SW_RESTORE);
+            SetForegroundWindow(h);
+            ShowWindow(h, SW_MINIMIZE);*/
+        }
     }
     else if (!IsWindowEnabled(hwndTarget))
     {
@@ -195,8 +232,6 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             card.m_hThumb = nullptr;
         }
         DwmInvalidateIconicBitmaps(hwndTarget);
-        
-        //PostMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
         ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
         
         if (m_hwnd && hwndTarget)
