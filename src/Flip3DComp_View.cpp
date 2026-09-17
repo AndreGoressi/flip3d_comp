@@ -31,7 +31,7 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
 // ============================================================================
 void Flip3DComp::BeginExitView()
 {
-    LivePreview::Activate(FALSE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
+    //LivePreview::Activate(FALSE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
     //
     if (m_state == ViewState::Exit || m_state == ViewState::ExitRepeatedRotate)
         return;
