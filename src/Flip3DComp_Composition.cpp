@@ -325,6 +325,7 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
         if (FAILED(hr))
             continue;
 
+        bool blurApplied = false;
         ComPtr<IDCompositionDevice3> dcompDevice3;
         if (SUCCEEDED(m_dcompDevice.As(&dcompDevice3)))
         {
@@ -333,14 +334,15 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
             {
                 if (SUCCEEDED(blurEffect->SetInput(0, thumbBase.Get(), 0)) &&
                     SUCCEEDED(blurEffect->SetStandardDeviation(25.0f)) &&
-                    SUCCEEDED(blurEffect->SetBorderMode(D2D1_BORDER_MODE_HARD)))
+                    SUCCEEDED(blurEffect->SetBorderMode(D2D1_BORDER_MODE_HARD)) &&
+                    SUCCEEDED(shellContainer->SetEffect(blurEffect.Get())))
                 {
-                    shellContainer->SetEffect(blurEffect.Get());
+                    blurApplied = true;
                 }
             }
         }
 
-        if (!shellContainer->GetContent())
+        if (!blurApplied)
         {
             shellContainer->AddVisual(thumbBase.Get(), FALSE, nullptr);
         }
