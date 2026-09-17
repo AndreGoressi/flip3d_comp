@@ -883,7 +883,7 @@ float Flip3DComp::ComputeUpdateAlpha(const CardModel& card, float enterProgress,
         && (int)m_cards.size() > kMaxVisibleCards
         && carouselSlot >= (float)kMaxVisibleCards - 1.0f)
     {
-        rotationOpacity = 0.55f;
+        rotationOpacity = 0.f;
     }
 
     if (m_state == ViewState::ExitRepeatedRotate && m_rotateTimeline.IsActive())
