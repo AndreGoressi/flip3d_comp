@@ -77,9 +77,9 @@ HRESULT Flip3DComp::InitComposition()
 }
 
 // ============================================================================
-// Flip3DCompApp::DestroyMonitorBackdrops (Clean Modern Win11 Version)
+// Flip3DComp::DestroyMonitorBackdrops (Clean Modern Win11 Version)
 // ============================================================================
-void Flip3DCompApp::DestroyMonitorBackdrops()
+void Flip3DComp::DestroyMonitorBackdrops()
 {
     if (!m_rootVisual)
     {
