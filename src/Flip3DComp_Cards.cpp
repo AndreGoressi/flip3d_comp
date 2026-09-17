@@ -352,7 +352,7 @@ static RECT GetTrueWindowRect(HWND hwnd)
 std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork)
 {
     std::vector<std::vector<HWND>> groups;
-    auto getSafeRect = [](HWND hwnd) {
+    auto getSafeRect = [this](HWND hwnd) {
         RECT rc = {};
         if (IsIconic(hwnd))
         {
@@ -360,6 +360,8 @@ std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vec
             if (GetWindowPlacement(hwnd, &wp))
             {
                 rc = wp.rcNormalPosition;
+                // WICHTIG: Minimierte rcNormalPosition auf absolute Bildschirmkoordinaten mappen!
+                OffsetRect(&rc, (int)m_monOriginX, (int)m_monOriginY);
             }
         }
         else
@@ -374,7 +376,7 @@ std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vec
 
     for (size_t i = 0; i < hwnds.size(); ++i)
     {
-        if (!IsWindow(hwnds[i]) || hwnds[i] == GetShellWindow() || !IsWindowVisible(hwnds[i]) && !IsIconic(hwnds[i]))
+        if (!IsWindow(hwnds[i]) || hwnds[i] == GetShellWindow() || (!IsWindowVisible(hwnds[i]) && !IsIconic(hwnds[i])))
             continue;
 
         RECT rc1 = getSafeRect(hwnds[i]);
@@ -383,7 +385,7 @@ std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vec
 
         for (size_t j = i + 1; j < hwnds.size(); ++j)
         {
-            if (!IsWindow(hwnds[j]) || hwnds[j] == GetShellWindow() || !IsWindowVisible(hwnds[j]) && !IsIconic(hwnds[j]))
+            if (!IsWindow(hwnds[j]) || hwnds[j] == GetShellWindow() || (!IsWindowVisible(hwnds[j]) && !IsIconic(hwnds[j])))
                 continue;
 
             RECT rc2 = getSafeRect(hwnds[j]);
@@ -854,7 +856,5 @@ void Flip3DComp::RefreshDesktopGroupThumbnailsIfStale()
 
         if (sig != card.m_groupSignature)
             RebuildDesktopGroupThumbnails(card);
-
-        break;
     }
 }
