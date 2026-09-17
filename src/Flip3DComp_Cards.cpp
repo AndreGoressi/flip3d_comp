@@ -498,7 +498,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     if (FAILED(hr))
         return hr;
 
-    // 1. Render the primary source (either the single window or the desktop background)
+    // 1. Render the primary source (single window)
     HWND primarySourceHwnd = card.m_isGroup ? nullptr : card.m_hwnd;
     if (primarySourceHwnd)
     {
@@ -524,17 +524,18 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
             }
         }
     }
-    //
+
     hr = container.As(&card.m_containerVisual);
     if (FAILED(hr))
         return hr;
 
-        if (card.m_isShellDesktop)
-        {
-            MONITORINFO primaryMi = QueryPrimaryMonitor();
-            std::vector<HWND> allHwnds = EnumerateWindows();
-            std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
-    
+    // 2. Wenn es der Desktop ist, hier direkt und sauber die Snap-Gruppen einbetten (ohne kaputte Gutter-Verschiebung)
+    if (card.m_isShellDesktop)
+    {
+        MONITORINFO primaryMi = QueryPrimaryMonitor();
+        std::vector<HWND> allHwnds = EnumerateWindows();
+        std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
+
         for (const auto& group : activeGroups)
         {
             for (HWND groupHwnd : group)
@@ -546,54 +547,35 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                 {
                     WINDOWPLACEMENT wp = { sizeof(wp) };
                     if (GetWindowPlacement(groupHwnd, &wp))
-                    {
                         rcWin = wp.rcNormalPosition;
-                    }
                 }
-                else
+                else if (FAILED(DwmGetWindowAttribute(groupHwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
                 {
-                    if (FAILED(DwmGetWindowAttribute(groupHwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
-                    {
-                        GetWindowRect(groupHwnd, &rcWin);
-                    }
+                    GetWindowRect(groupHwnd, &rcWin);
                 }
 
                 if (rcWin.right <= rcWin.left || rcWin.bottom <= rcWin.top)
                     continue;
 
-                float scaleX = card.m_srcWidth / m_monW;
-                float scaleY = card.m_srcHeight / m_monH;
+                // Saubere Skalierung ohne künstliche 160px Abstände (Gutter)
+                float scaleX = (float)card.m_srcWidth / m_monW;
+                float scaleY = (float)card.m_srcHeight / m_monH;
 
                 float screenX = (float)(rcWin.left - m_monOriginX);
                 float screenY = (float)(rcWin.top - m_monOriginY);
                 float screenW = (float)(rcWin.right - rcWin.left);
                 float screenH = (float)(rcWin.bottom - rcWin.top);
 
-                float gutter = 160.0f;
-                bool touchesLeft   = (screenX <= 5.0f);
-                bool touchesRight  = (abs((screenX + screenW) - m_monW) <= 5.0f);
-                bool touchesTop    = (screenY <= 5.0f);
-                bool touchesBottom = (abs((screenY + screenH) - m_monH) <= 5.0f);
-
-                float adjustedX = screenX + (touchesLeft ? gutter : gutter * 0.5f);
-                float adjustedY = screenY + (touchesTop ? gutter : gutter * 0.5f);
-                float adjustedW = screenW - ((touchesLeft ? gutter : gutter * 0.5f) + (touchesRight ? gutter : gutter * 0.5f));
-                float adjustedH = screenH - ((touchesTop ? gutter : gutter * 0.5f) + (touchesBottom ? gutter : gutter * 0.5f));
-
-                int relX = (int)(adjustedX * scaleX);
-                int relY = (int)(adjustedY * scaleY);
-                int relW = (int)(adjustedW * scaleX);
-                int relH = (int)(adjustedH * scaleY);
+                int relX = (int)(screenX * scaleX);
+                int relY = (int)(screenY * scaleY);
+                int relW = (int)(screenW * scaleX);
+                int relH = (int)(screenH * scaleY);
 
                 HTHUMBNAIL subThumb = nullptr;
                 DWM_THUMBNAIL_PROPERTIES subTp = {};
                 subTp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D;
-                
                 if (isMin)
-                {
                     subTp.dwFlags |= DWM_TNP_FORCECVI;
-                }
-
                 subTp.fVisible = TRUE;
                 subTp.rcDestination = { 0, 0, relW, relH };
 
@@ -602,13 +584,12 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                 {
                     ComPtr<IDCompositionVisual> subThumbBase;
                     subThumbBase.Attach((IDCompositionVisual*)subPv);
-                    
+
                     ComPtr<IDCompositionVisual3> subVisual;
                     if (SUCCEEDED(subThumbBase.As(&subVisual)))
                     {
                         subVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
                         subVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-                        //
                         subVisual->SetOffsetX((float)relX);
                         subVisual->SetOffsetY((float)relY);
 
@@ -617,27 +598,40 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                 }
             }
         }
-        RebuildDesktopGroupThumbnails(card);
     }
-    // Apply global rounded corner clipping to the container visual
+    DWM_WINDOW_CORNER_PREFERENCE cornerPref = DWMWCP_DEFAULT;
+    bool isRounded = false;
+    if (SUCCEEDED(DwmGetWindowAttribute(primarySourceHwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &cornerPref, sizeof(cornerPref))))
+    {
+        if (cornerPref == DWMWCP_ROUND)
+        {
+            isRounded = true;
+        }
+    }
     ComPtr<IDCompositionRectangleClip> clip;
     if (SUCCEEDED(m_dcompDevice->CreateRectangleClip(&clip)))
     {
-        float radius = 12.f / 2.f;
+        float radius = isRounded ? (12.f / 2.f) : 0.f;
+
         clip->SetLeft(0.f);
         clip->SetTop(0.f);
         clip->SetRight((float)card.m_srcWidth);
         clip->SetBottom((float)card.m_srcHeight);
-        clip->SetTopLeftRadiusX(radius);
-        clip->SetTopLeftRadiusY(radius);
-        clip->SetTopRightRadiusX(radius);
-        clip->SetTopRightRadiusY(radius);
-        clip->SetBottomLeftRadiusX(radius);
-        clip->SetBottomLeftRadiusY(radius);
-        clip->SetBottomRightRadiusX(radius);
-        clip->SetBottomRightRadiusY(radius);
+        
+        if (radius > 0.f)
+        {
+            clip->SetTopLeftRadiusX(radius);
+            clip->SetTopLeftRadiusY(radius);
+            clip->SetTopRightRadiusX(radius);
+            clip->SetTopRightRadiusY(radius);
+            clip->SetBottomLeftRadiusX(radius);
+            clip->SetBottomLeftRadiusY(radius);
+            clip->SetBottomRightRadiusX(radius);
+            clip->SetBottomRightRadiusY(radius);
+        }
         container->SetClip(clip.Get());
     }
+
     container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
     container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
 
