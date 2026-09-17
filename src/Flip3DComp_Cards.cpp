@@ -410,26 +410,6 @@ void Flip3DComp::BuildCards()
 }
 
 // ============================================================================
-// Flip3DComp::CreateCardVisuals
-// ============================================================================
-/*HRESULT Flip3DComp::CreateCardVisuals()
-{
-    if (!m_dcompDevice || !m_sceneVisual)
-        return E_FAIL;
-
-    for (auto& card : m_cards)
-    {
-        if (!card.m_hwnd || card.m_containerVisual)
-            continue;
-
-        if (FAILED(CreateCardVisual(card)))
-            continue;
-    }
-
-    return S_OK;
-}*/
-
-// ============================================================================
 int Flip3DComp::FindCardIndex(HWND hwnd) const
 {
     if (!hwnd)
@@ -546,20 +526,20 @@ void Flip3DComp::RemoveCardAt(size_t index)
         m_dcompDevice->Commit();
 }
 
-HRESULT Flip3DComp::CreateCardVisuals()
+HRESULT Flip3DCompApp::CreateCardVisuals()
 {
     if (!m_dcompDevice || !m_sceneVisual)
         return E_FAIL;
 
     for (auto& card : m_cards)
     {
-        // Skip if already initialized, but allow cards that either have a single hwnd OR are a group with hwnds
-        if (card.m_containerVisual)
+        if (!card.m_hwnd || card.m_containerVisual)
             continue;
 
         if (FAILED(CreateCardVisual(card)))
             continue;
     }
+
     return S_OK;
 }
 
