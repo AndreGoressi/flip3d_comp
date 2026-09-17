@@ -160,7 +160,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
                     if (IsIconic(groupHwnd))
                     {
                         PostMessage(groupHwnd, WM_SYSCOMMAND, SC_RESTORE, 0);
-                        ShowWindowAsync(groupHwnd, SW_RESTORE);
+                        ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
                     }
                     SwitchToThisWindow(groupHwnd, TRUE);
                 }
