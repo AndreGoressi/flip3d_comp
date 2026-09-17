@@ -73,12 +73,12 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
 
     const bool isShell = (hwndTarget == GetShellWindow());
 
-    if (isShell)
+    /*if (isShell)
     {
         if (HWND shellTray = FindWindowW(L"Shell_TrayWnd", nullptr))
             PostMessageW(shellTray, 0x579, 1, 0);
-    }
-    else if (!IsWindowEnabled(hwndTarget))
+    }*/
+    /*else*/ if (!IsWindowEnabled(hwndTarget))
     {
         SwitchToThisWindow(GetLastActivePopup(GetAncestor(hwndTarget, GA_ROOTOWNER)), TRUE);
     }
@@ -103,18 +103,11 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             card.m_hThumb = nullptr;
         }
         DwmInvalidateIconicBitmaps(hwndTarget);
-        //
-        PostMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
         ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
         //
         if (m_hwnd && hwndTarget)
         {
             DwmRegisterThumbnail(m_hwnd, hwndTarget, &card.m_hThumb);
-            DWM_THUMBNAIL_PROPERTIES thp = {};
-            thp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION;
-            thp.fVisible = TRUE;
-            thp.rcDestination = { 0, 0, 0, 0 };
-            DwmUpdateThumbnailProperties(card.m_hThumb, &thp);
         }
         UpdateCardGeometry(card, m_monW, m_monH, true);
     }
