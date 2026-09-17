@@ -21,7 +21,6 @@ add_executable(Flip3DComp WIN32
     src/Timeline.cpp
     src/PrepareForUIAccess.cpp
     src/pCreateWindowInBand.cpp
-    src/pDwmpActivateLivePreview.cpp
     src/WindowCompositionAttribute.cpp
 )
 
