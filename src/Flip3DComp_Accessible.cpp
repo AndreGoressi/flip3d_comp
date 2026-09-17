@@ -172,6 +172,124 @@ bool Flip3DComp::AccessibleCardScreenRect(int index, long* pxLeft, long* pyTop,
 }
 
 // ============================================================================
+// Flip3DComp::HitTest3DScene
+// ============================================================================
+HWND Flip3DComp::HitTest3DScene(LONG screenX, LONG screenY) const
+{
+    if (m_cards.empty())
+        return nullptr;
+
+    const float p    = EnterProgress();
+    const auto  cam  = BuildCameraMatrix(p);
+
+    float bestNdcZ = 1e10f;
+    HWND  bestHwnd = nullptr;
+
+    struct Vertex4 { float x, y, z, w; };
+
+    for (int ki = (int)m_cards.size() - 1; ki >= 0; --ki)
+    {
+        const CardModel& c = m_cards[(size_t)ki];
+        if (!c.m_containerVisual)
+            continue;
+
+        const float slot = GetCardDisplaySlot(ki);
+        if (slot <= -0.5f || slot >= (float)kMaxVisibleCards)
+            continue;
+
+        float t   = ComputeCarouselBezierT(slot);
+        const float flatRank = ComputeFlatDepthRank(slot, p, ki);
+        auto  MVP = Math::Multiply(BuildModelMatrix(c, t, p, flatRank), cam);
+
+        float sw = (float)std::max(c.m_srcWidth,  1);
+        float sh = (float)std::max(c.m_srcHeight, 1);
+
+        auto transformVertex = [&](float px, float py) -> Vertex4 {
+            float x = px * MVP.m[0][0] + py * MVP.m[1][0] + MVP.m[3][0];
+            float y = px * MVP.m[0][1] + py * MVP.m[1][1] + MVP.m[3][1];
+            float z = px * MVP.m[0][2] + py * MVP.m[1][2] + MVP.m[3][2];
+            float w = px * MVP.m[0][3] + py * MVP.m[1][3] + MVP.m[3][3];
+            return { x, y, z, w };
+        };
+
+        Vertex4 v0 = transformVertex(0.0f, 0.0f);
+        Vertex4 v1 = transformVertex(sw,   0.0f);
+        Vertex4 v2 = transformVertex(sw,   sh);
+        Vertex4 v3 = transformVertex(0.0f, sh);
+
+        Vec2 c0 = { v0.w != 0.0f ? v0.x / v0.w : v0.x, v0.w != 0.0f ? v0.y / v0.w : v0.y };
+        Vec2 c1 = { v1.w != 0.0f ? v1.x / v1.w : v1.x, v1.w != 0.0f ? v1.y / v1.w : v1.y };
+        Vec2 c2 = { v2.w != 0.0f ? v2.x / v2.w : v2.x, v2.w != 0.0f ? v2.y / v2.w : v2.y };
+        Vec2 c3 = { v3.w != 0.0f ? v3.x / v3.w : v3.x, v3.w != 0.0f ? v3.y / v3.w : v3.y };
+
+        float sx = (float)screenX;
+        float sy = (float)screenY;
+
+        auto cross = [](float x1, float y1, float x2, float y2) {
+            return x1 * y2 - y1 * x2;
+        };
+
+        float d0 = cross(c1.x - c0.x, c1.y - c0.y, sx - c0.x, sy - c0.y);
+        float d1 = cross(c2.x - c1.x, c2.y - c1.y, sx - c1.x, sy - c1.y);
+        float d2 = cross(c3.x - c2.x, c3.y - c2.y, sx - c2.x, sy - c2.y);
+        float d3 = cross(c0.x - c3.x, c0.y - c3.y, sx - c3.x, sy - c3.y);
+
+        bool inside = (d0 >= 0 && d1 >= 0 && d2 >= 0 && d3 >= 0)
+                   || (d0 <= 0 && d1 <= 0 && d2 <= 0 && d3 <= 0);
+
+        if (!inside)
+            continue;
+
+        float pixZ = v0.z;
+        float pixW = v0.w;
+
+        auto getBarycentric = [](Vec2 p, Vec2 a, Vec2 b, Vec2 c, float& u, float& v, float& w) {
+            Vec2 v0_ = { b.x - a.x, b.y - a.y };
+            Vec2 v1_ = { c.x - a.x, c.y - a.y };
+            Vec2 v2_ = { p.x - a.x, p.y - a.y };
+            float d00 = v0_.x * v0_.x + v0_.y * v0_.y;
+            float d01 = v0_.x * v1_.x + v0_.y * v1_.y;
+            float d11 = v1_.x * v1_.x + v1_.y * v1_.y;
+            float d20 = v2_.x * v0_.x + v2_.y * v0_.y;
+            float d21 = v2_.x * v1_.x + v2_.y * v1_.y;
+            float denom = d00 * d11 - d01 * d01;
+            if (fabsf(denom) < 1e-6f) return false;
+            v = (d11 * d20 - d01 * d21) / denom;
+            w = (d00 * d21 - d01 * d20) / denom;
+            u = 1.0f - v - w;
+            return true;
+        };
+
+        Vec2 pt = { sx, sy };
+        float u, v, w;
+        if (getBarycentric(pt, c0, c1, c2, u, v, w) && u >= -1e-4f && v >= -1e-4f && w >= -1e-4f)
+        {
+            pixZ = u * v0.z + v * v1.z + w * v2.z;
+            pixW = u * v0.w + v * v1.w + w * v2.w;
+        }
+        else if (getBarycentric(pt, c0, c2, c3, u, v, w) && u >= -1e-4f && v >= -1e-4f && w >= -1e-4f)
+        {
+            pixZ = u * v0.z + v * v2.z + w * v3.z;
+            pixW = u * v0.w + v * v2.w + w * v3.w;
+        }
+        else
+        {
+            pixZ = 0.25f * (v0.z + v1.z + v2.z + v3.z);
+            pixW = 0.25f * (v0.w + v1.w + v2.w + v3.w);
+        }
+
+        float ndcZ = pixW != 0.0f ? pixZ / pixW : 0.0f;
+
+        if (ndcZ < bestNdcZ)
+        {
+            bestNdcZ = ndcZ;
+            bestHwnd = c.m_hwnd;
+        }
+    }
+    return bestHwnd;
+}
+
+// ============================================================================
 // Flip3DComp::AccessibleHitTest
 // Screen coordinates → carousel list index, or -1 if no card.
 // ============================================================================
