@@ -10,6 +10,8 @@
 #include <Windows.h>
 #include <psapi.h>
 #include <wingdi.h>
+#include <set>
+#include <utility>
 
 bool IsDisplayExtended()
 {
