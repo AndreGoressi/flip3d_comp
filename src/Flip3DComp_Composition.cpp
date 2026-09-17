@@ -329,10 +329,23 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
         if (FAILED(hr))
             continue;
 
-        hr = mon.shellContainer->AddVisual(mon.shellThumb.Get(), FALSE, nullptr);
-        if (FAILED(hr))
-            continue;
+        ComPtr<IDCompositionFilterEffect> blurEffect;
+        if (SUCCEEDED(m_dcompDevice->CreateFilterEffect(CLSID_D2D1GaussianBlur, &blurEffect)))
+        {
+            blurEffect->SetInput(0, thumbBase.Get(), 0);
+            blurEffect->SetProperty(0, 25.0f); 
+            shellContainer->SetEffect(blurEffect.Get());
+        }
+        else
+        {
+            hr = shellContainer->AddVisual(thumbBase.Get(), FALSE, nullptr);
+            if (FAILED(hr))
+                continue;
+        }
 
+        /*hr = mon.shellContainer->AddVisual(mon.shellThumb.Get(), FALSE, nullptr);
+        if (FAILED(hr))
+            continue;*/
         ComPtr<IDCompositionVisual2> washVis;
         hr = m_dcompDevice->CreateVisual(&washVis);
         if (FAILED(hr))
@@ -344,14 +357,13 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
         if (FAILED(hr))
             continue;
 
-        // Z-order back→front: shell desktop, wash, then scene (added first in InitComposition).
+        // Z-order back→front: shell desktop (mit Blur), wash (Abdunklung), then scene
         rootBase->AddVisual(mon.shellContainer.Get(), FALSE, m_sceneVisual.Get());
         rootBase->AddVisual(mon.washVisual.Get(), FALSE, m_sceneVisual.Get());
 
         mon.shellContainer->SetOpacity(1.0f);
         m_monitorBackdrops.push_back(std::move(mon));
     }
-
     UpdateBackdropLayout();
     return true;
 }
