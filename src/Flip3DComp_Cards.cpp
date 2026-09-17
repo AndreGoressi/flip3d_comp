@@ -48,10 +48,10 @@ leave:
 }
 
 } // namespace
-// ============================================================================
-// Flip3DComp::LoadThumbApi
-// ============================================================================
-bool Flip3DComp::LoadThumbApi()
+
+
+
+/*bool Flip3DComp::LoadThumbApi()
 {
     m_initError.clear();
 
@@ -89,6 +89,75 @@ bool Flip3DComp::LoadThumbApi()
     }
 
     return true;
+}*/
+
+
+
+/*void Flip3DComp::UnloadThumbApi()
+{
+    m_pfnCreateSharedThumbVisual = nullptr;
+    m_pfnQueryThumbSize          = nullptr;
+    m_pfnGetWindowMinimizeRect     = nullptr;
+
+    if (m_dwmapi)
+    {
+        FreeLibrary(m_dwmapi);
+        m_dwmapi = nullptr;
+    }
+}*/
+
+// ============================================================================
+// Flip3DComp::LoadThumbApi
+// ============================================================================
+bool Flip3DComp::LoadThumbApi()
+{
+    m_initError.clear();
+
+    m_dwmapi = LoadLibraryW(L"dwmapi.dll");
+    if (!m_dwmapi)
+    {
+        m_initError = L"Failed to load dwmapi.dll.";
+        return false;
+    }
+
+    m_pfnCreateSharedThumbVisual = (DwmpCreateSharedThumbnailVisual_fn)
+        GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(147));
+    m_pfnQueryThumbSize = (DwmpQueryWindowThumbnailSourceSize_fn)
+        GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(162));
+
+    m_pfnCreateSharedMultiWindowVisual = (DwmpCreateSharedMultiWindowVisual)
+        GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(163));
+    m_pfnUpdateSharedMultiWindowVisual = (DwmpUpdateSharedMultiWindowVisual)
+        GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(164));
+
+    m_pfnGetWindowMinimizeRect = (GetWindowMinimizeRect_fn)
+        GetProcAddress(GetModuleHandleW(L"user32.dll"), "GetWindowMinimizeRect");
+
+    if (!m_pfnCreateSharedThumbVisual)
+    {
+        m_initError = L"DwmpCreateSharedThumbnailVisual (dwmapi ord 147) is required.";
+        UnloadThumbApi();
+        return false;
+    }
+    if (!m_pfnQueryThumbSize)
+    {
+        m_initError = L"DwmpQueryWindowThumbnailSourceSize (dwmapi ord 162) is required.";
+        UnloadThumbApi();
+        return false;
+    }
+    if (!m_pfnCreateSharedMultiWindowVisual || !m_pfnUpdateSharedMultiWindowVisual)
+    {
+        m_initError = L"DwmpCreateSharedMultiWindowVisual/Update (dwmapi ord 163/164) failed to load.";
+        UnloadThumbApi();
+        return false;
+    }
+    if (!m_pfnGetWindowMinimizeRect)
+    {
+        m_initError = L"GetWindowMinimizeRect (user32) is required.";
+        UnloadThumbApi();
+        return false;
+    }
+    return true;
 }
 
 // ============================================================================
@@ -96,9 +165,11 @@ bool Flip3DComp::LoadThumbApi()
 // ============================================================================
 void Flip3DComp::UnloadThumbApi()
 {
-    m_pfnCreateSharedThumbVisual = nullptr;
-    m_pfnQueryThumbSize          = nullptr;
-    m_pfnGetWindowMinimizeRect     = nullptr;
+    m_pfnCreateSharedThumbVisual       = nullptr;
+    m_pfnQueryThumbSize                = nullptr;
+    m_pfnCreateSharedMultiWindowVisual = nullptr;
+    m_pfnUpdateSharedMultiWindowVisual = nullptr;
+    m_pfnGetWindowMinimizeRect         = nullptr;
 
     if (m_dwmapi)
     {
