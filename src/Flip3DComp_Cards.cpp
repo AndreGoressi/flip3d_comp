@@ -494,13 +494,13 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     if (card.m_isGroup && card.m_groupHwnds.empty())
         return E_INVALIDARG;
 
-    // Create container visual for the card
     ComPtr<IDCompositionVisual2> container;
     HRESULT hr = m_dcompDevice->CreateVisual(&container);
     if (FAILED(hr))
         return hr;
 
-    // 1. Render the primary source (single window)
+    container->SetOpacity(0.0f);
+
     HWND primarySourceHwnd = card.m_isGroup ? nullptr : card.m_hwnd;
     if (primarySourceHwnd)
     {
@@ -531,75 +531,9 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     if (FAILED(hr))
         return hr;
 
-    // 2. Wenn es der Desktop ist, hier direkt und sauber die Snap-Gruppen einbetten (ohne kaputte Gutter-Verschiebung)
     if (card.m_isShellDesktop)
     {
-        MONITORINFO primaryMi = QueryPrimaryMonitor();
-        std::vector<HWND> allHwnds = EnumerateWindows();
-        std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
-
-        for (const auto& group : activeGroups)
-        {
-            for (HWND groupHwnd : group)
-            {
-                RECT rcWin = {};
-                bool isMin = IsIconic(groupHwnd);
-
-                if (isMin)
-                {
-                    WINDOWPLACEMENT wp = { sizeof(wp) };
-                    if (GetWindowPlacement(groupHwnd, &wp))
-                        rcWin = wp.rcNormalPosition;
-                }
-                else if (FAILED(DwmGetWindowAttribute(groupHwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
-                {
-                    GetWindowRect(groupHwnd, &rcWin);
-                }
-
-                if (rcWin.right <= rcWin.left || rcWin.bottom <= rcWin.top)
-                    continue;
-
-                // Saubere Skalierung ohne künstliche 160px Abstände (Gutter)
-                float scaleX = (float)card.m_srcWidth / m_monW;
-                float scaleY = (float)card.m_srcHeight / m_monH;
-
-                float screenX = (float)(rcWin.left - m_monOriginX);
-                float screenY = (float)(rcWin.top - m_monOriginY);
-                float screenW = (float)(rcWin.right - rcWin.left);
-                float screenH = (float)(rcWin.bottom - rcWin.top);
-
-                int relX = (int)(screenX * scaleX);
-                int relY = (int)(screenY * scaleY);
-                int relW = (int)(screenW * scaleX);
-                int relH = (int)(screenH * scaleY);
-
-                HTHUMBNAIL subThumb = nullptr;
-                DWM_THUMBNAIL_PROPERTIES subTp = {};
-                subTp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D;
-                if (isMin)
-                    subTp.dwFlags |= DWM_TNP_FORCECVI;
-                subTp.fVisible = TRUE;
-                subTp.rcDestination = { 0, 0, relW, relH };
-
-                void* subPv = nullptr;
-                if (SUCCEEDED(m_pfnCreateSharedThumbVisual(m_hwnd, groupHwnd, DWM_TNF_DWMWINDOW, &subTp, m_dcompDevice.Get(), &subPv, &subThumb)))
-                {
-                    ComPtr<IDCompositionVisual> subThumbBase;
-                    subThumbBase.Attach((IDCompositionVisual*)subPv);
-
-                    ComPtr<IDCompositionVisual3> subVisual;
-                    if (SUCCEEDED(subThumbBase.As(&subVisual)))
-                    {
-                        subVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-                        subVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-                        subVisual->SetOffsetX((float)relX);
-                        subVisual->SetOffsetY((float)relY);
-
-                        container->AddVisual(subVisual.Get(), FALSE, nullptr);
-                    }
-                }
-            }
-        }
+        RebuildDesktopGroupThumbnails(card);
     }
 
     ComPtr<IDCompositionRectangleClip> clip;
