@@ -91,6 +91,10 @@ private:
     // ========================================================================
 
     HRESULT InitComposition();
+    HRESULT CreateShellBackdrop();
+    void    DestroyMonitorBackdrops();
+    void    UpdateBackdropLayout();
+    bool    RebuildMonitorBackdropsIfNeeded();
 
     // ========================================================================
     // Window enumeration
