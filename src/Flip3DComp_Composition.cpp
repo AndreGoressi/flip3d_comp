@@ -328,31 +328,30 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
         if (FAILED(hr))
             continue;
 
-        bool blurApplied = false;
         hr = shellContainer->AddVisual(thumbBase.Get(), FALSE, nullptr);
         if (FAILED(hr))
             continue;
 
+        bool blurOk = false;
         ComPtr<IDCompositionDevice3> dcompDevice3;
         if (SUCCEEDED(m_dcompDevice.As(&dcompDevice3)))
         {
             ComPtr<IDCompositionGaussianBlurEffect> blurEffect;
             if (SUCCEEDED(dcompDevice3->CreateGaussianBlurEffect(&blurEffect)))
             {
-                blurEffect->SetInput(0, thumbBase.Get(), 0);
-                blurEffect->SetInput(0, nullptr, 0); 
-                blurEffect->SetStandardDeviation(30.0f);
-                shellContainer->SetEffect(blurEffect.Get());
-                blurApplied = true;
+                HRESULT bhr = blurEffect->SetInput(0, nullptr, 0); 
+                if (SUCCEEDED(bhr))
+                    bhr = blurEffect->SetStandardDeviation(20.0f);
+                if (SUCCEEDED(bhr))
+                    bhr = blurEffect->SetBorderMode(D2D1_BORDER_MODE_HARD);
+                if (SUCCEEDED(bhr))
+                    bhr = shellContainer->SetEffect(blurEffect.Get());
+                blurOk = SUCCEEDED(bhr);
             }
         }
-        if (!blurApplied)
-        {
-            hr = shellContainer->AddVisual(thumbBase.Get(), FALSE, nullptr);
-            if (FAILED(hr))
-                continue;
-        }
-        
+        if (!blurOk)
+            shellContainer->SetEffect(nullptr); 
+
         ComPtr<IDCompositionVisual2> washVis;
         hr = m_dcompDevice->CreateVisual(&washVis);
         if (FAILED(hr))
@@ -386,5 +385,3 @@ HRESULT Flip3DComp::CreateShellBackdrop()
     }
     return S_OK;
 }
-
-
