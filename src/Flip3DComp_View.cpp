@@ -156,10 +156,10 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             {
                 for (HWND groupHwnd : group)
                 {
-                    /*if (IsIconic(groupHwnd))
+                    if (IsIconic(groupHwnd))
                     {
-                        ShowWindow(groupHwnd, SW_RESTORE);
-                    }*/
+                        ShowWindowAsync(groupHwnd, SW_SHOWNOACTIVATE);
+                    }
                     SwitchToThisWindow(groupHwnd, TRUE);
                 }
             }
@@ -196,7 +196,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         }
         DwmInvalidateIconicBitmaps(hwndTarget);
         
-        PostMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
+        //PostMessage(hwndTarget, WM_SYSCOMMAND, SC_RESTORE, 0);
         ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
         
         if (m_hwnd && hwndTarget)
