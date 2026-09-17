@@ -3,7 +3,6 @@
 // ============================================================================
 #include "Flip3DComp.h"
 #include "Flip3DAccessible.h"
-#include "pDwmpActivateLivePreview.h"
 
 #include <windowsx.h>
 
@@ -63,11 +62,8 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
 
     EnterFlip3DWindowMode();
     InitAccessibility();
-
-    LivePreview::Activate(TRUE, m_selectedHwnd, m_hwnd, PeekType::Window);
     // First-frame layout + DComp commit before ShowWindow (avoids blank flash).
     Update(0.0f);
-
     return true;
 }
 
