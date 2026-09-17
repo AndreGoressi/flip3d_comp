@@ -706,12 +706,14 @@ void Flip3DComp::Update(float dtSeconds)
     const float washProgress  = std::clamp(m_animEnter.LinearValue(), 0.0f, 1.0f);
     if (m_sceneVisual)
         m_sceneVisual->SetOpacity(1.0f);
+    
     for (auto& mon : m_monitorBackdrops)
     {
         if (mon.washVisual)
-            mon.washVisual->SetOpacity(washProgress * kDesktopWashOpacityScale);
+            mon.washVisual->SetOpacity(washProgress); 
+            
         if (mon.shellContainer)
-            mon.shellContainer->SetOpacity(1.0f);
+            mon.shellContainer->SetOpacity(washProgress); 
     }
 
     if (m_state == ViewState::Enter && !m_animEnter.IsActive())
