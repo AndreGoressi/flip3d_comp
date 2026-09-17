@@ -524,7 +524,6 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
             }
         }
     }
-    // 2. SPECIAL: If this is the Desktop card, also render any active snap groups on top of it!
     if (card.m_isShellDesktop)
     {
         MONITORINFO primaryMi = QueryPrimaryMonitor();
@@ -535,9 +534,10 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
         {
             for (HWND groupHwnd : group)
             {
-
                 RECT rcWin = {};
-                if (IsIconic(groupHwnd))
+                bool isMin = IsIconic(groupHwnd);
+
+                if (isMin)
                 {
                     WINDOWPLACEMENT wp = { sizeof(wp) };
                     if (GetWindowPlacement(groupHwnd, &wp))
@@ -552,6 +552,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                         GetWindowRect(groupHwnd, &rcWin);
                     }
                 }
+
                 if (rcWin.right <= rcWin.left || rcWin.bottom <= rcWin.top)
                     continue;
 
@@ -563,7 +564,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                 float screenW = (float)(rcWin.right - rcWin.left);
                 float screenH = (float)(rcWin.bottom - rcWin.top);
 
-                float gutter = 160.0f; // Oder dein angepasster Wert
+                float gutter = 160.0f;
                 bool touchesLeft   = (screenX <= 5.0f);
                 bool touchesRight  = (abs((screenX + screenW) - m_monW) <= 5.0f);
                 bool touchesTop    = (screenY <= 5.0f);
@@ -581,7 +582,13 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
 
                 HTHUMBNAIL subThumb = nullptr;
                 DWM_THUMBNAIL_PROPERTIES subTp = {};
-                subTp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
+                subTp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D;
+                
+                if (isMin)
+                {
+                    subTp.dwFlags |= DWM_TNP_FORCECVI;
+                }
+
                 subTp.fVisible = TRUE;
                 subTp.rcDestination = { 0, 0, relW, relH };
 
@@ -622,7 +629,6 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
         clip->SetBottomLeftRadiusY(radius);
         clip->SetBottomRightRadiusX(radius);
         clip->SetBottomRightRadiusY(radius);
-        //
         container->SetClip(clip.Get());
     }
     container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
