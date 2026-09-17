@@ -71,7 +71,7 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
     if (!hwndTarget || !IsWindow(hwndTarget))
         return;
 
-    const bool isShell = (hwndTarget == GetShellWindow());
+    //const bool isShell = (hwndTarget == GetShellWindow());
 
     /*if (isShell)
     {
