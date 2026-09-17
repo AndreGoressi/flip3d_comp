@@ -121,9 +121,9 @@ HRESULT Flip3DComp::InitComposition()
 }
 
 // ============================================================================
-// Flip3DCompApp::DestroyMonitorBackdrops
+// Flip3DComp::DestroyMonitorBackdrops
 // ============================================================================
-void Flip3DCompApp::DestroyMonitorBackdrops()
+void Flip3DComp::DestroyMonitorBackdrops()
 {
     if (!m_rootVisual)
     {
@@ -151,7 +151,7 @@ void Flip3DCompApp::DestroyMonitorBackdrops()
 }
 
 // ============================================================================
-// Flip3DCompApp::UpdateBackdropLayout
+// Flip3DComp::UpdateBackdropLayout
 // Per-monitor wash (rcMonitor) and shell thumbnail (rcWork crop).
 // Client coordinates match the virtual-desktop–sized Flip3D window.
 // ============================================================================
@@ -226,7 +226,7 @@ void Flip3DComp::UpdateBackdropLayout()
 
 
 // ============================================================================
-// Flip3DCompApp::RebuildMonitorBackdropsIfNeeded
+// Flip3DComp::RebuildMonitorBackdropsIfNeeded
 // ============================================================================
 bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
 {
@@ -357,7 +357,7 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
 }
 
 // ============================================================================
-// Flip3DCompApp::CreateShellBackdrop
+// Flip3DComp::CreateShellBackdrop
 // ============================================================================
 HRESULT Flip3DComp::CreateShellBackdrop()
 {
