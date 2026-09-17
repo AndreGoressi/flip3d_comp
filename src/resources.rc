@@ -6,3 +6,6 @@
 106 ICON "icons/light_alternate.ico"
 107 ICON "icons/light_mica.ico"
 108 ICON "icons/light_mica_alternate.ico"
+
+#define RT_MANIFEST 24
+1 RT_MANIFEST "flip3d_comp.manifest"
