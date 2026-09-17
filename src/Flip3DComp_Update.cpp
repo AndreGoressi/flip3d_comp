@@ -709,11 +709,11 @@ void Flip3DComp::Update(float dtSeconds)
     
     for (auto& mon : m_monitorBackdrops)
     {
+
         if (mon.washVisual)
-            mon.washVisual->SetOpacity(washProgress); 
-            
+            mon.washVisual->SetOpacity(washProgress * kDesktopWashOpacityScale); 
         if (mon.shellContainer)
-            mon.shellContainer->SetOpacity(washProgress); 
+            mon.shellContainer->SetOpacity(1.0f);
     }
 
     if (m_state == ViewState::Enter && !m_animEnter.IsActive())
