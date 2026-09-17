@@ -328,6 +328,7 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
         if (FAILED(hr))
             continue;
 
+        bool blurApplied = false;
         ComPtr<IDCompositionDevice3> dcompDevice3;
         if (SUCCEEDED(m_dcompDevice.As(&dcompDevice3)))
         {
@@ -335,20 +336,20 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
             if (SUCCEEDED(dcompDevice3->CreateGaussianBlurEffect(&blurEffect)))
             {
                 blurEffect->SetInput(0, thumbBase.Get(), 0);
-                blurEffect->SetStandardDeviation(25.0f);
-                blurEffect->SetOptimization(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_HIGH_QUALITY);
+                blurEffect->SetStandardDeviation(15.0f);
+                
                 shellContainer->SetEffect(blurEffect.Get());
+                blurApplied = true;
             }
         }
-        if (!mon.shellContainer->GetContent())
+
+        if (!blurApplied)
         {
             hr = shellContainer->AddVisual(thumbBase.Get(), FALSE, nullptr);
             if (FAILED(hr))
                 continue;
         }
-        /*hr = mon.shellContainer->AddVisual(mon.shellThumb.Get(), FALSE, nullptr);
-        if (FAILED(hr))
-            continue;*/
+
         ComPtr<IDCompositionVisual2> washVis;
         hr = m_dcompDevice->CreateVisual(&washVis);
         if (FAILED(hr))
@@ -360,7 +361,6 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
         if (FAILED(hr))
             continue;
 
-        // Z-order back→front: shell desktop (mit Blur), wash (Abdunklung), then scene
         rootBase->AddVisual(mon.shellContainer.Get(), FALSE, m_sceneVisual.Get());
         rootBase->AddVisual(mon.washVisual.Get(), FALSE, m_sceneVisual.Get());
 
