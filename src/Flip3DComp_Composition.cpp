@@ -33,10 +33,54 @@ std::vector<MONITORINFO> EnumerateMonitors()
 
 } // namespace
 
+namespace {
+
+HRESULT CreateSharedWashSurface(ID3D11Device* d3d,
+                                IDCompositionDesktopDevice* dcomp,
+                                ComPtr<IDCompositionSurface>& outSurface)
+{
+    if (!d3d || !dcomp)
+        return E_INVALIDARG;
+
+    ComPtr<IDCompositionSurfaceFactory> sf;
+    HRESULT hr = dcomp->CreateSurfaceFactory(d3d, &sf);
+    if (FAILED(hr))
+        return hr;
+
+    ComPtr<IDCompositionSurface> bg;
+    hr = sf->CreateSurface(1, 1, DXGI_FORMAT_B8G8R8A8_UNORM,
+                           DXGI_ALPHA_MODE_IGNORE, &bg);
+    if (FAILED(hr))
+        return hr;
+
+    ComPtr<IDXGISurface> dxgiSurf;
+    POINT offset = {};
+    hr = bg->BeginDraw(nullptr, IID_PPV_ARGS(&dxgiSurf), &offset);
+    if (SUCCEEDED(hr))
+    {
+        ComPtr<ID3D11Texture2D> tex;
+        ComPtr<ID3D11RenderTargetView> rtv;
+        if (SUCCEEDED(dxgiSurf.As(&tex)) &&
+            SUCCEEDED(d3d->CreateRenderTargetView(tex.Get(), nullptr, &rtv)))
+        {
+            ComPtr<ID3D11DeviceContext> ctx;
+            d3d->GetImmediateContext(&ctx);
+            const float wash[4] = { 0.04f, 0.05f, 0.08f, 1.0f };
+            ctx->ClearRenderTargetView(rtv.Get(), wash);
+        }
+        bg->EndDraw();
+    }
+
+    outSurface = std::move(bg);
+    return outSurface ? S_OK : E_FAIL;
+}
+
+} // namespace
+
 // ============================================================================
 // Flip3DComp::InitComposition
 // ============================================================================
-HRESULT Flip3DComp::InitComposition()
+HRESULT Flip3DCompApp::InitComposition()
 {
     if (!m_d3dDevice)
         return E_FAIL;
@@ -66,12 +110,14 @@ HRESULT Flip3DComp::InitComposition()
     if (FAILED(hr))
         return hr;
     sceneBase.As(&m_sceneVisual);
-    //
     m_sceneVisual->SetDepthMode(DCOMPOSITION_DEPTH_MODE_TREE);
-    //
+
     ComPtr<IDCompositionVisual> rootBase;
     root.As(&rootBase);
     rootBase->AddVisual(m_sceneVisual.Get(), FALSE, nullptr);
+
+    if (m_d3dDevice)
+        CreateSharedWashSurface(m_d3dDevice.Get(), m_dcompDevice.Get(), m_washSurface);
 
     return m_dcompDevice->Commit();
 }
@@ -94,6 +140,9 @@ void Flip3DComp::DestroyMonitorBackdrops()
             if (mon.shellContainer)
                 rootBase->RemoveVisual(mon.shellContainer.Get());
 
+            if (mon.washVisual)
+                rootBase->RemoveVisual(mon.washVisual.Get());
+            
             if (mon.hShellThumb)
             {
                 DwmUnregisterThumbnail(mon.hShellThumb);
@@ -105,7 +154,7 @@ void Flip3DComp::DestroyMonitorBackdrops()
 }
 
 // ============================================================================
-// Flip3DComp::UpdateBackdropLayout (Clean Modern Win11 Version)
+// Flip3DComp::UpdateBackdropLayout (Modern Win11 + Wash + Blur)
 // ============================================================================
 void Flip3DComp::UpdateBackdropLayout()
 {
@@ -119,11 +168,30 @@ void Flip3DComp::UpdateBackdropLayout()
 
     for (auto& mon : m_monitorBackdrops)
     {
+        const LONG washW = mon.rcMonitor.right - mon.rcMonitor.left;
+        const LONG washH = mon.rcMonitor.bottom - mon.rcMonitor.top;
+        const float washX = (float)(mon.rcMonitor.left - vx);
+        const float washY = (float)(mon.rcMonitor.top  - vy);
+
+        if (mon.washVisual)
+        {
+            ComPtr<IDCompositionVisual2> wash2;
+            if (SUCCEEDED(mon.washVisual.As(&wash2)))
+            {
+                const D2D_MATRIX_3X2_F xform = {
+                    (float)std::max(washW, 1L), 0.f,
+                    0.f, (float)std::max(washH, 1L),
+                    washX, washY,
+                };
+                wash2->SetTransform(xform);
+            }
+        }
+
         const LONG shellW = mon.rcWork.right - mon.rcWork.left;
         const LONG shellH = mon.rcWork.bottom - mon.rcWork.top;
         const float shellX = (float)(mon.rcWork.left - vx);
         const float shellY = (float)(mon.rcWork.top  - vy);
-        
+
         if (mon.shellContainer)
         {
             ComPtr<IDCompositionVisual2> shell2;
@@ -145,11 +213,11 @@ void Flip3DComp::UpdateBackdropLayout()
 
             m_pfnUpdateSharedMultiWindowVisual(
                 mon.hShellThumb,
-                nullptr, 0,          // No Includes
-                &excludeHwnd, 1,     // Exclude Flip3D
+                nullptr, 0,
+                &excludeHwnd, 1,
                 &rcSource,
                 &targetSize,
-                1                    // Flag
+                1
             );
         }
     }
@@ -158,7 +226,7 @@ void Flip3DComp::UpdateBackdropLayout()
 }
 
 // ============================================================================
-// Flip3DComp::RebuildMonitorBackdropsIfNeeded (Clean Modern Win11 Engine)
+// Flip3DComp::RebuildMonitorBackdropsIfNeeded (Modern Win11 + Wash + Blur)
 // ============================================================================
 bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
 {
@@ -196,6 +264,9 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
 
     DestroyMonitorBackdrops();
 
+    if (!m_washSurface && m_d3dDevice && m_dcompDevice)
+        CreateSharedWashSurface(m_d3dDevice.Get(), m_dcompDevice.Get(), m_washSurface);
+
     if (!m_dcompDevice || !m_rootVisual)
         return false;
 
@@ -232,7 +303,7 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
 
         RECT rcSource = mon.rcWork;
         SIZE targetSize = { shellW, shellH };
-        HWND excludeHwnd = m_hwnd; 
+        HWND excludeHwnd = m_hwnd;
 
         if (m_pfnUpdateSharedMultiWindowVisual && mon.hShellThumb)
         {
@@ -245,6 +316,7 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
                 1
             );
         }
+
         ComPtr<IDCompositionVisual2> shellContainer;
         hr = m_dcompDevice->CreateVisual(&shellContainer);
         if (FAILED(hr))
@@ -255,18 +327,35 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
             continue;
 
         shellContainer->AddVisual(thumbBase.Get(), FALSE, nullptr);
+
         ComPtr<IDCompositionDevice3> dcompDevice3;
         if (SUCCEEDED(m_dcompDevice.As(&dcompDevice3)))
         {
             ComPtr<IDCompositionGaussianBlurEffect> blurEffect;
             if (SUCCEEDED(dcompDevice3->CreateGaussianBlurEffect(&blurEffect)))
             {
-                blurEffect->SetStandardDeviation(50.0f);
+                blurEffect->SetStandardDeviation(40.0f);
                 blurEffect->SetBorderMode(D2D1_BORDER_MODE_HARD);
                 shellContainer->SetEffect(blurEffect.Get());
             }
         }
+
+        if (m_washSurface)
+        {
+            ComPtr<IDCompositionVisual2> washVis;
+            if (SUCCEEDED(m_dcompDevice->CreateVisual(&washVis)) &&
+                SUCCEEDED(washVis->SetContent(m_washSurface.Get())))
+            {
+                washVis.As(&mon.washVisual);
+            }
+        }
+
         rootBase->AddVisual(mon.shellContainer.Get(), FALSE, m_sceneVisual.Get());
+        if (mon.washVisual)
+        {
+            rootBase->AddVisual(mon.washVisual.Get(), FALSE, m_sceneVisual.Get());
+        }
+
         mon.shellContainer->SetOpacity(1.0f);
         m_monitorBackdrops.push_back(std::move(mon));
     }
@@ -274,3 +363,15 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
     return true;
 }
 
+// ============================================================================
+// Flip3DCompApp::CreateShellBackdrop
+// ============================================================================
+HRESULT Flip3DCompApp::CreateShellBackdrop()
+{
+    if (!RebuildMonitorBackdropsIfNeeded())
+    {
+        if (m_monitorBackdrops.empty())
+            return E_FAIL;
+    }
+    return S_OK;
+}
