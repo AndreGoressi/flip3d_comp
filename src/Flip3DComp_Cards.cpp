@@ -599,39 +599,26 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
             }
         }
     }
-    DWM_WINDOW_CORNER_PREFERENCE cornerPref = DWMWCP_DEFAULT;
-    bool isRounded = false;
-    if (SUCCEEDED(DwmGetWindowAttribute(primarySourceHwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &cornerPref, sizeof(cornerPref))))
-    {
-        if (cornerPref == DWMWCP_ROUND)
-        {
-            isRounded = true;
-        }
-    }
+
     ComPtr<IDCompositionRectangleClip> clip;
     if (SUCCEEDED(m_dcompDevice->CreateRectangleClip(&clip)))
     {
-        float radius = isRounded ? (12.f / 2.f) : 0.f;
-
+        float radius = 12.f / 2.f;
         clip->SetLeft(0.f);
         clip->SetTop(0.f);
         clip->SetRight((float)card.m_srcWidth);
         clip->SetBottom((float)card.m_srcHeight);
-        
-        if (radius > 0.f)
-        {
-            clip->SetTopLeftRadiusX(radius);
-            clip->SetTopLeftRadiusY(radius);
-            clip->SetTopRightRadiusX(radius);
-            clip->SetTopRightRadiusY(radius);
-            clip->SetBottomLeftRadiusX(radius);
-            clip->SetBottomLeftRadiusY(radius);
-            clip->SetBottomRightRadiusX(radius);
-            clip->SetBottomRightRadiusY(radius);
-        }
+        clip->SetTopLeftRadiusX(radius);
+        clip->SetTopLeftRadiusY(radius);
+        clip->SetTopRightRadiusX(radius);
+        clip->SetTopRightRadiusY(radius);
+        clip->SetBottomLeftRadiusX(radius);
+        clip->SetBottomLeftRadiusY(radius);
+        clip->SetBottomRightRadiusX(radius);
+        clip->SetBottomRightRadiusY(radius);
         container->SetClip(clip.Get());
     }
-
+    
     container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
     container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
 
