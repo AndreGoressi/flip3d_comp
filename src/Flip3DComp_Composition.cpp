@@ -7,7 +7,6 @@
 #include <cmath>
 #include <cwchar>
 #include <vector>
-#include <wincodec.h>
 
 // ============================================================================
 // Flip3DComp::InitComposition
