@@ -2,6 +2,7 @@
 // Flip3DComp_ShellHook.cpp — dynamic card list via RegisterShellHookWindow
 // ============================================================================
 #include "Flip3DComp.h"
+#include "WindowCompositionAttribute.h"
 #include <algorithm>
 // ============================================================================
 // Flip3DComp::QualifiesForView
