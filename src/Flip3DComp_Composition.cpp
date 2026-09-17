@@ -334,13 +334,21 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
             if (SUCCEEDED(dcompDevice3->CreateGaussianBlurEffect(&blurEffect)))
             {
                 if (SUCCEEDED(blurEffect->SetInput(0, thumbBase.Get(), 0)) &&
-                    SUCCEEDED(blurEffect->SetStandardDeviation(/*25.0f*/80.0f)) &&
-                    SUCCEEDED(blurEffect->SetBorderMode(D2D1_BORDER_MODE_HARD)) &&
-                    SUCCEEDED(shellContainer->SetEffect(blurEffect.Get())))
+                    SUCCEEDED(blurEffect->SetStandardDeviation(60.0f)) && 
+                    SUCCEEDED(blurEffect->SetBorderMode(D2D1_BORDER_MODE_HARD)))
                 {
-                    blurApplied = true;
+                    if (SUCCEEDED(shellContainer->SetContent(blurEffect.Get())))
+                    {
+                        blurApplied = true;
+                    }
                 }
             }
+        }
+
+        // Falls das fehlschlägt, Fallback
+        if (!blurApplied)
+        {
+            shellContainer->AddVisual(thumbBase.Get(), FALSE, nullptr);
         }
 
         if (!blurApplied)
