@@ -174,7 +174,7 @@ bool Flip3DComp::AccessibleCardScreenRect(int index, long* pxLeft, long* pyTop,
 // ============================================================================
 // Flip3DComp::HitTest3DScene
 // ============================================================================
-HWND Flip3DCompApp::HitTest3DScene(LONG screenX, LONG screenY) const
+HWND Flip3DComp::HitTest3DScene(LONG screenX, LONG screenY) const
 {
     if (m_cards.empty())
         return nullptr;
