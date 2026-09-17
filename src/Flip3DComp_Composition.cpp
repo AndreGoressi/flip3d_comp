@@ -329,6 +329,10 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
             continue;
 
         bool blurApplied = false;
+        hr = shellContainer->AddVisual(thumbBase.Get(), FALSE, nullptr);
+        if (FAILED(hr))
+            continue;
+
         ComPtr<IDCompositionDevice3> dcompDevice3;
         if (SUCCEEDED(m_dcompDevice.As(&dcompDevice3)))
         {
@@ -336,7 +340,8 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
             if (SUCCEEDED(dcompDevice3->CreateGaussianBlurEffect(&blurEffect)))
             {
                 blurEffect->SetInput(0, thumbBase.Get(), 0);
-                //blurEffect->SetStandardDeviation(100.0f);
+                blurEffect->SetInput(0, nullptr, 0); 
+                blurEffect->SetStandardDeviation(30.0f);
                 shellContainer->SetEffect(blurEffect.Get());
                 blurApplied = true;
             }
@@ -347,7 +352,7 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
             if (FAILED(hr))
                 continue;
         }
-
+        
         ComPtr<IDCompositionVisual2> washVis;
         hr = m_dcompDevice->CreateVisual(&washVis);
         if (FAILED(hr))
