@@ -3,8 +3,6 @@
 // ============================================================================
 #include "Flip3DComp.h"
 #include <algorithm>
-#include "WindowCompositionAttribute.h"
-
 // ============================================================================
 // Flip3DComp::QualifiesForView
 // ============================================================================
@@ -91,8 +89,7 @@ bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
     return !_wcsicmp(cls, L"Shell_TrayWnd")
         || !_wcsicmp(cls, L"Shell_SecondaryTrayWnd")
         || !_wcsicmp(cls, L"WorkerW")
-        || !_wcsicmp(cls, L"Progman")
-        || !WindowCompositionAttribute::EnableBlurBehind(hwnd);
+        || !_wcsicmp(cls, L"Progman");
 }
 
 // ============================================================================
