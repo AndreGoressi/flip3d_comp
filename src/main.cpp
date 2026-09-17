@@ -2,7 +2,7 @@
 // main.cpp — Flip3D (DComp) entry point
 // ============================================================================
 #include "Flip3DComp.h"
-
+#include "PrepareForUIAccess.h" 
 /*int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nShowCmd)
 {
     Flip3DComp main;
@@ -25,9 +25,6 @@
 // ============================================================================
 // main.cpp — Flip3D (DComp) entry point
 // ============================================================================
-#include "Flip3DComp.h"
-#include "PrepareForUIAccess.h" 
-
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nShowCmd)
 {
     //Force UIAccess to run immediately at startup (restarts the EXE invisibly if necessary)[cite: 3]
