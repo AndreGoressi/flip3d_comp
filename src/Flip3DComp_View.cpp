@@ -144,13 +144,12 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         return;
 
     const bool isShell = (hwndTarget == GetShellWindow());
-
     if (isShell)
     {
         MONITORINFO primaryMi = QueryPrimaryMonitor();
         std::vector<HWND> allHwnds = EnumerateWindows();
         std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
-
+        //
         if (!activeGroups.empty())
         {
             for (const auto& group : activeGroups)
@@ -159,18 +158,17 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
                 {
                     if (IsIconic(groupHwnd))
                     {
-                        PostMessage(groupHwnd, WM_SYSCOMMAND, SC_RESTORE, 0);
-                        ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
+                        ShowWindow(groupHwnd, SW_RESTORE);
                     }
                     SwitchToThisWindow(groupHwnd, TRUE);
                 }
             }
         }
-        else
+        /*else
         {
             if (HWND shellTray = FindWindowW(L"Shell_TrayWnd", nullptr))
                 PostMessageW(shellTray, 0x579, 1, 0);
-        }
+        }*/
     }
     else if (!IsWindowEnabled(hwndTarget))
     {
