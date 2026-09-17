@@ -65,12 +65,11 @@ HRESULT CreateSharedWashSurface(ID3D11Device* d3d,
         {
             ComPtr<ID3D11DeviceContext> ctx;
             d3d->GetImmediateContext(&ctx);
-            const float wash[4] = { 0.04f, 0.05f, 0.08f, 1.0f };
+            const float wash[4] = { 0.07f, 0.08f, 0.11f, 0.85f }; 
             ctx->ClearRenderTargetView(rtv.Get(), wash);
         }
         bg->EndDraw();
     }
-
     outSurface = std::move(bg);
     return outSurface ? S_OK : E_FAIL;
 }
