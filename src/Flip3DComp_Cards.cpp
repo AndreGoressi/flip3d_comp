@@ -125,9 +125,9 @@ bool Flip3DComp::LoadThumbApi()
     m_pfnQueryThumbSize = (DwmpQueryWindowThumbnailSourceSize_fn)
         GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(162));
 
-    m_pfnCreateSharedMultiWindowVisual = (DwmpCreateSharedMultiWindowVisual)
+    m_pfnCreateSharedMultiWindowVisual = (DwmpCreateSharedMultiWindowVisual_fn)
         GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(163));
-    m_pfnUpdateSharedMultiWindowVisual = (DwmpUpdateSharedMultiWindowVisual)
+    m_pfnUpdateSharedMultiWindowVisual = (DwmpUpdateSharedMultiWindowVisual_fn)
         GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(164));
 
     m_pfnGetWindowMinimizeRect = (GetWindowMinimizeRect_fn)
