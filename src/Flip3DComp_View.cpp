@@ -156,10 +156,10 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
             {
                 for (HWND groupHwnd : group)
                 {
-                    if (IsIconic(groupHwnd))
+                    /*if (IsIconic(groupHwnd))
                     {
                         ShowWindow(groupHwnd, SW_RESTORE);
-                    }
+                    }*/
                     SwitchToThisWindow(groupHwnd, TRUE);
                 }
             }
