@@ -526,7 +526,7 @@ void Flip3DComp::RemoveCardAt(size_t index)
         m_dcompDevice->Commit();
 }
 
-HRESULT Flip3DCompApp::CreateCardVisuals()
+HRESULT Flip3DComp::CreateCardVisuals()
 {
     if (!m_dcompDevice || !m_sceneVisual)
         return E_FAIL;
