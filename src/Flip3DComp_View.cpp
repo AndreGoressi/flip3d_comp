@@ -318,6 +318,8 @@ HWND Flip3DComp::HitTest3DScene(LONG screenX, LONG screenY) const
     float bestNdcZ = 1e10f;
     HWND  bestHwnd = nullptr;
 
+    struct Vertex4 { float x, y, z, w; };
+
     for (int ki = (int)m_cards.size() - 1; ki >= 0; --ki)
     {
         const CardModel& c = m_cards[(size_t)ki];
@@ -335,18 +337,18 @@ HWND Flip3DComp::HitTest3DScene(LONG screenX, LONG screenY) const
         float sw = (float)std::max(c.m_srcWidth,  1);
         float sh = (float)std::max(c.m_srcHeight, 1);
 
-        auto transformVertex = [&](float px, float py) {
+        auto transformVertex = [&](float px, float py) -> Vertex4 {
             float x = px * MVP.m[0][0] + py * MVP.m[1][0] + MVP.m[3][0];
             float y = px * MVP.m[0][1] + py * MVP.m[1][1] + MVP.m[3][1];
             float z = px * MVP.m[0][2] + py * MVP.m[1][2] + MVP.m[3][2];
             float w = px * MVP.m[0][3] + py * MVP.m[1][3] + MVP.m[3][3];
-            return struct { float x, y, z, w; }{ x, y, z, w };
+            return { x, y, z, w };
         };
 
-        auto v0 = transformVertex(0.0f, 0.0f);
-        auto v1 = transformVertex(sw,   0.0f);
-        auto v2 = transformVertex(sw,   sh);
-        auto v3 = transformVertex(0.0f, sh);
+        Vertex4 v0 = transformVertex(0.0f, 0.0f);
+        Vertex4 v1 = transformVertex(sw,   0.0f);
+        Vertex4 v2 = transformVertex(sw,   sh);
+        Vertex4 v3 = transformVertex(0.0f, sh);
 
         Vec2 c0 = { v0.w != 0.0f ? v0.x / v0.w : v0.x, v0.w != 0.0f ? v0.y / v0.w : v0.y };
         Vec2 c1 = { v1.w != 0.0f ? v1.x / v1.w : v1.x, v1.w != 0.0f ? v1.y / v1.w : v1.y };
@@ -417,6 +419,5 @@ HWND Flip3DComp::HitTest3DScene(LONG screenX, LONG screenY) const
             bestHwnd = c.m_hwnd;
         }
     }
-
     return bestHwnd;
 }
