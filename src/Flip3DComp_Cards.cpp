@@ -279,7 +279,6 @@ bool Flip3DComp::AddCardForWindow(HWND hwnd)
 
     CardModel c;
     c.m_hwnd = hwnd;
-    c.m_isGroup = false;
     c.m_initialCarouselIndex = (int)m_cards.size();
     
     UpdateCardGeometry(c, m_monW, m_monH);
@@ -485,12 +484,6 @@ HRESULT Flip3DComp::CreateCardVisuals()
     {
         // Skip if already initialized, but allow cards that either have a single hwnd OR are a group with hwnds
         if (card.m_containerVisual)
-            continue;
-
-        if (!card.m_isGroup && !card.m_hwnd)
-            continue;
-
-        if (card.m_isGroup && card.m_groupHwnds.empty())
             continue;
 
         if (FAILED(CreateCardVisual(card)))
