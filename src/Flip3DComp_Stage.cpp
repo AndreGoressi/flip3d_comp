@@ -56,10 +56,6 @@ std::vector<HWND> Flip3DComp::EnumerateWindows()
 // Flip3DComp::ApplyFullscreenLayout
 // uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
 // ============================================================================
-// ============================================================================
-// Flip3DComp::ApplyFullscreenLayout
-// uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
-// ============================================================================
 void Flip3DComp::ApplyFullscreenLayout()
 {
     if (!m_hwnd)
