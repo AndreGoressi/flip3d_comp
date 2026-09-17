@@ -2,8 +2,6 @@
 // Flip3DComp_View.cpp — View state: Exit, Select, HitTest3DScene
 // ============================================================================
 #include "Flip3DComp.h"
-#include "pDwmpActivateLivePreview.h"
-
 #include <algorithm>
 #include <cmath>
 #include <unordered_set>
@@ -31,8 +29,6 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
 // ============================================================================
 void Flip3DComp::BeginExitView()
 {
-    //LivePreview::Activate(FALSE, m_selectedHwnd, m_hwnd, PeekType::Desktop);
-    //
     if (m_state == ViewState::Exit || m_state == ViewState::ExitRepeatedRotate)
         return;
 
@@ -144,8 +140,6 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
     if (!hwndTarget || !IsWindow(hwndTarget))
         return;
 
-    LivePreview::Activate(FALSE, hwndTarget, m_hwnd, PeekType::Window);
-    //
     const bool isShell = (hwndTarget == GetShellWindow());
     if (isShell)
     {
