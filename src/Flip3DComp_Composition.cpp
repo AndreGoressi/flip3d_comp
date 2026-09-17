@@ -336,13 +336,11 @@ bool Flip3DComp::RebuildMonitorBackdropsIfNeeded()
             if (SUCCEEDED(dcompDevice3->CreateGaussianBlurEffect(&blurEffect)))
             {
                 blurEffect->SetInput(0, thumbBase.Get(), 0);
-                blurEffect->SetStandardDeviation(50.0f);
-                
+                //blurEffect->SetStandardDeviation(100.0f);
                 shellContainer->SetEffect(blurEffect.Get());
                 blurApplied = true;
             }
         }
-
         if (!blurApplied)
         {
             hr = shellContainer->AddVisual(thumbBase.Get(), FALSE, nullptr);
