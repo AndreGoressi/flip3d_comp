@@ -65,6 +65,9 @@ bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
     if (hwnd == m_hwnd)
         return true;
 
+    if (IsSystemFlyoutProcess(hwnd))
+        return true;
+
     wchar_t cls[64] = {};
     if (!GetClassNameW(hwnd, cls, 63))
         return false;
@@ -72,6 +75,42 @@ bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
     return !_wcsicmp(cls, L"Shell_TrayWnd")
     || !_wcsicmp(cls, L"Shell_SecondaryTrayWnd")
         || !_wcsicmp(cls, L"WorkerW");
+}
+
+bool Flip3DComp::IsSystemFlyoutProcess(HWND hwnd) const
+{
+    if (!hwnd)
+        return false;
+    DWORD pid = 0;
+    GetWindowThreadProcessId(hwnd, &pid);
+    if (pid == 0)
+        return false;
+
+    HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    if (!hProcess)
+        return false;
+
+    wchar_t path[MAX_PATH] = { 0 };
+    DWORD size = MAX_PATH;
+    bool found = false;
+
+    if (QueryFullProcessImageNameW(hProcess, 0, path, &size))
+    {
+        wchar_t* exeName = wcsrchr(path, L'\\');
+        exeName = exeName ? exeName + 1 : path;
+
+        found = _wcsicmp(exeName, L"StartMenuExperienceHost.exe") == 0 ||
+                _wcsicmp(exeName, L"SearchHost.exe") == 0 ||
+                _wcsicmp(exeName, L"SearchUI.exe") == 0 ||
+                _wcsicmp(exeName, L"ShellExperienceHost.exe") == 0 ||
+                _wcsicmp(exeName, L"TextInputHost.exe") == 0 ||
+                _wcsicmp(exeName, L"InputApp.exe") == 0 ||
+                _wcsicmp(exeName, L"Widgets.exe") == 0 ||
+                _wcsicmp(exeName, L"TabTip.exe") == 0 ||
+                _wcsicmp(exeName, L"GameBar.exe") == 0;
+    }
+    CloseHandle(hProcess);
+    return found;
 }
 
 // ============================================================================
