@@ -82,8 +82,8 @@ private:
     // DWM Thumbnail API (dwmapi.dll ordinals 147, 162)
     // ========================================================================
 
-    bool    LoadThumbApi();
-    void    UnloadThumbApi();
+    bool    LoadDwmApi();
+    void    UnloadDwmApi();
 
     // ========================================================================
     // DirectComposition composition
