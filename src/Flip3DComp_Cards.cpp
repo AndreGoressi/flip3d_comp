@@ -550,7 +550,6 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                     excludeHwnds.push_back(h);
             }
 
-            RECT rcSource = rcUnion;
             RECT rcSource;
             rcSource.left   = (LONG)(rcUnion.left   + (touchesLeft   ? gutter : gutter * 0.5f));
             rcSource.top    = (LONG)(rcUnion.top    + (touchesTop    ? gutter : gutter * 0.5f));
