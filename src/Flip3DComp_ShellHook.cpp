@@ -57,7 +57,7 @@ bool Flip3DComp::IsFlip3DViewActive() const
     return m_state != ViewState::Inactive;
 }
 
-/*bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
+bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
 {
     if (!hwnd)
         return true;
@@ -72,64 +72,6 @@ bool Flip3DComp::IsFlip3DViewActive() const
     return !_wcsicmp(cls, L"Shell_TrayWnd")
     || !_wcsicmp(cls, L"Shell_SecondaryTrayWnd")
         || !_wcsicmp(cls, L"WorkerW");
-}*/
-
-bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
-{
-    if (!hwnd)
-        return true;
-
-    if (hwnd == m_hwnd)
-        return true;
-
-    wchar_t cls[64] = {};
-    if (!GetClassNameW(hwnd, cls, 63))
-        return false;
-
-    if (!_wcsicmp(cls, L"Shell_TrayWnd") ||
-        !_wcsicmp(cls, L"Shell_SecondaryTrayWnd") ||
-        !_wcsicmp(cls, L"WorkerW") ||
-        !_wcsicmp(cls, L"NotifyIconOverflowWindow") ||
-        !_wcsicmp(cls, L"TaskListThumbnailWnd") ||
-        !_wcsicmp(cls, L"XamlWindow"))
-    {
-        return true;
-    }
-    if (!_wcsicmp(cls, L"Windows.UI.Core.CoreWindow"))
-    {
-        DWORD processId = 0;
-        GetWindowThreadProcessId(hwnd, &processId);
-        if (processId != 0)
-        {
-            HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
-            if (hProcess)
-            {
-                wchar_t exePath[MAX_PATH] = {};
-                DWORD size = MAX_PATH;
-                if (QueryFullProcessImageNameW(hProcess, 0, exePath, &size))
-                {
-                    CloseHandle(hProcess);
-                    wchar_t* exeName = wcsrchr(exePath, L'\\');
-                    if (exeName)
-                    {
-                        exeName++; 
-                        return (!_wcsicmp(exeName, L"StartMenuExperienceHost.exe") ||
-                                !_wcsicmp(exeName, L"SearchHost.exe") ||
-                                !_wcsicmp(exeName, L"SearchUI.exe") ||
-                                !_wcsicmp(exeName, L"Widgets.exe") ||
-                                !_wcsicmp(exeName, L"InputApp.exe") ||
-                                !_wcsicmp(exeName, L"GameBar.exe") ||
-                                !_wcsicmp(exeName, L"ShareUI.exe"));
-                    }
-                }
-                else
-                {
-                    CloseHandle(hProcess);
-                }
-            }
-        }
-    }
-    return false;
 }
 
 // ============================================================================
