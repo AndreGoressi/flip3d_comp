@@ -924,7 +924,7 @@ std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vec
 // ============================================================================
 // Flip3DComp::RefreshDesktopGroupThumbnailsIfStale
 // ============================================================================
-void Flip3DComp::RefreshDesktopGroupThumbnailsIfStale()
+/*void Flip3DComp::RefreshDesktopGroupThumbnailsIfStale()
 {
     if (!IsFlip3DViewActive())
         return;
@@ -953,7 +953,7 @@ void Flip3DComp::RefreshDesktopGroupThumbnailsIfStale()
             RebuildDesktopGroupThumbnails(card);
         //break;
     }
-}
+}*/
 
 
 
