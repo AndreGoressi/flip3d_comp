@@ -424,7 +424,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                     auto itB = std::find(allHwnds.begin(), allHwnds.end(), b);
                     size_t indexA = (itA != allHwnds.end()) ? std::distance(allHwnds.begin(), itA) : SIZE_MAX;
                     size_t indexB = (itB != allHwnds.end()) ? std::distance(allHwnds.begin(), itB) : SIZE_MAX;
-                    return indexA < indexB; 
+                    return indexA > indexB; 
                 });
             //
             for (HWND groupHwnd : group)
@@ -502,7 +502,13 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                         subVisual->SetOffsetX((float)relX);
                         subVisual->SetOffsetY((float)relY);
 
-                        container->AddVisual(subVisual.Get(), TRUE, nullptr);
+                        static ComPtr<IDCompositionVisual> lastVisual = nullptr;
+                        if (!lastVisual) {
+                            container->AddVisual(subVisual.Get(), FALSE, nullptr);
+                        } else {
+                            container->AddVisual(subVisual.Get(), TRUE, lastVisual.Get());
+                        }
+                        lastVisual = subVisual;
                     }
                 }
             }
