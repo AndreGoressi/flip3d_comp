@@ -320,5 +320,5 @@ private:
     //new
     DwmpCreateSharedMultiWindowVisual_fn    m_pfnCreateSharedMultiWindowVisual = nullptr;
     DwmpUpdateSharedMultiWindowVisual_fn    m_pfnUpdateSharedMultiWindowVisual = nullptr;
-    DwmActivateLivePreview_fn m_pfnActivateLivePreview = nullptr;
+    DwmActivateLivePreview_fn             m_pfnActivateLivePreview = nullptr;
 };
