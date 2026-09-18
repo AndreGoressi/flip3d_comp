@@ -417,8 +417,10 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     
         for (const auto& group : activeGroups)
         {
-            for (HWND groupHwnd : group)
+            for (auto it = group.rbegin(); it != group.rend(); ++it)
             {
+                HWND groupHwnd = *it;
+                
                 RECT rcWin = {};
                 bool isMin = IsIconic(groupHwnd);
 
