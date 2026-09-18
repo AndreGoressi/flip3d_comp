@@ -244,6 +244,9 @@ private:
     bool    AccessiblePointInView(POINT screenPt) const;
     HRESULT AccessibleRotateToIndex(int index);
     HRESULT AccessibleSelectIndex(int index);
+    //new
+    bool    IsNeverHiddenWindow(HWND hwnd) const;
+    bool    IsSystemFlyoutProcess(HWND hwnd) const;
 
     // ========================================================================
     // Member variables
@@ -318,7 +321,5 @@ private:
     DwmpQueryWindowThumbnailSourceSize_fn m_pfnQueryThumbSize          = nullptr;
     GetWindowMinimizeRect_fn              m_pfnGetWindowMinimizeRect    = nullptr;
     //new
-    DwmpCreateSharedMultiWindowVisual_fn    m_pfnCreateSharedMultiWindowVisual = nullptr;
-    DwmpUpdateSharedMultiWindowVisual_fn    m_pfnUpdateSharedMultiWindowVisual = nullptr;
     DwmpActivateLivePreview_fn             m_pfnActivateLivePreview = nullptr;
 };
