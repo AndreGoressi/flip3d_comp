@@ -117,11 +117,12 @@ bool Flip3DComp::LoadThumbApi()
 // ============================================================================
 void Flip3DComp::UnloadThumbApi()
 {
-    m_pfnCreateSharedThumbVisual       = nullptr;
-    m_pfnQueryThumbSize                = nullptr;
-    m_pfnCreateSharedMultiWindowVisual = nullptr;
-    m_pfnUpdateSharedMultiWindowVisual = nullptr;
-    m_pfnGetWindowMinimizeRect         = nullptr;
+    m_pfnCreateSharedThumbVisual        = nullptr;
+    m_pfnQueryThumbSize                 = nullptr;
+    m_pfnCreateSharedMultiWindowVisual  = nullptr;
+    m_pfnUpdateSharedMultiWindowVisual  = nullptr;
+    m_pfnGetWindowMinimizeRect          = nullptr;
+    m_pfnActivateLivePreview            = nullptr; // <-- Hier direkt mit ergänzen!
 
     if (m_dwmapi)
     {
