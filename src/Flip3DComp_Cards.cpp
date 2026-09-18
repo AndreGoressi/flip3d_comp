@@ -79,6 +79,9 @@ bool Flip3DComp::LoadThumbApi()
     m_pfnUpdateSharedMultiWindowVisual = (DwmpUpdateSharedMultiWindowVisual_fn)
         GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(164));
 
+    m_pfnActivateLivePreview = (DwmActivateLivePreview_fn)
+        GetProcAddress(m_dwmapi, "DwmActivateLivePreview");
+
     m_pfnGetWindowMinimizeRect = (GetWindowMinimizeRect_fn)
         GetProcAddress(GetModuleHandleW(L"user32.dll"), "GetWindowMinimizeRect");
 
