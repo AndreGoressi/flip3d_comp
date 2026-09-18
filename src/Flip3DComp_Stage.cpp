@@ -11,22 +11,6 @@
 #include <psapi.h>
 #include <wingdi.h>
 
-
-bool IsDisplayExtended()
-{
-    UINT32 pathCount = 0, modeCount = 0;
-    if (GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &pathCount, &modeCount) != ERROR_SUCCESS)
-        return false;
-
-    std::vector<DISPLAYCONFIG_PATH_INFO> paths(pathCount);
-    std::vector<DISPLAYCONFIG_MODE_INFO> modes(modeCount);
-    if (QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &pathCount, paths.data(),
-                           &modeCount, modes.data(), nullptr) != ERROR_SUCCESS)
-        return false;
-
-    return pathCount > 1 && GetSystemMetrics(SM_CMONITORS) > 1;
-}
-
 struct Flip3DComp::EnumContext
 {
     Flip3DComp*    app;
@@ -66,7 +50,6 @@ std::vector<HWND> Flip3DComp::EnumerateWindows()
         if (it == ctx.hwnds.end() && ctx.hwnds.size() < (size_t)kMaxCards)
             ctx.hwnds.push_back(shell);
     }
-    //
     return ctx.hwnds;
 }
 // ============================================================================
