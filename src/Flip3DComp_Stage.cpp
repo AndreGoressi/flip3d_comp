@@ -62,7 +62,7 @@ void Flip3DComp::ApplyFullscreenLayout()
         return;
     
     MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
+    HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTOPRIMARY);
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
 
@@ -70,7 +70,7 @@ void Flip3DComp::ApplyFullscreenLayout()
     const int y = mi.rcWork.top;
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
-    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
     RECT client = {};
     if (GetClientRect(m_hwnd, &client))
@@ -119,9 +119,7 @@ bool Flip3DComp::InitializeDCompStage()
         return false;
 
     MONITORINFO mi = { sizeof(mi) };
-    POINT pt;
-    GetCursorPos(&pt);
-    HMONITOR hMon = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+    HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTOPRIMARY);
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
 
@@ -130,7 +128,7 @@ bool Flip3DComp::InitializeDCompStage()
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
     //
-    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
