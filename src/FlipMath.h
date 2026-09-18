@@ -6,6 +6,11 @@
 // ============================================================================
 #pragma once
 
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
+#include <windows.h>
 #include <algorithm>
 #include <cmath>
 #include "Config.h"
