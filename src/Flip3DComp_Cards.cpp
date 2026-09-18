@@ -245,7 +245,7 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
     c.m_flatPos     = { worldX, worldY, 0.0f };
 }
 
-std::vector<std::vector<HWND>> DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork)
+std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork)
 {
     std::vector<std::vector<HWND>> groups;
     auto getSafeRect = [this](HWND hwnd) {
@@ -311,7 +311,7 @@ std::vector<std::vector<HWND>> DetectActiveSnapGroups(const std::vector<HWND>& h
     return groups;
 }
 
-void RebuildDesktopGroupThumbnails(CardModel& card)
+void Flip3DComp::RebuildDesktopGroupThumbnails(CardModel& card)
 {
     if (!card.m_isShellDesktop || !card.m_containerVisual || !m_dcompDevice)
         return;
