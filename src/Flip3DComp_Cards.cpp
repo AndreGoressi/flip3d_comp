@@ -16,15 +16,6 @@ MONITORINFO QueryPrimaryMonitor()
     return mi;
 }
 
-MONITORINFO QueryNearMonitor()
-{
-    MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hNear = MonitorFromWindow(nullptr, MONITOR_DEFAULTTONEAREST);
-    if (hNear)
-        GetMonitorInfoW(hNear, &mi);
-    return mi;
-}
-
 // 2D screen anchor for non-minimized-tile layouts (extended frame or restore rect).
 bool FillRestoredScreenRect(HWND h, const MONITORINFO& mi, RECT& out)
 {
@@ -255,10 +246,485 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
     c.m_flatPos     = { worldX, worldY, 0.0f };
 }
 
+// ============================================================================
+// Flip3DComp::UpdateMonitorRect
+// uDWM UpdateMonitorRect: normMon from primary rcWork; SetSize uses work-area
+// pixels. The input window covers the virtual desktop, but the 3D viewport must
+// match rcWork (size + origin), not the full client rect.
+// ============================================================================
+void Flip3DComp::UpdateMonitorRect()
+{
+    HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+    if (!hMon)
+        return;
+
+    MONITORINFO mi = { sizeof(mi) };
+    if (!GetMonitorInfoW(hMon, &mi))
+        return;
+
+    const int vx = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    const int vy = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    m_viewX = (float)(mi.rcWork.left - vx);
+    m_viewY = (float)(mi.rcWork.top  - vy);
+
+    const float newMonW     = (float)std::max(1L, mi.rcWork.right  - mi.rcWork.left);
+    const float newMonH     = (float)std::max(1L, mi.rcWork.bottom - mi.rcWork.top);
+    const float newOriginX  = (float)mi.rcWork.left;
+    const float newOriginY  = (float)mi.rcWork.top;
+
+    const bool layoutChanged =
+        newMonW    != m_monW       ||
+        newMonH    != m_monH       ||
+        newOriginX != m_monOriginX ||
+        newOriginY != m_monOriginY;
+
+    m_monW       = newMonW;
+    m_monH       = newMonH;
+    m_monOriginX = newOriginX;
+    m_monOriginY = newOriginY;
+
+    if (layoutChanged)
+    {
+        for (auto& card : m_cards)
+            UpdateCardGeometry(card, m_monW, m_monH);
+    }
+}
+
+bool Flip3DComp::AddCardForWindow(HWND hwnd)
+{
+    if (!hwnd || !IsWindow(hwnd))
+        return false;
+    // Check if a card for this window already exists
+    if (FindCardIndex(hwnd) >= 0)
+        return true;
+
+    CardModel c;
+    c.m_hwnd = hwnd;
+    c.m_isGroup = false;
+    c.m_initialCarouselIndex = (int)m_cards.size();
+    
+    UpdateCardGeometry(c, m_monW, m_monH);
+
+    if (SUCCEEDED(CreateCardVisual(c)))
+    {
+        m_cards.push_back(std::move(c));
+        return true;
+    }
+
+    return false;
+}
+
+// ============================================================================
+// Flip3DComp::BuildCards
+// ============================================================================
+/*void Flip3DComp::BuildCards()
+{
+    m_cards.clear();
+
+    if (!m_d3dDevice)
+    {
+        D3D_FEATURE_LEVEL fl = D3D_FEATURE_LEVEL_11_0;
+        HRESULT hr = D3D11CreateDevice(
+            nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
+            D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+            &fl, 1, D3D11_SDK_VERSION,
+            &m_d3dDevice, nullptr, nullptr);
+
+        if (FAILED(hr))
+        {
+            D3D11CreateDevice(
+                nullptr, D3D_DRIVER_TYPE_WARP, nullptr,
+                D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+                &fl, 1, D3D11_SDK_VERSION,
+                &m_d3dDevice, nullptr, nullptr);
+        }
+    }
+
+    auto hwnds = EnumerateWindows();
+
+    MONITORINFO primaryMi = QueryPrimaryMonitor();
+    m_monW       = (float)std::max(1L, primaryMi.rcWork.right  - primaryMi.rcWork.left);
+    m_monH       = (float)std::max(1L, primaryMi.rcWork.bottom - primaryMi.rcWork.top);
+    m_monOriginX = (float)primaryMi.rcWork.left;
+    m_monOriginY = (float)primaryMi.rcWork.top;
+
+    int carouselIndex = 0;
+    for (auto h : hwnds)
+    {
+        CardModel c;
+        c.m_hwnd                 = h;
+        c.m_initialCarouselIndex = carouselIndex++;
+        UpdateCardGeometry(c, m_monW, m_monH);
+        m_cards.push_back(std::move(c));
+    }
+    m_originalFrontHwnd = m_cards.empty() ? nullptr : m_cards[0].m_hwnd;
+}*/
+
+void Flip3DComp::BuildCards()
+{
+    m_cards.clear();
+
+    if (!m_d3dDevice)
+    {
+        D3D_FEATURE_LEVEL fl = D3D_FEATURE_LEVEL_11_0;
+        HRESULT hr = D3D11CreateDevice(
+            nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
+            D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+            &fl, 1, D3D11_SDK_VERSION,
+            &m_d3dDevice, nullptr, nullptr);
+
+        if (FAILED(hr))
+        {
+            D3D11CreateDevice(
+                nullptr, D3D_DRIVER_TYPE_WARP, nullptr,
+                D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+                &fl, 1, D3D11_SDK_VERSION,
+                &m_d3dDevice, nullptr, nullptr);
+        }
+    }
+    auto hwnds = EnumerateWindows();
+    MONITORINFO primaryMi = QueryPrimaryMonitor();
+    m_monW       = (float)std::max(1L, primaryMi.rcWork.right  - primaryMi.rcWork.left);
+    m_monH       = (float)std::max(1L, primaryMi.rcWork.bottom - primaryMi.rcWork.top);
+    m_monOriginX = (float)primaryMi.rcWork.left;
+    m_monOriginY = (float)primaryMi.rcWork.top;
+
+    int carouselIndex = 0;
+    for (auto h : hwnds)
+    {
+        CardModel c;
+        c.m_hwnd                 = h;
+        c.m_isGroup             =  false;
+        c.m_initialCarouselIndex = carouselIndex++;
+        UpdateCardGeometry(c, m_monW, m_monH);
+        m_cards.push_back(std::move(c));
+    }
+    m_originalFrontHwnd = m_cards.empty() ? nullptr : m_cards[0].m_hwnd;
+}
+
+// ============================================================================
+int Flip3DComp::FindCardIndex(HWND hwnd) const
+{
+    if (!hwnd)
+        return -1;
+
+    for (int i = 0; i < (int)m_cards.size(); ++i)
+    {
+        if (m_cards[(size_t)i].m_hwnd == hwnd)
+            return i;
+    }
+    return -1;
+}
+
+// ============================================================================
+HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
+{
+    if (!m_dcompDevice || !m_sceneVisual)
+        return E_INVALIDARG;
+
+    if (!card.m_isGroup && !card.m_hwnd && !card.m_isShellDesktop)
+        return E_INVALIDARG;
+
+    if (card.m_isGroup && card.m_groupHwnds.empty())
+        return E_INVALIDARG;
+
+    // Create container visual for the card
+    ComPtr<IDCompositionVisual2> container;
+    HRESULT hr = m_dcompDevice->CreateVisual(&container);
+    if (FAILED(hr))
+        return hr;
+
+    // 1. Render the primary source (either the single window or the desktop background)
+    HWND primarySourceHwnd = card.m_isGroup ? nullptr : card.m_hwnd;
+    if (primarySourceHwnd)
+    {
+        DWM_THUMBNAIL_PROPERTIES tp = {};
+        tp.dwFlags     = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
+        tp.fVisible    = TRUE;
+        tp.rcDestination = { 0, 0, card.m_srcWidth, card.m_srcHeight };
+
+        void* pv = nullptr;
+        hr = m_pfnCreateSharedThumbVisual(
+            m_hwnd, primarySourceHwnd, DWM_TNF_DWMWINDOW, &tp,
+            m_dcompDevice.Get(), &pv, &card.m_hThumb);
+
+        if (SUCCEEDED(hr) && pv)
+        {
+            ComPtr<IDCompositionVisual> thumbBase;
+            thumbBase.Attach((IDCompositionVisual*)pv);
+            if (SUCCEEDED(thumbBase.As(&card.m_visual)))
+            {
+                card.m_visual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+                card.m_visual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+                container->AddVisual(card.m_visual.Get(), FALSE, nullptr);
+            }
+        }
+    }
+    //
+    hr = container.As(&card.m_containerVisual);
+    if (FAILED(hr))
+        return hr;
+
+        if (card.m_isShellDesktop)
+        {
+            MONITORINFO primaryMi = QueryPrimaryMonitor();
+            std::vector<HWND> allHwnds = EnumerateWindows();
+            std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
+    
+        for (const auto& group : activeGroups)
+        {
+            for (HWND groupHwnd : group)
+            {
+                RECT rcWin = {};
+                bool isMin = IsIconic(groupHwnd);
+
+                if (isMin)
+                {
+                    WINDOWPLACEMENT wp = { sizeof(wp) };
+                    if (GetWindowPlacement(groupHwnd, &wp))
+                    {
+                        rcWin = wp.rcNormalPosition;
+                    }
+                }
+                else
+                {
+                    if (FAILED(DwmGetWindowAttribute(groupHwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
+                    {
+                        GetWindowRect(groupHwnd, &rcWin);
+                    }
+                }
+
+                if (rcWin.right <= rcWin.left || rcWin.bottom <= rcWin.top)
+                    continue;
+
+                float scaleX = card.m_srcWidth / m_monW;
+                float scaleY = card.m_srcHeight / m_monH;
+
+                float screenX = (float)(rcWin.left - m_monOriginX);
+                float screenY = (float)(rcWin.top - m_monOriginY);
+                float screenW = (float)(rcWin.right - rcWin.left);
+                float screenH = (float)(rcWin.bottom - rcWin.top);
+
+                float gutter = 160.0f;
+                bool touchesLeft   = (screenX <= 5.0f);
+                bool touchesRight  = (abs((screenX + screenW) - m_monW) <= 5.0f);
+                bool touchesTop    = (screenY <= 5.0f);
+                bool touchesBottom = (abs((screenY + screenH) - m_monH) <= 5.0f);
+
+                float adjustedX = screenX + (touchesLeft ? gutter : gutter * 0.5f);
+                float adjustedY = screenY + (touchesTop ? gutter : gutter * 0.5f);
+                float adjustedW = screenW - ((touchesLeft ? gutter : gutter * 0.5f) + (touchesRight ? gutter : gutter * 0.5f));
+                float adjustedH = screenH - ((touchesTop ? gutter : gutter * 0.5f) + (touchesBottom ? gutter : gutter * 0.5f));
+
+                int relX = (int)(adjustedX * scaleX);
+                int relY = (int)(adjustedY * scaleY);
+                int relW = (int)(adjustedW * scaleX);
+                int relH = (int)(adjustedH * scaleY);
+
+                HTHUMBNAIL subThumb = nullptr;
+                DWM_THUMBNAIL_PROPERTIES subTp = {};
+                subTp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D;
+                
+                if (isMin)
+                {
+                    subTp.dwFlags |= DWM_TNP_FORCECVI;
+                }
+
+                subTp.fVisible = TRUE;
+                subTp.rcDestination = { 0, 0, relW, relH };
+
+                void* subPv = nullptr;
+                if (SUCCEEDED(m_pfnCreateSharedThumbVisual(m_hwnd, groupHwnd, DWM_TNF_DWMWINDOW, &subTp, m_dcompDevice.Get(), &subPv, &subThumb)))
+                {
+                    ComPtr<IDCompositionVisual> subThumbBase;
+                    subThumbBase.Attach((IDCompositionVisual*)subPv);
+                    
+                    ComPtr<IDCompositionVisual3> subVisual;
+                    if (SUCCEEDED(subThumbBase.As(&subVisual)))
+                    {
+                        subVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+                        subVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+                        //
+                        subVisual->SetOffsetX((float)relX);
+                        subVisual->SetOffsetY((float)relY);
+
+                        container->AddVisual(subVisual.Get(), FALSE, nullptr);
+                    }
+                }
+            }
+        }
+        RebuildDesktopGroupThumbnails(card);
+    }
+    // Apply global rounded corner clipping to the container visual
+    ComPtr<IDCompositionRectangleClip> clip;
+    if (SUCCEEDED(m_dcompDevice->CreateRectangleClip(&clip)))
+    {
+        float radius = 12.f / 2.f;
+        clip->SetLeft(0.f);
+        clip->SetTop(0.f);
+        clip->SetRight((float)card.m_srcWidth);
+        clip->SetBottom((float)card.m_srcHeight);
+        clip->SetTopLeftRadiusX(radius);
+        clip->SetTopLeftRadiusY(radius);
+        clip->SetTopRightRadiusX(radius);
+        clip->SetTopRightRadiusY(radius);
+        clip->SetBottomLeftRadiusX(radius);
+        clip->SetBottomLeftRadiusY(radius);
+        clip->SetBottomRightRadiusX(radius);
+        clip->SetBottomRightRadiusY(radius);
+        container->SetClip(clip.Get());
+    }
+    container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+    container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+
+    hr = container.As(&card.m_containerVisual);
+    if (FAILED(hr))
+        return hr;
+
+    hr = m_sceneVisual->AddVisual(container.Get(), TRUE, nullptr);
+    return hr;
+}
+
+// ============================================================================
+/*HRESULT Flip3DComp::CreateCardVisuals()
+{
+    if (!m_dcompDevice || !m_sceneVisual)
+        return E_FAIL;
+
+    for (auto& card : m_cards)
+    {
+        if (!card.m_hwnd || card.m_containerVisual)
+            continue;
+
+        if (FAILED(CreateCardVisual(card)))
+            continue;
+
+        if (card.m_isShellDesktop)
+        {
+            RebuildDesktopGroupThumbnails(card);
+        }
+    }
+    return S_OK;
+}*/
+
+HRESULT Flip3DComp::CreateCardVisuals()
+{
+    if (!m_dcompDevice || !m_sceneVisual)
+        return E_FAIL;
+
+    for (auto& card : m_cards)
+    {
+        // Skip if already initialized, but allow cards that either have a single hwnd OR are a group with hwnds
+        if (card.m_containerVisual)
+            continue;
+
+        if (!card.m_isGroup && !card.m_hwnd)
+            continue;
+
+        if (card.m_isGroup && card.m_groupHwnds.empty())
+            continue;
+
+        if (FAILED(CreateCardVisual(card)))
+            continue;
+    }
+    return S_OK;
+}
+
+void Flip3DComp::RemoveCardAt(size_t index)
+{
+    if (index >= m_cards.size())
+        return;
+
+    CardModel& card = m_cards[index];
+
+    if (card.m_containerVisual && m_sceneVisual)
+    {
+        ComPtr<IDCompositionVisual> sceneBase;
+        if (SUCCEEDED(m_sceneVisual.As(&sceneBase)))
+            sceneBase->RemoveVisual(card.m_containerVisual.Get());
+    }
+
+    if (card.m_hThumb)
+    {
+        DwmUnregisterThumbnail(card.m_hThumb);
+        card.m_hThumb = nullptr;
+    }
+
+    card.m_visual.Reset();
+    card.m_containerVisual.Reset();
+
+    m_cards.erase(m_cards.begin() + (ptrdiff_t)index);
+
+    if (m_dcompDevice)
+        m_dcompDevice->Commit();
+}
+
+// ============================================================================
+// Flip3DComp::UpdateCardThumbnailDest
+// Sync DWM thumbnail rcDestination to the current source pixel size.
+// ============================================================================
+void Flip3DComp::UpdateCardThumbnailDest(CardModel& card)
+{
+    if (!card.m_hThumb || card.m_srcWidth <= 0 || card.m_srcHeight <= 0)
+        return;
+
+    DWM_THUMBNAIL_PROPERTIES tp = {};
+    tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
+                 | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
+    tp.fVisible  = TRUE;
+    tp.rcDestination = { 0, 0, card.m_srcWidth, card.m_srcHeight };
+    DwmUpdateThumbnailProperties(card.m_hThumb, &tp);
+}
+
+// ============================================================================
+// Flip3DComp::OnThumbnailSourceSizeChanged
+// uDWM CThumbnailVisual::OnSizeChanged posts WM 0x327 to hwndDestination when
+// DWM_TNF_DWMWINDOW is set and the live preview bitmap changes size. Every
+// card thumbnail posts independently, so the WndProc only sets m_thumbnailsDirty
+// and this runs once per frame, touching cards whose queried source size differs.
+// ============================================================================
+void Flip3DComp::OnThumbnailSourceSizeChanged()
+{
+    m_thumbnailsDirty = false;
+
+    bool anyChange = false;
+    for (auto& card : m_cards)
+    {
+        if (!card.m_hwnd)
+            continue;
+
+        SIZE querySize = {};
+        if (FAILED(m_pfnQueryThumbSize(card.m_hwnd, FALSE, &querySize)))
+            continue;
+
+        const int queryW = (int)std::max(0L, querySize.cx);
+        const int queryH = (int)std::max(0L, querySize.cy);
+        if (queryW == card.m_srcWidth && queryH == card.m_srcHeight)
+            continue;
+
+        const bool selectedRestore = card.m_hwnd == m_selectedHwnd;
+        UpdateCardGeometry(card, m_monW, m_monH, selectedRestore);
+        UpdateCardThumbnailDest(card);
+        anyChange = true;
+    }
+    if (anyChange && m_dcompDevice)
+        m_dcompDevice->Commit();
+}
+
+static RECT GetTrueWindowRect(HWND hwnd)
+{
+    RECT rc = {};
+    if (FAILED(DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rc, sizeof(rc))))
+    {
+        GetWindowRect(hwnd, &rc);
+    }
+    return rc;
+}
+
 std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork)
 {
     std::vector<std::vector<HWND>> groups;
-    auto getSafeRect = [this](HWND hwnd) {
+    auto getSafeRect = [](HWND hwnd) {
         RECT rc = {};
         if (IsIconic(hwnd))
         {
@@ -266,7 +732,6 @@ std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vec
             if (GetWindowPlacement(hwnd, &wp))
             {
                 rc = wp.rcNormalPosition;
-                OffsetRect(&rc, (int)m_monOriginX, (int)m_monOriginY);
             }
         }
         else
@@ -281,7 +746,7 @@ std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vec
 
     for (size_t i = 0; i < hwnds.size(); ++i)
     {
-        if (!IsWindow(hwnds[i]) || hwnds[i] == GetShellWindow() || (!IsWindowVisible(hwnds[i]) && !IsIconic(hwnds[i])))
+        if (!IsWindow(hwnds[i]) || hwnds[i] == GetShellWindow() || !IsWindowVisible(hwnds[i]) && !IsIconic(hwnds[i]))
             continue;
 
         RECT rc1 = getSafeRect(hwnds[i]);
@@ -290,7 +755,7 @@ std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vec
 
         for (size_t j = i + 1; j < hwnds.size(); ++j)
         {
-            if (!IsWindow(hwnds[j]) || hwnds[j] == GetShellWindow() || (!IsWindowVisible(hwnds[j]) && !IsIconic(hwnds[j])))
+            if (!IsWindow(hwnds[j]) || hwnds[j] == GetShellWindow() || !IsWindowVisible(hwnds[j]) && !IsIconic(hwnds[j]))
                 continue;
 
             RECT rc2 = getSafeRect(hwnds[j]);
@@ -486,377 +951,9 @@ void Flip3DComp::RefreshDesktopGroupThumbnailsIfStale()
 
         if (sig != card.m_groupSignature)
             RebuildDesktopGroupThumbnails(card);
-        break;
+
+        //break;
     }
-}
-// ============================================================================
-// Flip3DComp::UpdateMonitorRect
-// uDWM UpdateMonitorRect: normMon from primary rcWork; SetSize uses work-area
-// pixels. The input window covers the virtual desktop, but the 3D viewport must
-// match rcWork (size + origin), not the full client rect.
-// ============================================================================
-void Flip3DComp::UpdateMonitorRect()
-{
-    HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
-    if (!hMon)
-        return;
-
-    MONITORINFO mi = { sizeof(mi) };
-    if (!GetMonitorInfoW(hMon, &mi))
-        return;
-
-    const int vx = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    const int vy = GetSystemMetrics(SM_YVIRTUALSCREEN);
-    m_viewX = (float)(mi.rcWork.left - vx);
-    m_viewY = (float)(mi.rcWork.top  - vy);
-
-    const float newMonW     = (float)std::max(1L, mi.rcWork.right  - mi.rcWork.left);
-    const float newMonH     = (float)std::max(1L, mi.rcWork.bottom - mi.rcWork.top);
-    const float newOriginX  = (float)mi.rcWork.left;
-    const float newOriginY  = (float)mi.rcWork.top;
-
-    const bool layoutChanged =
-        newMonW    != m_monW       ||
-        newMonH    != m_monH       ||
-        newOriginX != m_monOriginX ||
-        newOriginY != m_monOriginY;
-
-    m_monW       = newMonW;
-    m_monH       = newMonH;
-    m_monOriginX = newOriginX;
-    m_monOriginY = newOriginY;
-
-    if (layoutChanged)
-    {
-        for (auto& card : m_cards)
-            UpdateCardGeometry(card, m_monW, m_monH);
-    }
-}
-
-bool Flip3DComp::AddCardForWindow(HWND hwnd)
-{
-    if (!hwnd || !IsWindow(hwnd))
-        return false;
-    // Check if a card for this window already exists
-    if (FindCardIndex(hwnd) >= 0)
-        return true;
-
-    CardModel c;
-    c.m_hwnd = hwnd;
-    c.m_isGroup = false;
-    c.m_initialCarouselIndex = (int)m_cards.size();
-    
-    UpdateCardGeometry(c, m_monW, m_monH);
-
-    if (SUCCEEDED(CreateCardVisual(c)))
-    {
-        m_cards.push_back(std::move(c));
-        return true;
-    }
-    return false;
-}
-
-// ============================================================================
-// Flip3DComp::BuildCards
-// ============================================================================
-/*void Flip3DComp::BuildCards()
-{
-    m_cards.clear();
-
-    if (!m_d3dDevice)
-    {
-        D3D_FEATURE_LEVEL fl = D3D_FEATURE_LEVEL_11_0;
-        HRESULT hr = D3D11CreateDevice(
-            nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
-            D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-            &fl, 1, D3D11_SDK_VERSION,
-            &m_d3dDevice, nullptr, nullptr);
-
-        if (FAILED(hr))
-        {
-            D3D11CreateDevice(
-                nullptr, D3D_DRIVER_TYPE_WARP, nullptr,
-                D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-                &fl, 1, D3D11_SDK_VERSION,
-                &m_d3dDevice, nullptr, nullptr);
-        }
-    }
-
-    auto hwnds = EnumerateWindows();
-
-    MONITORINFO primaryMi = QueryPrimaryMonitor();
-    m_monW       = (float)std::max(1L, primaryMi.rcWork.right  - primaryMi.rcWork.left);
-    m_monH       = (float)std::max(1L, primaryMi.rcWork.bottom - primaryMi.rcWork.top);
-    m_monOriginX = (float)primaryMi.rcWork.left;
-    m_monOriginY = (float)primaryMi.rcWork.top;
-
-    int carouselIndex = 0;
-    for (auto h : hwnds)
-    {
-        CardModel c;
-        c.m_hwnd                 = h;
-        c.m_initialCarouselIndex = carouselIndex++;
-        UpdateCardGeometry(c, m_monW, m_monH);
-        m_cards.push_back(std::move(c));
-    }
-    m_originalFrontHwnd = m_cards.empty() ? nullptr : m_cards[0].m_hwnd;
-}*/
-
-void Flip3DComp::BuildCards()
-{
-    m_cards.clear();
-
-    if (!m_d3dDevice)
-    {
-        D3D_FEATURE_LEVEL fl = D3D_FEATURE_LEVEL_11_0;
-        HRESULT hr = D3D11CreateDevice(
-            nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
-            D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-            &fl, 1, D3D11_SDK_VERSION,
-            &m_d3dDevice, nullptr, nullptr);
-
-        if (FAILED(hr))
-        {
-            D3D11CreateDevice(
-                nullptr, D3D_DRIVER_TYPE_WARP, nullptr,
-                D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-                &fl, 1, D3D11_SDK_VERSION,
-                &m_d3dDevice, nullptr, nullptr);
-        }
-    }
-
-    auto hwnds = EnumerateWindows();
-    MONITORINFO primaryMi = QueryPrimaryMonitor();
-    m_monW       = (float)std::max(1L, primaryMi.rcWork.right  - primaryMi.rcWork.left);
-    m_monH       = (float)std::max(1L, primaryMi.rcWork.bottom - primaryMi.rcWork.top);
-    m_monOriginX = (float)primaryMi.rcWork.left;
-    m_monOriginY = (float)primaryMi.rcWork.top;
-
-    int carouselIndex = 0;
-    for (auto h : hwnds)
-    {
-        CardModel c;
-        c.m_hwnd                 = h;
-        c.m_isGroup             =  false;
-        c.m_initialCarouselIndex = carouselIndex++;
-        UpdateCardGeometry(c, m_monW, m_monH);
-        m_cards.push_back(std::move(c));
-    }
-    m_originalFrontHwnd = m_cards.empty() ? nullptr : m_cards[0].m_hwnd;
-}
-
-// ============================================================================
-int Flip3DComp::FindCardIndex(HWND hwnd) const
-{
-    if (!hwnd)
-        return -1;
-
-    for (int i = 0; i < (int)m_cards.size(); ++i)
-    {
-        if (m_cards[(size_t)i].m_hwnd == hwnd)
-            return i;
-    }
-    return -1;
-}
-
-// ============================================================================
-HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
-{
-    if (!m_dcompDevice || !m_sceneVisual || !card.m_hwnd)
-        return E_INVALIDARG;
-
-    DWM_THUMBNAIL_PROPERTIES tp = {};
-    tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
-                 | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
-    tp.fVisible  = TRUE;
-    tp.rcDestination = { 0, 0, card.m_srcWidth, card.m_srcHeight };
-
-    void* pv = nullptr;
-    HRESULT hr = m_pfnCreateSharedThumbVisual(
-        m_hwnd,
-        card.m_hwnd,
-        DWM_TNF_DWMWINDOW,
-        &tp,
-        m_dcompDevice.Get(),
-        &pv,
-        &card.m_hThumb);
-
-    if (FAILED(hr) || !pv)
-        return FAILED(hr) ? hr : E_FAIL;
-
-    ComPtr<IDCompositionVisual> thumbBase;
-    thumbBase.Attach((IDCompositionVisual*)pv);
-    hr = thumbBase.As(&card.m_visual);
-    if (FAILED(hr))
-        return hr;
-
-    ComPtr<IDCompositionVisual2> container;
-    hr = m_dcompDevice->CreateVisual(&container);
-    if (FAILED(hr))
-        return hr;
-    //
-    //RebuildDesktopGroupThumbnails(card);
-    //
-    ComPtr<IDCompositionRectangleClip> clip;
-    if (SUCCEEDED(m_dcompDevice->CreateRectangleClip(&clip)))
-    {
-        float radius = 12.f / 2.f;
-        clip->SetLeft(0.f);
-        clip->SetTop(0.f);
-        clip->SetRight((float)card.m_srcWidth);
-        clip->SetBottom((float)card.m_srcHeight);
-        clip->SetTopLeftRadiusX(radius);
-        clip->SetTopLeftRadiusY(radius);
-        clip->SetTopRightRadiusX(radius);
-        clip->SetTopRightRadiusY(radius);
-        clip->SetBottomLeftRadiusX(radius);
-        clip->SetBottomLeftRadiusY(radius);
-        clip->SetBottomRightRadiusX(radius);
-        clip->SetBottomRightRadiusY(radius);
-        container->SetClip(clip.Get());
-    }
-
-    container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-    container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-
-    card.m_visual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-    card.m_visual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-
-    hr = container->AddVisual(card.m_visual.Get(), FALSE, nullptr);
-    if (FAILED(hr))
-        return hr;
-
-    hr = container.As(&card.m_containerVisual);
-    if (FAILED(hr))
-        return hr;
-
-    hr = m_sceneVisual->AddVisual(container.Get(), TRUE, nullptr);
-    return hr;
-}
-// ============================================================================
-/*HRESULT Flip3DComp::CreateCardVisuals()
-{
-    if (!m_dcompDevice || !m_sceneVisual)
-        return E_FAIL;
-
-    for (auto& card : m_cards)
-    {
-        if (!card.m_hwnd || card.m_containerVisual)
-            continue;
-
-        if (FAILED(CreateCardVisual(card)))
-            continue;
-
-        if (card.m_isShellDesktop)
-        {
-            RebuildDesktopGroupThumbnails(card);
-        }
-    }
-    return S_OK;
-}*/
-
-HRESULT Flip3DComp::CreateCardVisuals()
-{
-    if (!m_dcompDevice || !m_sceneVisual)
-        return E_FAIL;
-
-    for (auto& card : m_cards)
-    {
-        // Skip if already initialized, but allow cards that either have a single hwnd OR are a group with hwnds
-        if (card.m_containerVisual)
-            continue;
-
-        if (!card.m_isGroup && !card.m_hwnd)
-            continue;
-
-        if (card.m_isGroup && card.m_groupHwnds.empty())
-            continue;
-
-        if (FAILED(CreateCardVisual(card)))
-            continue;
-    }
-    return S_OK;
-}
-
-void Flip3DComp::RemoveCardAt(size_t index)
-{
-    if (index >= m_cards.size())
-        return;
-
-    CardModel& card = m_cards[index];
-
-    if (card.m_containerVisual && m_sceneVisual)
-    {
-        ComPtr<IDCompositionVisual> sceneBase;
-        if (SUCCEEDED(m_sceneVisual.As(&sceneBase)))
-            sceneBase->RemoveVisual(card.m_containerVisual.Get());
-    }
-
-    if (card.m_hThumb)
-    {
-        DwmUnregisterThumbnail(card.m_hThumb);
-        card.m_hThumb = nullptr;
-    }
-
-    card.m_visual.Reset();
-    card.m_containerVisual.Reset();
-
-    m_cards.erase(m_cards.begin() + (ptrdiff_t)index);
-
-    if (m_dcompDevice)
-        m_dcompDevice->Commit();
-}
-
-// ============================================================================
-// Flip3DComp::UpdateCardThumbnailDest
-// Sync DWM thumbnail rcDestination to the current source pixel size.
-// ============================================================================
-void Flip3DComp::UpdateCardThumbnailDest(CardModel& card)
-{
-    if (!card.m_hThumb || card.m_srcWidth <= 0 || card.m_srcHeight <= 0)
-        return;
-
-    DWM_THUMBNAIL_PROPERTIES tp = {};
-    tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
-                 | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
-    tp.fVisible  = TRUE;
-    tp.rcDestination = { 0, 0, card.m_srcWidth, card.m_srcHeight };
-    DwmUpdateThumbnailProperties(card.m_hThumb, &tp);
-}
-
-// ============================================================================
-// Flip3DComp::OnThumbnailSourceSizeChanged
-// uDWM CThumbnailVisual::OnSizeChanged posts WM 0x327 to hwndDestination when
-// DWM_TNF_DWMWINDOW is set and the live preview bitmap changes size. Every
-// card thumbnail posts independently, so the WndProc only sets m_thumbnailsDirty
-// and this runs once per frame, touching cards whose queried source size differs.
-// ============================================================================
-void Flip3DComp::OnThumbnailSourceSizeChanged()
-{
-    m_thumbnailsDirty = false;
-
-    bool anyChange = false;
-    for (auto& card : m_cards)
-    {
-        if (!card.m_hwnd)
-            continue;
-
-        SIZE querySize = {};
-        if (FAILED(m_pfnQueryThumbSize(card.m_hwnd, FALSE, &querySize)))
-            continue;
-
-        const int queryW = (int)std::max(0L, querySize.cx);
-        const int queryH = (int)std::max(0L, querySize.cy);
-        if (queryW == card.m_srcWidth && queryH == card.m_srcHeight)
-            continue;
-
-        const bool selectedRestore = card.m_hwnd == m_selectedHwnd;
-        UpdateCardGeometry(card, m_monW, m_monH, selectedRestore);
-        UpdateCardThumbnailDest(card);
-        anyChange = true;
-    }
-    if (anyChange && m_dcompDevice)
-        m_dcompDevice->Commit();
 }
 
 
