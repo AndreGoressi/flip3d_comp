@@ -127,6 +127,44 @@ void Flip3DComp::UnloadThumbApi()
     }
 }
 
+void UpdateSnapGroupGeometry(CardModel& card, const RECT& baseRect, int columnIndex, int totalColumns)
+{
+    if (totalColumns <= 0) 
+        totalColumns = 1;
+
+    float totalWidth = (float)(baseRect.right - baseRect.left);
+    float gutter = 160.f;
+    
+    float totalGutterSpace = (float)(totalColumns + 1) * gutter;
+    float availableWidthForCards = totalWidth - totalGutterSpace;
+    float cardWidth = availableWidthForCards / (float)totalColumns;
+    
+    card.m_destX = (float)baseRect.left + ((float)(columnIndex + 1) * gutter) + ((float)columnIndex * cardWidth);
+    card.m_destW = cardWidth;
+    
+    card.m_destY = (float)baseRect.top + gutter;
+    card.m_destH = (float)(baseRect.bottom - baseRect.top) - (2.0f * gutter);
+}
+
+bool ExtractSnapLayoutInfo(const void* layoutPtr, int& outTotalColumns, int& outColumnIndex)
+{
+    if (!layoutPtr)
+        return false;
+
+    outTotalColumns = (int)ReadU32(layoutPtr, 0x20);
+
+    BYTE* zoneFirst = nullptr;
+    SIZE_T zoneCount = 0;
+
+    if (!GetZoneVector(layoutPtr, &zoneFirst, &zoneCount) || zoneCount == 0)
+        return false;
+
+    BYTE* firstZone = zoneFirst; 
+    outColumnIndex = (int)ReadU32(firstZone, 0x20);
+
+    return true;
+}
+
 // ============================================================================
 // Flip3DComp::UpdateCardGeometry
 // uDWM Flip3DWindow::OnOriginalRectUpdated:
@@ -134,7 +172,7 @@ void Flip3DComp::UnloadThumbApi()
 //   - NormalizeWindowSize + world mapping via shared PRIMARY rcWork (normMon*)
 //   - GetMonitorToWorldTransform on primary m_rcMonitor for all cards
 // ============================================================================
-void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
+/*void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
                                        bool selectedRestore)
 {
     HWND h = c.m_hwnd;
@@ -219,6 +257,137 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
     float flatH = thumbH;
     
     if (c.m_isShellDesktop || c.m_isMinimized)
+    {
+        flatW = (float)std::max(1L, flatBounds.right  - flatBounds.left);
+        flatH = (float)std::max(1L, flatBounds.bottom - flatBounds.top);
+    }
+
+    c.m_flatSize = { flatW / normMonW, flatH / normMonH };
+
+    float anchorX = (float)flatBounds.left;
+    float anchorY = (float)flatBounds.top;
+    if (m_rtl)
+    {
+        const float relX = anchorX - m_monOriginX;
+        anchorX = m_monOriginX + (normMonW - (flatW + relX));
+    }
+
+    float worldX = 0.0f;
+    float worldY = 0.0f;
+    Math::MonitorToWorldTopLeft(
+        anchorX, anchorY,
+        m_monOriginX, m_monOriginY, normMonW, normMonH,
+        worldX, worldY);
+
+    c.m_originalPos = { worldX, worldY, 0.0f };
+    c.m_flatPos     = { worldX, worldY, 0.0f };
+}*/
+
+void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
+                                    bool selectedRestore)
+{
+    HWND h = c.m_hwnd;
+    if (!h)
+        return;
+
+    normMonW = std::max(normMonW, 1.0f);
+    normMonH = std::max(normMonH, 1.0f);
+
+    c.m_isMinimized    = IsIconic(h) && !selectedRestore;
+    c.m_isShellDesktop = (h == GetShellWindow());
+
+    HMONITOR mon = MonitorFromWindow(h, MONITOR_DEFAULTTONEAREST);
+    if (!mon)
+        mon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+
+    MONITORINFO mi = { sizeof(mi) };
+    if (mon)
+        GetMonitorInfoW(mon, &mi);
+    else
+        mi = QueryPrimaryMonitor();
+
+    SIZE srcSize = {};
+    if (FAILED(m_pfnQueryThumbSize(h, FALSE, &srcSize))
+        || srcSize.cx < 1 || srcSize.cy < 1)
+        return;
+
+    float thumbW = (float)srcSize.cx;
+    float thumbH = (float)srcSize.cy;
+    const float thumbAspect = thumbH / thumbW;
+
+    RECT flatBounds = {};
+
+    if (c.m_isShellDesktop)
+    {
+        // uDWM shell: relative origin {0,0} on primary - use primary rcWork.
+        MONITORINFO primaryMi = QueryPrimaryMonitor();
+        flatBounds = primaryMi.rcWork;
+    }
+    else if (c.m_isMinimized)
+    {
+        // 2D minimize destination: taskbar tile position only.
+        RECT minRect = {};
+        if (m_pfnGetWindowMinimizeRect(h, &minRect) && !IsRectEmpty(&minRect))
+            flatBounds = Math::BuildFinalMinRect(minRect, thumbAspect);
+    }
+    //
+    else if (!FillRestoredScreenRect(h, mi, flatBounds))
+    {
+        flatBounds = mi.rcWork;
+    }
+
+    if (IsRectEmpty(&flatBounds))
+        flatBounds = mi.rcWork;
+
+    // -------------------------------------------------------------------------------
+    // Snap-Layout & Gutter Integration
+    // -------------------------------------------------------------------------------
+    if (!c.m_isShellDesktop && !c.m_isMinimized)
+    {
+        int totalCols = 0; 
+        int colIndex = 0;  
+        void* activeLayoutPtr = nullptr; 
+        //
+        if (ExtractSnapLayoutInfo(activeLayoutPtr, totalCols, colIndex))
+        {
+            UpdateSnapGroupGeometry(c, mi.rcWork, colIndex, totalCols);
+            flatBounds.left   = (LONG)c.m_destX;
+            flatBounds.top    = (LONG)c.m_destY;
+            flatBounds.right  = (LONG)(c.m_destX + c.m_destW);
+            flatBounds.bottom = (LONG)(c.m_destY + c.m_destH);
+        }
+    }
+    // -------------------------------------------------------------------------------
+
+    c.m_srcWidth  = (int)thumbW;
+    c.m_srcHeight = (int)thumbH;
+    //
+    float maxResW = normMonW * 0.5f;
+    float maxResH = normMonH * 0.5f;
+    float scale = std::min(maxResW / thumbW, maxResH / thumbH);
+    scale = std::min(scale, 1.0f); 
+
+    c.m_srcWidth  = std::max(1, (int)(thumbW * scale));
+    c.m_srcHeight = std::max(1, (int)(thumbH * scale));
+    // -------------------------------------------------------------------------------
+
+    // targetSize / occupancy = 3D carousel (uDWM finalSize).
+    Math::WorldSizesFromThumbPixels(
+        thumbW, thumbH, normMonW, normMonH,
+        c.m_flatSize, c.m_targetSize, c.m_occupancy);
+
+    c.m_aspectRatio = thumbW / thumbH;
+
+    const float qualityScale = CardThumbnailQualityScale();
+    c.m_srcWidth = std::max(1, (int)std::lround(thumbW * qualityScale));
+    c.m_srcHeight = std::max(1, (int)std::lround(thumbH * qualityScale));
+
+    // 2D flat: position from flatBounds; size from QueryThumbSize (restored pixels).
+    // Exceptions: shell uses rcWork; iconic minimize uses taskbar tile dimensions.
+    float flatW = thumbW;
+    float flatH = thumbH;
+    
+    if (c.m_isShellDesktop || c.m_isMinimized || !IsRectEmpty(&flatBounds))
     {
         flatW = (float)std::max(1L, flatBounds.right  - flatBounds.left);
         flatH = (float)std::max(1L, flatBounds.bottom - flatBounds.top);
