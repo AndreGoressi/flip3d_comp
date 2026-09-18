@@ -138,6 +138,24 @@ enum class ViewState
     ExitRepeatedRotate        = 4,  // exit flatten + discrete list rotation in parallel
 };
 
+enum class PeekTypes : long
+{
+    /// <summary>
+    /// This flag is here only for completeness and is not used
+    /// </summary>
+    NotUsed = 0,
+
+    /// <summary>
+    /// Denotes that the Peek API is to operate on the desktop
+    /// </summary>
+    Desktop = 1,
+
+    /// <summary>
+    /// Denotes that the Peek API is to operate on a window.
+    /// </summary>
+    Window = 3
+};
+
 // ============================================================================
 // Private DWM thumbnail API (dwmapi.dll ordinal exports)
 // ============================================================================
