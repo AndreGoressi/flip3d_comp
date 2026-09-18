@@ -170,5 +170,5 @@ using DwmpCreateSharedMultiWindowVisual_fn = HRESULT (WINAPI *)(
 using DwmpUpdateSharedMultiWindowVisual_fn = HRESULT (WINAPI *)(
     HTHUMBNAIL hThumbnailId, HWND* phwndsInclude, DWORD chwndsInclude, HWND* phwndsExclude, DWORD chwndsExclude, RECT* prcSource, SIZE* pDestinationSize, DWORD dwFlags);
 
-using DwmActivateLivePreview_fn = HRESULT (WINAPI*)(
-    BOOL fEnable, HWND hwnd, RECT* prcQuery, DWORD dwUnused);
+using DwmpActivateLivePreview_fn = HRESULT(WINAPI*)(
+    BOOL fEnable, HWND hPeekWindow, HWND hTopmostWindow, UINT peekType, void* reserved);
