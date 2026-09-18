@@ -1,26 +1,26 @@
 // ============================================================================
 // main.cpp — Flip3D (DComp) entry point
 // ============================================================================
-#include <windows.h>
-#include <tchar.h>
-#include "PrepareForUIAccess.h"
 #include "Flip3DComp.h"
+#include "PrepareForUIAccess.h" 
 
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PWSTR lpCmdLine, _In_ int nCmdShow)
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nShowCmd)
 {
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
-    UNREFERENCED_PARAMETER(nCmdShow);
-
+    //Force UIAccess to run immediately at startup (restarts the EXE invisibly if necessary)[cite: 3]
     DWORD dwErr = PrepareForUIAccess();
     if (ERROR_SUCCESS != dwErr)
     {
-        //...
+        //#if defined(_DEBUG)
+        //#endif
     }
+
     Flip3DComp main;
 
     if (!main.Initialize(hInstance))
     {
+        MessageBoxW(nullptr,
+            main.InitErrorMessage(),
+            L"Flip3D (DComp)", MB_OK | MB_ICONERROR);
         return 1;
     }
     ShowWindow(main.WindowHandle(), SW_SHOW);
