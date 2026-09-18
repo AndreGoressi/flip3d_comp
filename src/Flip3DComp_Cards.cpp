@@ -314,52 +314,6 @@ bool Flip3DComp::AddCardForWindow(HWND hwnd)
     return false;
 }
 
-// ============================================================================
-// Flip3DComp::BuildCards
-// ============================================================================
-/*void Flip3DComp::BuildCards()
-{
-    m_cards.clear();
-
-    if (!m_d3dDevice)
-    {
-        D3D_FEATURE_LEVEL fl = D3D_FEATURE_LEVEL_11_0;
-        HRESULT hr = D3D11CreateDevice(
-            nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
-            D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-            &fl, 1, D3D11_SDK_VERSION,
-            &m_d3dDevice, nullptr, nullptr);
-
-        if (FAILED(hr))
-        {
-            D3D11CreateDevice(
-                nullptr, D3D_DRIVER_TYPE_WARP, nullptr,
-                D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-                &fl, 1, D3D11_SDK_VERSION,
-                &m_d3dDevice, nullptr, nullptr);
-        }
-    }
-
-    auto hwnds = EnumerateWindows();
-
-    MONITORINFO primaryMi = QueryPrimaryMonitor();
-    m_monW       = (float)std::max(1L, primaryMi.rcWork.right  - primaryMi.rcWork.left);
-    m_monH       = (float)std::max(1L, primaryMi.rcWork.bottom - primaryMi.rcWork.top);
-    m_monOriginX = (float)primaryMi.rcWork.left;
-    m_monOriginY = (float)primaryMi.rcWork.top;
-
-    int carouselIndex = 0;
-    for (auto h : hwnds)
-    {
-        CardModel c;
-        c.m_hwnd                 = h;
-        c.m_initialCarouselIndex = carouselIndex++;
-        UpdateCardGeometry(c, m_monW, m_monH);
-        m_cards.push_back(std::move(c));
-    }
-    m_originalFrontHwnd = m_cards.empty() ? nullptr : m_cards[0].m_hwnd;
-}*/
-
 void Flip3DComp::BuildCards()
 {
     m_cards.clear();
@@ -525,7 +479,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
             float adjustedW = screenW - ((touchesLeft ? gutter : gutter * 0.5f) + (touchesRight ? gutter : gutter * 0.5f));
             float adjustedH = screenH - ((touchesTop ? gutter : gutter * 0.5f) + (touchesBottom ? gutter : gutter * 0.5f));
 
-            int relX = (int)(adjustedX * scaleX);
+                        int relX = (int)(adjustedX * scaleX);
             int relY = (int)(adjustedY * scaleY);
             int relW = (int)(adjustedW * scaleX);
             int relH = (int)(adjustedH * scaleY);
@@ -550,14 +504,23 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                     excludeHwnds.push_back(h);
             }
 
-            RECT rcSource;
-            rcSource.left   = (LONG)(rcUnion.left   + (touchesLeft   ? gutter : gutter * 0.5f));
-            rcSource.top    = (LONG)(rcUnion.top    + (touchesTop    ? gutter : gutter * 0.5f));
-            rcSource.right  = (LONG)(rcUnion.right  - (touchesRight  ? gutter : gutter * 0.5f));
-            rcSource.bottom = (LONG)(rcUnion.bottom - (touchesBottom ? gutter : gutter * 0.5f));
+-            RECT rcSource;
+-            rcSource.left   = (LONG)(rcUnion.left   + (touchesLeft   ? gutter : gutter * 0.5f));
+-            rcSource.top    = (LONG)(rcUnion.top    + (touchesTop    ? gutter : gutter * 0.5f));
+-            rcSource.right  = (LONG)(rcUnion.right  - (touchesRight  ? gutter : gutter * 0.5f));
+-            rcSource.bottom = (LONG)(rcUnion.bottom - (touchesBottom ? gutter : gutter * 0.5f));
+-
+-            if (rcSource.right <= rcSource.left || rcSource.bottom <= rcSource.top)
+-                continue;
 
-            if (rcSource.right <= rcSource.left || rcSource.bottom <= rcSource.top)
-                continue;
++            RECT rcSource;
++            rcSource.left   = (LONG)(adjustedX + m_monOriginX);
++            rcSource.top    = (LONG)(adjustedY + m_monOriginY);
++            rcSource.right  = (LONG)(adjustedX + adjustedW + m_monOriginX);
++            rcSource.bottom = (LONG)(adjustedY + adjustedH + m_monOriginY);
++
++            if (rcSource.right <= rcSource.left || rcSource.bottom <= rcSource.top)
++                continue;
 
             SIZE destSize = { relW, relH };
 
@@ -581,8 +544,8 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
             ComPtr<IDCompositionVisual3> groupVisual;
             if (SUCCEEDED(groupThumbBase.As(&groupVisual)))
             {
-                groupVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-                groupVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+                groupVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_INHERIT);
+                groupVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_INHERIT);
                 groupVisual->SetOffsetX((float)relX);
                 groupVisual->SetOffsetY((float)relY);
 
@@ -628,27 +591,6 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
 }
 
 // ============================================================================
-/*HRESULT Flip3DComp::CreateCardVisuals()
-{
-    if (!m_dcompDevice || !m_sceneVisual)
-        return E_FAIL;
-
-    for (auto& card : m_cards)
-    {
-        if (!card.m_hwnd || card.m_containerVisual)
-            continue;
-
-        if (FAILED(CreateCardVisual(card)))
-            continue;
-
-        if (card.m_isShellDesktop)
-        {
-            RebuildDesktopGroupThumbnails(card);
-        }
-    }
-    return S_OK;
-}*/
-
 HRESULT Flip3DComp::CreateCardVisuals()
 {
     if (!m_dcompDevice || !m_sceneVisual)
