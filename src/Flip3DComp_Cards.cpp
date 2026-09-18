@@ -415,12 +415,21 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
             std::vector<HWND> allHwnds = EnumerateWindows();
             std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
     
-        for (const auto& group : activeGroups)
-        {
-            for (auto it = group.rbegin(); it != group.rend(); ++it)
+            for (auto group : activeGroups)
             {
-                HWND groupHwnd = *it;
-                
+                if (group.empty())
+                    continue;
+
+                std::sort(group.begin(), group.end(), [&allHwnds](HWND a, HWND b) {
+                    auto itA = std::find(allHwnds.begin(), allHwnds.end(), a);
+                    auto itB = std::find(allHwnds.begin(), allHwnds.end(), b);
+                    size_t indexA = (itA != allHwnds.end()) ? std::distance(allHwnds.begin(), itA) : SIZE_MAX;
+                    size_t indexB = (itB != allHwnds.end()) ? std::distance(allHwnds.begin(), itB) : SIZE_MAX;
+                    return indexA > indexB; 
+                });
+
+            for (HWND groupHwnd : group)
+            {
                 RECT rcWin = {};
                 bool isMin = IsIconic(groupHwnd);
 
@@ -490,7 +499,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                     {
                         subVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
                         subVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-                        //
+                        
                         subVisual->SetOffsetX((float)relX);
                         subVisual->SetOffsetY((float)relY);
 
