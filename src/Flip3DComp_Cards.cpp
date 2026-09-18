@@ -626,10 +626,11 @@ void Flip3DComp::BuildCards()
     }
 
     auto hwnds = EnumerateWindows();
-    m_monW       = (float)std::max(1L, targetMi.rcWork.right  - targetMi.rcWork.left);
-    m_monH       = (float)std::max(1L, targetMi.rcWork.bottom - targetMi.rcWork.top);
-    m_monOriginX = (float)targetMi.rcWork.left;
-    m_monOriginY = (float)targetMi.rcWork.top;
+    MONITORINFO primaryMi = QueryPrimaryMonitor();
+    m_monW       = (float)std::max(1L, primaryMi.rcWork.right  - primaryMi.rcWork.left);
+    m_monH       = (float)std::max(1L, primaryMi.rcWork.bottom - primaryMi.rcWork.top);
+    m_monOriginX = (float)primaryMi.rcWork.left;
+    m_monOriginY = (float)primaryMi.rcWork.top;
 
     int carouselIndex = 0;
     for (auto h : hwnds)
