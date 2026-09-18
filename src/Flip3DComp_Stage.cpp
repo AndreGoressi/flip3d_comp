@@ -63,14 +63,6 @@ void Flip3DComp::ApplyFullscreenLayout()
     
     MONITORINFO mi = { sizeof(mi) };
     HMONITOR hMon = nullptr;
-    if (IsDisplayExtended())
-    {
-        hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
-    }
-    else
-    {
-        hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
-    }
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
 
@@ -128,14 +120,6 @@ bool Flip3DComp::InitializeDCompStage()
 
     MONITORINFO mi = { sizeof(mi) };
     HMONITOR hMon = nullptr;
-    if (IsDisplayExtended())
-    {
-        hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
-    }
-    else
-    {
-        hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
-    }
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
 
