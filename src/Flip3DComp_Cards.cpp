@@ -127,121 +127,6 @@ void Flip3DComp::UnloadThumbApi()
     }
 }
 
-struct RawVector {
-    void* first;
-    void* last;
-    void* end;
-};
-
-unsigned int ReadU32(const void* base, SIZE_T offset) {
-    unsigned int value = 0;
-    std::memcpy(&value, reinterpret_cast<const BYTE*>(base) + offset, sizeof(value));
-    return value;
-}
-
-bool GetZoneVector(const void* layout, BYTE** firstOut, SIZE_T* countOut) {
-    if (!layout || !firstOut || !countOut)
-        return false;
-
-    RawVector zones{};
-    const BYTE* layoutBytes = reinterpret_cast<const BYTE*>(layout);
-
-    std::memcpy(&zones.first, layoutBytes + 0x28, sizeof(zones.first));
-    std::memcpy(&zones.last, layoutBytes + 0x30, sizeof(zones.last));
-    std::memcpy(&zones.end, layoutBytes + 0x38, sizeof(zones.end));
-
-    const SIZE_T kSnapZoneSize = 0x38;
-    const SIZE_T kMaxReasonableZoneCount = 16;
-    
-    const auto* first = reinterpret_cast<const BYTE*>(zones.first);
-    const auto* last = reinterpret_cast<const BYTE*>(zones.last);
-    const auto* end = reinterpret_cast<const BYTE*>(zones.end);
-
-    if (!first || last < first || end < last)
-        return false;
-
-    SIZE_T sizeBytes = static_cast<SIZE_T>(last - first);
-    if (sizeBytes % kSnapZoneSize != 0)
-        return false;
-
-    SIZE_T count = sizeBytes / kSnapZoneSize;
-    if (count == 0 || count > kMaxReasonableZoneCount)
-        return false;
-
-    *firstOut = const_cast<BYTE*>(first);
-    *countOut = count;
-    return true;
-}
-
-void UpdateSnapGroupGeometry(CardModel& card, const RECT& baseRect, int columnIndex, int totalColumns)
-{
-    if (totalColumns <= 0) 
-        totalColumns = 1;
-
-    float totalWidth = (float)(baseRect.right - baseRect.left);
-    float gutter = 160.f;
-    
-    float totalGutterSpace = (float)(totalColumns + 1) * gutter;
-    float availableWidthForCards = totalWidth - totalGutterSpace;
-    float cardWidth = availableWidthForCards / (float)totalColumns;
-    
-    card.m_destX = (float)baseRect.left + ((float)(columnIndex + 1) * gutter) + ((float)columnIndex * cardWidth);
-    card.m_destW = cardWidth;
-    
-    card.m_destY = (float)baseRect.top + gutter;
-    card.m_destH = (float)(baseRect.bottom - baseRect.top) - (2.0f * gutter);
-}
-
-bool ExtractSnapLayoutInfo(const void* layoutPtr, int& outTotalColumns, int& outColumnIndex)
-{
-    if (!layoutPtr)
-        return false;
-
-    outTotalColumns = (int)ReadU32(layoutPtr, 0x20);
-
-    BYTE* zoneFirst = nullptr;
-    SIZE_T zoneCount = 0;
-
-    if (!GetZoneVector(layoutPtr, &zoneFirst, &zoneCount) || zoneCount == 0)
-        return false;
-
-    BYTE* firstZone = zoneFirst; 
-    outColumnIndex = (int)ReadU32(firstZone, 0x20);
-
-    return true;
-}
-
-bool GetActiveSnapLayoutForWindow(HWND hwnd, RECT workArea, int& outColIndex, int& outTotalCols)
-{
-    WINDOWPLACEMENT wp = { sizeof(wp) };
-    if (!GetWindowPlacement(hwnd, &wp))
-        return false;
-
-    RECT rc = wp.rcNormalPosition;
-    float winW = (float)(rc.right - rc.left);
-    float workW = (float)(workArea.right - workArea.left);
-
-    if (winW < workW * 0.75f && winW > workW * 0.25f)
-    {
-        outTotalCols = 2;
-        float workCenter = (float)workArea.left + workW * 0.5f;
-        float winCenter = (float)rc.left + winW * 0.5f;
-        outColIndex = (winCenter < workCenter) ? 0 : 1;
-        return true;
-    }
-
-    else if (winW <= workW * 0.38f)
-    {
-        outTotalCols = 3;
-        float thirdW = workW / 3.0f;
-        outColIndex = (int)((float)(rc.left - workArea.left) / thirdW);
-        if (outColIndex < 0) outColIndex = 0;
-        if (outColIndex >= 3) outColIndex = 2;
-        return true;
-    }
-    return false;
-}
-
 // ============================================================================
 // Flip3DComp::UpdateCardGeometry
 // uDWM Flip3DWindow::OnOriginalRectUpdated:
@@ -249,7 +134,7 @@ bool GetActiveSnapLayoutForWindow(HWND hwnd, RECT workArea, int& outColIndex, in
 //   - NormalizeWindowSize + world mapping via shared PRIMARY rcWork (normMon*)
 //   - GetMonitorToWorldTransform on primary m_rcMonitor for all cards
 // ============================================================================
-/*void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
+void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
                                        bool selectedRestore)
 {
     HWND h = c.m_hwnd;
@@ -358,143 +243,149 @@ bool GetActiveSnapLayoutForWindow(HWND hwnd, RECT workArea, int& outColIndex, in
 
     c.m_originalPos = { worldX, worldY, 0.0f };
     c.m_flatPos     = { worldX, worldY, 0.0f };
-}*/
+}
 
-void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
-                                    bool selectedRestore)
+std::vector<std::vector<HWND>> DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork)
 {
-    HWND h = c.m_hwnd;
-    if (!h)
-        return;
-
-    normMonW = std::max(normMonW, 1.0f);
-    normMonH = std::max(normMonH, 1.0f);
-
-    c.m_isMinimized    = IsIconic(h) && !selectedRestore;
-    c.m_isShellDesktop = (h == GetShellWindow());
-
-    HMONITOR mon = MonitorFromWindow(h, MONITOR_DEFAULTTONEAREST);
-    if (!mon)
-        mon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
-
-    MONITORINFO mi = { sizeof(mi) };
-    if (mon)
-        GetMonitorInfoW(mon, &mi);
-    else
-        mi = QueryPrimaryMonitor();
-
-    SIZE srcSize = {};
-    if (FAILED(m_pfnQueryThumbSize(h, FALSE, &srcSize))
-        || srcSize.cx < 1 || srcSize.cy < 1)
-        return;
-
-    float thumbW = (float)srcSize.cx;
-    float thumbH = (float)srcSize.cy;
-    const float thumbAspect = thumbH / thumbW;
-
-    RECT flatBounds = {};
-
-    if (c.m_isShellDesktop)
-    {
-        // uDWM shell: relative origin {0,0} on primary - use primary rcWork.
-        MONITORINFO primaryMi = QueryPrimaryMonitor();
-        flatBounds = primaryMi.rcWork;
-    }
-    else if (c.m_isMinimized)
-    {
-        // 2D minimize destination: taskbar tile position only.
-        RECT minRect = {};
-        if (m_pfnGetWindowMinimizeRect(h, &minRect) && !IsRectEmpty(&minRect))
-            flatBounds = Math::BuildFinalMinRect(minRect, thumbAspect);
-    }
-    //
-    else if (!FillRestoredScreenRect(h, mi, flatBounds))
-    {
-        flatBounds = mi.rcWork;
-    }
-
-    if (IsRectEmpty(&flatBounds))
-        flatBounds = mi.rcWork;
-
-    // -------------------------------------------------------------------------------
-    // Snap-Layout & Gutter Integration
-    // -------------------------------------------------------------------------------
-    if (!c.m_isShellDesktop && !c.m_isMinimized)
-    {
-        int totalCols = 2; 
-        int colIndex = 0;  
-        
-        if (GetActiveSnapLayoutForWindow(h, mi.rcWork, colIndex, totalCols))
+    std::vector<std::vector<HWND>> groups;
+    auto getSafeRect = [this](HWND hwnd) {
+        RECT rc = {};
+        if (IsIconic(hwnd))
         {
-            UpdateSnapGroupGeometry(c, mi.rcWork, colIndex, totalCols);
+            WINDOWPLACEMENT wp = { sizeof(wp) };
+            if (GetWindowPlacement(hwnd, &wp))
+            {
+                rc = wp.rcNormalPosition;
+                OffsetRect(&rc, (int)m_monOriginX, (int)m_monOriginY);
+            }
         }
         else
         {
-            UpdateSnapGroupGeometry(c, mi.rcWork, 0, 2); 
+            if (FAILED(DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rc, sizeof(rc))))
+            {
+                GetWindowRect(hwnd, &rc);
+            }
         }
+        return rc;
+    };
 
-        flatBounds.left   = (LONG)c.m_destX;
-        flatBounds.top    = (LONG)c.m_destY;
-        flatBounds.right  = (LONG)(c.m_destX + c.m_destW);
-        flatBounds.bottom = (LONG)(c.m_destY + c.m_destH);
-    }
-    // -------------------------------------------------------------------------------
-
-    c.m_srcWidth  = (int)thumbW;
-    c.m_srcHeight = (int)thumbH;
-    //
-    float maxResW = normMonW * 0.5f;
-    float maxResH = normMonH * 0.5f;
-    float scale = std::min(maxResW / thumbW, maxResH / thumbH);
-    scale = std::min(scale, 1.0f); 
-
-    c.m_srcWidth  = std::max(1, (int)(thumbW * scale));
-    c.m_srcHeight = std::max(1, (int)(thumbH * scale));
-    // -------------------------------------------------------------------------------
-
-    // targetSize / occupancy = 3D carousel (uDWM finalSize).
-    Math::WorldSizesFromThumbPixels(
-        thumbW, thumbH, normMonW, normMonH,
-        c.m_flatSize, c.m_targetSize, c.m_occupancy);
-
-    c.m_aspectRatio = thumbW / thumbH;
-
-    const float qualityScale = CardThumbnailQualityScale();
-    c.m_srcWidth = std::max(1, (int)std::lround(thumbW * qualityScale));
-    c.m_srcHeight = std::max(1, (int)std::lround(thumbH * qualityScale));
-
-    // 2D flat: position from flatBounds; size from QueryThumbSize (restored pixels).
-    // Exceptions: shell uses rcWork; iconic minimize uses taskbar tile dimensions.
-    float flatW = thumbW;
-    float flatH = thumbH;
-    
-    if (c.m_isShellDesktop || c.m_isMinimized || !IsRectEmpty(&flatBounds))
+    for (size_t i = 0; i < hwnds.size(); ++i)
     {
-        flatW = (float)std::max(1L, flatBounds.right  - flatBounds.left);
-        flatH = (float)std::max(1L, flatBounds.bottom - flatBounds.top);
+        if (!IsWindow(hwnds[i]) || hwnds[i] == GetShellWindow() || (!IsWindowVisible(hwnds[i]) && !IsIconic(hwnds[i])))
+            continue;
+
+        RECT rc1 = getSafeRect(hwnds[i]);
+        if (rc1.right <= rc1.left || rc1.bottom <= rc1.top)
+            continue;
+
+        for (size_t j = i + 1; j < hwnds.size(); ++j)
+        {
+            if (!IsWindow(hwnds[j]) || hwnds[j] == GetShellWindow() || (!IsWindowVisible(hwnds[j]) && !IsIconic(hwnds[j])))
+                continue;
+
+            RECT rc2 = getSafeRect(hwnds[j]);
+            if (rc2.right <= rc2.left || rc2.bottom <= rc2.top)
+                continue;
+
+            // Check horizontal adjacency (side-by-side snap)
+            bool touchingHorizontally = (abs(rc1.right - rc2.left) <= 8 || abs(rc2.right - rc1.left) <= 8);
+            bool verticalOverlap = (rc1.top < rc2.bottom && rc1.bottom > rc2.top);
+
+            if (touchingHorizontally && verticalOverlap)
+            {
+                groups.push_back({ hwnds[i], hwnds[j] });
+            }
+            // Check vertical adjacency (stacked snap)
+            else
+            {
+                bool touchingVertically = (abs(rc1.bottom - rc2.top) <= 8 || abs(rc2.bottom - rc1.top) <= 8);
+                bool horizontalOverlap = (rc1.left < rc2.right && rc1.right > rc2.left);
+
+                if (touchingVertically && horizontalOverlap)
+                {
+                    groups.push_back({ hwnds[i], hwnds[j] });
+                }
+            }
+        }
     }
-
-    c.m_flatSize = { flatW / normMonW, flatH / normMonH };
-
-    float anchorX = (float)flatBounds.left;
-    float anchorY = (float)flatBounds.top;
-    if (m_rtl)
-    {
-        const float relX = anchorX - m_monOriginX;
-        anchorX = m_monOriginX + (normMonW - (flatW + relX));
-    }
-
-    float worldX = 0.0f;
-    float worldY = 0.0f;
-    Math::MonitorToWorldTopLeft(
-        anchorX, anchorY,
-        m_monOriginX, m_monOriginY, normMonW, normMonH,
-        worldX, worldY);
-
-    c.m_originalPos = { worldX, worldY, 0.0f };
-    c.m_flatPos     = { worldX, worldY, 0.0f };
+    return groups;
 }
 
+void RebuildDesktopGroupThumbnails(CardModel& card)
+{
+    if (!card.m_isShellDesktop || !card.m_containerVisual || !m_dcompDevice)
+        return;
+
+    for (auto hThumb : card.m_groupSubThumbs)
+    {
+        if (hThumb)
+            DwmUnregisterThumbnail(hThumb);
+    }
+    card.m_groupSubThumbs.clear();
+    card.m_groupSubVisuals.clear();
+
+    MONITORINFO primaryMi = QueryPrimaryMonitor();
+    std::vector<HWND> allHwnds = EnumerateWindows();
+    std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
+
+    size_t sig = 0;
+    auto mix = [&sig](uintptr_t v) {
+        sig ^= v + 0x9e3779b97f4a7c15ULL + (sig << 6) + (sig >> 2);
+    };
+
+    for (const auto& group : activeGroups)
+    {
+        if (group.empty()) continue;
+
+        for (HWND hwnd : group) 
+        {
+            mix((uintptr_t)hwnd);
+            BOOL exclude = TRUE;
+            DwmSetWindowAttribute(hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
+        }
+
+        void* rawVisual = nullptr;
+        HTHUMBNAIL hThumb = nullptr;
+        
+        if (SUCCEEDED(m_pfnCreateSharedMultiWindowVisual(card.m_hwnd, m_dcompDevice.Get(), &rawVisual, &hThumb)))
+        {
+            ComPtr<IDCompositionVisual> thumbBase;
+            thumbBase.Attach((IDCompositionVisual*)rawVisual);
+
+            ComPtr<IDCompositionVisual3> visual3;
+            if (SUCCEEDED(thumbBase.As(&visual3)))
+            {
+                visual3->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+                visual3->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+
+                std::vector<HWND> includeHwnds = group;
+                
+                RECT rcSource = primaryMi.rcWork;
+                SIZE destSize = { card.m_srcWidth, card.m_srcHeight };
+                DWORD flags = 0x8 | 0x1 | 0x2; // DWM_TNP_VISIBLE | RECTDESTINATION | RECTSOURCE
+
+                if (m_pfnUpdateSharedMultiWindowVisual)
+                {
+                    m_pfnUpdateSharedMultiWindowVisual(
+                        hThumb,
+                        includeHwnds.data(),
+                        static_cast<DWORD>(includeHwnds.size()),
+                        nullptr,
+                        0,
+                        &rcSource,
+                        &destSize,
+                        flags
+                    );
+                }
+                card.m_containerVisual->AddVisual(visual3.Get(), FALSE, nullptr);
+                card.m_groupSubThumbs.push_back(hThumb);
+                card.m_groupSubVisuals.push_back(visual3);
+            }
+        }
+    }
+    card.m_groupSignature = sig;
+    m_dcompDevice->Commit();
+}
 // ============================================================================
 // Flip3DComp::UpdateMonitorRect
 // uDWM UpdateMonitorRect: normMon from primary rcWork; SetSize uses work-area
@@ -746,6 +637,26 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     return hr;
 }
 // ============================================================================
+HRESULT Flip3DComp::CreateCardVisuals()
+{
+    if (!m_dcompDevice || !m_sceneVisual)
+        return E_FAIL;
+
+    for (auto& card : m_cards)
+    {
+        if (!card.m_hwnd || card.m_containerVisual)
+            continue;
+
+        if (FAILED(CreateCardVisual(card)))
+            continue;
+
+        if (card.m_isShellDesktop)
+        {
+            RebuildDesktopGroupThumbnails(card);
+        }
+    }
+    return S_OK;
+}
 
 void Flip3DComp::RemoveCardAt(size_t index)
 {
@@ -774,22 +685,6 @@ void Flip3DComp::RemoveCardAt(size_t index)
 
     if (m_dcompDevice)
         m_dcompDevice->Commit();
-}
-
-HRESULT Flip3DComp::CreateCardVisuals()
-{
-    if (!m_dcompDevice || !m_sceneVisual)
-        return E_FAIL;
-
-    for (auto& card : m_cards)
-    {
-        if (!card.m_hwnd || card.m_containerVisual)
-            continue;
-
-        if (FAILED(CreateCardVisual(card)))
-            continue;
-    }
-    return S_OK;
 }
 
 // ============================================================================
