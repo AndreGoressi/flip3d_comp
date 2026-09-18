@@ -695,7 +695,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     if (FAILED(hr))
         return hr;
     //
-    RebuildDesktopGroupThumbnails(card);
+    //RebuildDesktopGroupThumbnails(card);
     //
     ComPtr<IDCompositionRectangleClip> clip;
     if (SUCCEEDED(m_dcompDevice->CreateRectangleClip(&clip)))
