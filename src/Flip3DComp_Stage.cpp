@@ -129,8 +129,6 @@ bool Flip3DComp::InitializeDCompStage()
     const int h = mi.rcWork.bottom - mi.rcWork.top;
     //
     SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_NOACTIVATE);
-    ShowWindow(m_hwnd, SW_SHOW);
-    UpdateWindow(m_hwnd);
     //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
