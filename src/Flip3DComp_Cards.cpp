@@ -502,7 +502,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                         subVisual->SetOffsetX((float)relX);
                         subVisual->SetOffsetY((float)relY);
 
-                        container->AddVisual(subVisual.Get(), FALSE, nullptr);
+                        container->AddVisual(subVisual.Get(), TRUE, nullptr);
                     }
                 }
             }
