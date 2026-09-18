@@ -492,24 +492,6 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                     excludeHwnds.push_back(h);
             }
 
--            RECT rcSource;
--            rcSource.left   = (LONG)(rcUnion.left   + (touchesLeft   ? gutter : gutter * 0.5f));
--            rcSource.top    = (LONG)(rcUnion.top    + (touchesTop    ? gutter : gutter * 0.5f));
--            rcSource.right  = (LONG)(rcUnion.right  - (touchesRight  ? gutter : gutter * 0.5f));
--            rcSource.bottom = (LONG)(rcUnion.bottom - (touchesBottom ? gutter : gutter * 0.5f));
--
--            if (rcSource.right <= rcSource.left || rcSource.bottom <= rcSource.top)
--                continue;
-
-+            RECT rcSource;
-+            rcSource.left   = (LONG)(adjustedX + m_monOriginX);
-+            rcSource.top    = (LONG)(adjustedY + m_monOriginY);
-+            rcSource.right  = (LONG)(adjustedX + adjustedW + m_monOriginX);
-+            rcSource.bottom = (LONG)(adjustedY + adjustedH + m_monOriginY);
-+
-+            if (rcSource.right <= rcSource.left || rcSource.bottom <= rcSource.top)
-+                continue;
-
             SIZE destSize = { relW, relH };
 
             HRESULT updateHr = m_pfnUpdateSharedMultiWindowVisual(
