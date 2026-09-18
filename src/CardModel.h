@@ -55,4 +55,9 @@ struct CardModel
     bool                m_displaySlotValid = false;
     CarouselWrapPhase   m_wrapPhase     = CarouselWrapPhase::None;
     float               m_wrapFadeStartListSlot = 0.0f; // list slot when EnteringBack began
+
+    float m_destX = 0.0f;
+    float m_destY = 0.0f;
+    float m_destW = 0.0f;
+    float m_destH = 0.0f;
 };
