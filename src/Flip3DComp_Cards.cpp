@@ -16,11 +16,19 @@ MONITORINFO QueryPrimaryMonitor()
     return mi;
 }
 
+MONITORINFO QueryNearMonitor()
+{
+    MONITORINFO mi = { sizeof(mi) };
+    HMONITOR hNear = MonitorFromWindow(nullptr, MONITOR_DEFAULTTONEAREST);
+    if (hNear)
+        GetMonitorInfoW(hNear, &mi);
+    return mi;
+}
+
 // 2D screen anchor for non-minimized-tile layouts (extended frame or restore rect).
 bool FillRestoredScreenRect(HWND h, const MONITORINFO& mi, RECT& out)
 {
     bool maximized = IsZoomed(h);
-
     if (IsIconic(h))
     {
         WINDOWPLACEMENT wp = { sizeof(wp) };
@@ -36,75 +44,16 @@ bool FillRestoredScreenRect(HWND h, const MONITORINFO& mi, RECT& out)
             goto leave;
         }
     }
-
     DwmGetWindowAttribute(h, DWMWA_EXTENDED_FRAME_BOUNDS, &out, sizeof(out));
 leave:
     if (maximized)
     {
         OffsetRect(&out, mi.rcWork.left - out.left, mi.rcWork.top - out.top);
     }
-
     return true;
 }
 
 } // namespace
-
-
-
-/*bool Flip3DComp::LoadThumbApi()
-{
-    m_initError.clear();
-
-    m_dwmapi = LoadLibraryW(L"dwmapi.dll");
-    if (!m_dwmapi)
-    {
-        m_initError = L"Failed to load dwmapi.dll.";
-        return false;
-    }
-
-    m_pfnCreateSharedThumbVisual = (DwmpCreateSharedThumbnailVisual_fn)
-        GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(147));
-    m_pfnQueryThumbSize = (DwmpQueryWindowThumbnailSourceSize_fn)
-        GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(162));
-    m_pfnGetWindowMinimizeRect = (GetWindowMinimizeRect_fn)
-        GetProcAddress(GetModuleHandleW(L"user32.dll"), "GetWindowMinimizeRect");
-
-    if (!m_pfnCreateSharedThumbVisual)
-    {
-        m_initError = L"DwmpCreateSharedThumbnailVisual (dwmapi ord 147) is required.";
-        UnloadThumbApi();
-        return false;
-    }
-    if (!m_pfnQueryThumbSize)
-    {
-        m_initError = L"DwmpQueryWindowThumbnailSourceSize (dwmapi ord 162) is required.";
-        UnloadThumbApi();
-        return false;
-    }
-    if (!m_pfnGetWindowMinimizeRect)
-    {
-        m_initError = L"GetWindowMinimizeRect (user32) is required.";
-        UnloadThumbApi();
-        return false;
-    }
-
-    return true;
-}*/
-
-
-
-/*void Flip3DComp::UnloadThumbApi()
-{
-    m_pfnCreateSharedThumbVisual = nullptr;
-    m_pfnQueryThumbSize          = nullptr;
-    m_pfnGetWindowMinimizeRect     = nullptr;
-
-    if (m_dwmapi)
-    {
-        FreeLibrary(m_dwmapi);
-        m_dwmapi = nullptr;
-    }
-}*/
 
 // ============================================================================
 // Flip3DComp::LoadThumbApi
@@ -365,7 +314,7 @@ bool Flip3DComp::AddCardForWindow(HWND hwnd)
 // ============================================================================
 // Flip3DComp::BuildCards
 // ============================================================================
-void Flip3DComp::BuildCards()
+/*void Flip3DComp::BuildCards()
 {
     m_cards.clear();
 
@@ -405,7 +354,58 @@ void Flip3DComp::BuildCards()
         UpdateCardGeometry(c, m_monW, m_monH);
         m_cards.push_back(std::move(c));
     }
+    m_originalFrontHwnd = m_cards.empty() ? nullptr : m_cards[0].m_hwnd;
+}*/
 
+void Flip3DComp::BuildCards()
+{
+    m_cards.clear();
+
+    if (!m_d3dDevice)
+    {
+        D3D_FEATURE_LEVEL fl = D3D_FEATURE_LEVEL_11_0;
+        HRESULT hr = D3D11CreateDevice(
+            nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
+            D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+            &fl, 1, D3D11_SDK_VERSION,
+            &m_d3dDevice, nullptr, nullptr);
+
+        if (FAILED(hr))
+        {
+            D3D11CreateDevice(
+                nullptr, D3D_DRIVER_TYPE_WARP, nullptr,
+                D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+                &fl, 1, D3D11_SDK_VERSION,
+                &m_d3dDevice, nullptr, nullptr);
+        }
+    }
+
+    auto hwnds = EnumerateWindows();
+
+    MONITORINFO targetMi;
+    if (IsDisplayExtended())
+    {
+        targetMi = QueryPrimaryMonitor();
+    }
+    else
+    {
+        targetMi = QueryNearMonitor();
+    }
+
+    m_monW       = (float)std::max(1L, targetMi.rcWork.right  - targetMi.rcWork.left);
+    m_monH       = (float)std::max(1L, targetMi.rcWork.bottom - targetMi.rcWork.top);
+    m_monOriginX = (float)targetMi.rcWork.left;
+    m_monOriginY = (float)targetMi.rcWork.top;
+
+    int carouselIndex = 0;
+    for (auto h : hwnds)
+    {
+        CardModel c;
+        c.m_hwnd                 = h;
+        c.m_initialCarouselIndex = carouselIndex++;
+        UpdateCardGeometry(c, m_monW, m_monH);
+        m_cards.push_back(std::move(c));
+    }
     m_originalFrontHwnd = m_cards.empty() ? nullptr : m_cards[0].m_hwnd;
 }
 
@@ -539,7 +539,6 @@ HRESULT Flip3DComp::CreateCardVisuals()
         if (FAILED(CreateCardVisual(card)))
             continue;
     }
-
     return S_OK;
 }
 
@@ -591,7 +590,6 @@ void Flip3DComp::OnThumbnailSourceSizeChanged()
         UpdateCardThumbnailDest(card);
         anyChange = true;
     }
-
     if (anyChange && m_dcompDevice)
         m_dcompDevice->Commit();
 }
