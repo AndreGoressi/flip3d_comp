@@ -543,6 +543,7 @@ bool Flip3DComp::AddCardForWindow(HWND hwnd)
 
     CardModel c;
     c.m_hwnd = hwnd;
+    c.m_isGroup = false;
     c.m_initialCarouselIndex = (int)m_cards.size();
     
     UpdateCardGeometry(c, m_monW, m_monH);
@@ -625,17 +626,6 @@ void Flip3DComp::BuildCards()
     }
 
     auto hwnds = EnumerateWindows();
-
-    MONITORINFO targetMi;
-    if (IsDisplayExtended())
-    {
-        targetMi = QueryPrimaryMonitor();
-    }
-    else
-    {
-        targetMi = QueryNearMonitor();
-    }
-
     m_monW       = (float)std::max(1L, targetMi.rcWork.right  - targetMi.rcWork.left);
     m_monH       = (float)std::max(1L, targetMi.rcWork.bottom - targetMi.rcWork.top);
     m_monOriginX = (float)targetMi.rcWork.left;
@@ -646,6 +636,7 @@ void Flip3DComp::BuildCards()
     {
         CardModel c;
         c.m_hwnd                 = h;
+        c.m_isGroup             =  false;
         c.m_initialCarouselIndex = carouselIndex++;
         UpdateCardGeometry(c, m_monW, m_monH);
         m_cards.push_back(std::move(c));
@@ -742,7 +733,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     return hr;
 }
 // ============================================================================
-HRESULT Flip3DComp::CreateCardVisuals()
+/*HRESULT Flip3DComp::CreateCardVisuals()
 {
     if (!m_dcompDevice || !m_sceneVisual)
         return E_FAIL;
@@ -759,6 +750,29 @@ HRESULT Flip3DComp::CreateCardVisuals()
         {
             RebuildDesktopGroupThumbnails(card);
         }
+    }
+    return S_OK;
+}*/
+
+HRESULT Flip3DComp::CreateCardVisuals()
+{
+    if (!m_dcompDevice || !m_sceneVisual)
+        return E_FAIL;
+
+    for (auto& card : m_cards)
+    {
+        // Skip if already initialized, but allow cards that either have a single hwnd OR are a group with hwnds
+        if (card.m_containerVisual)
+            continue;
+
+        if (!card.m_isGroup && !card.m_hwnd)
+            continue;
+
+        if (card.m_isGroup && card.m_groupHwnds.empty())
+            continue;
+
+        if (FAILED(CreateCardVisual(card)))
+            continue;
     }
     return S_OK;
 }
