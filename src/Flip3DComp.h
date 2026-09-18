@@ -129,6 +129,7 @@ private:
     //new
     std::vector<std::vector<HWND>> DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork);
     void RebuildDesktopGroupThumbnails(CardModel& card);
+    void RefreshDesktopGroupThumbnailsIfStale();
     //
     HRESULT CreateCardVisuals();
     //
