@@ -50,13 +50,18 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
         return false;
     }
     
+    if (m_pfnActivateLivePreview)
+    {
+        m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<DWORD>(PeekTypes::Desktop));
+    }
+
     m_state = ViewState::Enter;
     m_animEnter.Restart(0.0f, 1.0f, kEnterExitDurationSec);
     m_prevFrame = std::chrono::steady_clock::now();
 
     EnterFlip3DWindowMode();
     InitAccessibility();
-    // First-frame layout + DComp commit before ShowWindow (avoids blank flash).
+
     Update(0.0f);
     return true;
 }
