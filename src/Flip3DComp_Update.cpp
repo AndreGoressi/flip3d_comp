@@ -652,6 +652,10 @@ void Flip3DComp::Update(float dtSeconds)
             SetWindowPos(m_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
         }
     }
+    else if (!isSystemFlyoutOpen)
+    {
+        SetWindowPos(m_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    }
     
     if (m_thumbnailsDirty)
         OnThumbnailSourceSizeChanged();
