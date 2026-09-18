@@ -465,95 +465,129 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     if (FAILED(hr))
         return hr;
 
-        if (card.m_isShellDesktop)
-        {
-            MONITORINFO primaryMi = QueryPrimaryMonitor();
-            std::vector<HWND> allHwnds = EnumerateWindows();
-            std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
-    
+    if (card.m_isShellDesktop)
+    {
+        MONITORINFO primaryMi = QueryPrimaryMonitor();
+        std::vector<HWND> allHwnds = EnumerateWindows();
+        std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
+        //
         for (const auto& group : activeGroups)
         {
+            if (group.size() < 2)
+                continue;
+
+            RECT rcUnion = { LONG_MAX, LONG_MAX, LONG_MIN, LONG_MIN };
+            bool anyValid = false;
+
             for (HWND groupHwnd : group)
             {
                 RECT rcWin = {};
-                bool isMin = IsIconic(groupHwnd);
-
-                if (isMin)
+                if (IsIconic(groupHwnd))
                 {
                     WINDOWPLACEMENT wp = { sizeof(wp) };
                     if (GetWindowPlacement(groupHwnd, &wp))
-                    {
                         rcWin = wp.rcNormalPosition;
-                    }
                 }
-                else
+                else if (FAILED(DwmGetWindowAttribute(groupHwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
                 {
-                    if (FAILED(DwmGetWindowAttribute(groupHwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
-                    {
-                        GetWindowRect(groupHwnd, &rcWin);
-                    }
+                    GetWindowRect(groupHwnd, &rcWin);
                 }
 
                 if (rcWin.right <= rcWin.left || rcWin.bottom <= rcWin.top)
                     continue;
 
-                float scaleX = card.m_srcWidth / m_monW;
-                float scaleY = card.m_srcHeight / m_monH;
+                rcUnion.left   = std::min(rcUnion.left,   rcWin.left);
+                rcUnion.top    = std::min(rcUnion.top,    rcWin.top);
+                rcUnion.right  = std::max(rcUnion.right,  rcWin.right);
+                rcUnion.bottom = std::max(rcUnion.bottom, rcWin.bottom);
+                anyValid = true;
+            }
 
-                float screenX = (float)(rcWin.left - m_monOriginX);
-                float screenY = (float)(rcWin.top - m_monOriginY);
-                float screenW = (float)(rcWin.right - rcWin.left);
-                float screenH = (float)(rcWin.bottom - rcWin.top);
+            if (!anyValid)
+                continue;
 
-                float gutter = 160.0f;
-                bool touchesLeft   = (screenX <= 5.0f);
-                bool touchesRight  = (abs((screenX + screenW) - m_monW) <= 5.0f);
-                bool touchesTop    = (screenY <= 5.0f);
-                bool touchesBottom = (abs((screenY + screenH) - m_monH) <= 5.0f);
+            float scaleX = card.m_srcWidth / m_monW;
+            float scaleY = card.m_srcHeight / m_monH;
 
-                float adjustedX = screenX + (touchesLeft ? gutter : gutter * 0.5f);
-                float adjustedY = screenY + (touchesTop ? gutter : gutter * 0.5f);
-                float adjustedW = screenW - ((touchesLeft ? gutter : gutter * 0.5f) + (touchesRight ? gutter : gutter * 0.5f));
-                float adjustedH = screenH - ((touchesTop ? gutter : gutter * 0.5f) + (touchesBottom ? gutter : gutter * 0.5f));
+            float screenX = (float)(rcUnion.left - m_monOriginX);
+            float screenY = (float)(rcUnion.top  - m_monOriginY);
+            float screenW = (float)(rcUnion.right  - rcUnion.left);
+            float screenH = (float)(rcUnion.bottom - rcUnion.top);
 
-                int relX = (int)(adjustedX * scaleX);
-                int relY = (int)(adjustedY * scaleY);
-                int relW = (int)(adjustedW * scaleX);
-                int relH = (int)(adjustedH * scaleY);
+            float gutter = 160.0f;
+            bool touchesLeft   = (screenX <= 5.0f);
+            bool touchesRight  = (abs((screenX + screenW) - m_monW) <= 5.0f);
+            bool touchesTop    = (screenY <= 5.0f);
+            bool touchesBottom = (abs((screenY + screenH) - m_monH) <= 5.0f);
 
-                HTHUMBNAIL subThumb = nullptr;
-                DWM_THUMBNAIL_PROPERTIES subTp = {};
-                subTp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D;
-                
-                if (isMin)
-                {
-                    subTp.dwFlags |= DWM_TNP_FORCECVI;
-                }
+            float adjustedX = screenX + (touchesLeft ? gutter : gutter * 0.5f);
+            float adjustedY = screenY + (touchesTop ? gutter : gutter * 0.5f);
+            float adjustedW = screenW - ((touchesLeft ? gutter : gutter * 0.5f) + (touchesRight ? gutter : gutter * 0.5f));
+            float adjustedH = screenH - ((touchesTop ? gutter : gutter * 0.5f) + (touchesBottom ? gutter : gutter * 0.5f));
 
-                subTp.fVisible = TRUE;
-                subTp.rcDestination = { 0, 0, relW, relH };
+            int relX = (int)(adjustedX * scaleX);
+            int relY = (int)(adjustedY * scaleY);
+            int relW = (int)(adjustedW * scaleX);
+            int relH = (int)(adjustedH * scaleY);
 
-                void* subPv = nullptr;
-                if (SUCCEEDED(m_pfnCreateSharedThumbVisual(m_hwnd, groupHwnd, DWM_TNF_DWMWINDOW, &subTp, m_dcompDevice.Get(), &subPv, &subThumb)))
-                {
-                    ComPtr<IDCompositionVisual> subThumbBase;
-                    subThumbBase.Attach((IDCompositionVisual*)subPv);
-                    
-                    ComPtr<IDCompositionVisual3> subVisual;
-                    if (SUCCEEDED(subThumbBase.As(&subVisual)))
-                    {
-                        subVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-                        subVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-                        //
-                        subVisual->SetOffsetX((float)relX);
-                        subVisual->SetOffsetY((float)relY);
+            if (relW <= 0 || relH <= 0)
+                continue;
 
-                        container->AddVisual(subVisual.Get(), FALSE, nullptr);
-                    }
-                }
+            HTHUMBNAIL groupThumb = nullptr;
+            void* groupPv = nullptr;
+            if (FAILED(m_pfnCreateSharedMultiWindowVisual(m_hwnd, m_dcompDevice.Get(), &groupPv, &groupThumb))
+                || !groupPv)
+            {
+                continue;
+            }
+
+            std::vector<HWND> excludeHwnds;
+            HWND shellHwnd = GetShellWindow();
+            for (HWND h : allHwnds)
+            {
+                bool inGroup = std::find(group.begin(), group.end(), h) != group.end();
+                if (!inGroup && h != shellHwnd)
+                    excludeHwnds.push_back(h);
+            }
+
+            RECT rcSource = rcUnion;
+            SIZE destSize = { relW, relH };
+
+            HRESULT updateHr = m_pfnUpdateSharedMultiWindowVisual(
+                groupThumb,
+                nullptr, 0,                                     
+                excludeHwnds.data(), (DWORD)excludeHwnds.size(),
+                &rcSource,
+                &destSize,
+                1);                                              
+
+            if (FAILED(updateHr))
+            {
+                DwmUnregisterThumbnail(groupThumb);
+                continue;
+            }
+
+            ComPtr<IDCompositionVisual> groupThumbBase;
+            groupThumbBase.Attach((IDCompositionVisual*)groupPv);
+
+            ComPtr<IDCompositionVisual3> groupVisual;
+            if (SUCCEEDED(groupThumbBase.As(&groupVisual)))
+            {
+                groupVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+                groupVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+                groupVisual->SetOffsetX((float)relX);
+                groupVisual->SetOffsetY((float)relY);
+
+                container->AddVisual(groupVisual.Get(), FALSE, nullptr);
+
+                card.m_groupSubThumbs.push_back(groupThumb);
+                card.m_groupSubVisuals.push_back(groupVisual);
+            }
+            else
+            {
+                DwmUnregisterThumbnail(groupThumb);
             }
         }
-        //RebuildDesktopGroupThumbnails(card);
     }
     // Apply global rounded corner clipping to the container visual
     ComPtr<IDCompositionRectangleClip> clip;
@@ -785,175 +819,6 @@ std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vec
     }
     return groups;
 }
-
-/*void Flip3DComp::RebuildDesktopGroupThumbnails(CardModel& card)
-{
-    if (!card.m_isShellDesktop || !card.m_containerVisual || !m_dcompDevice)
-        return;
-
-    for (auto& sub : card.m_groupSubVisuals)
-    {
-        if (sub)
-            card.m_containerVisual->RemoveVisual(sub.Get());
-    }
-    card.m_groupSubVisuals.clear();
-
-    for (auto hThumb : card.m_groupSubThumbs)
-    {
-        if (hThumb)
-            DwmUnregisterThumbnail(hThumb);
-    }
-    card.m_groupSubThumbs.clear();
-
-    MONITORINFO primaryMi = QueryPrimaryMonitor();
-    std::vector<HWND> allHwnds = EnumerateWindows();
-    std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
-
-    size_t sig = 0;
-    auto mix = [&sig](uintptr_t v) {
-        sig ^= v + 0x9e3779b97f4a7c15ULL + (sig << 6) + (sig >> 2);
-    };
-
-    for (const auto& group : activeGroups)
-    {
-        if (group.empty()) 
-            continue;
-
-        for (HWND hwnd : group) 
-        {
-            mix((uintptr_t)hwnd);
-            mix(IsIconic(hwnd) ? 1u : 0u);
-        }
-
-        void* rawVisual = nullptr;
-        HTHUMBNAIL hThumb = nullptr;
-
-        if (m_pfnCreateSharedMultiWindowVisual && 
-            SUCCEEDED(m_pfnCreateSharedMultiWindowVisual(card.m_hwnd, m_dcompDevice.Get(), &rawVisual, &hThumb)))
-        {
-            ComPtr<IDCompositionVisual> thumbBase;
-            thumbBase.Attach((IDCompositionVisual*)rawVisual);
-
-            ComPtr<IDCompositionVisual3> visual3;
-            if (SUCCEEDED(thumbBase.As(&visual3)))
-            {
-                visual3->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-                visual3->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-
-                for (HWND groupHwnd : group)
-                {
-                    RECT rcWin = {};
-                    bool isMin = IsIconic(groupHwnd);
-
-                    if (isMin)
-                    {
-                        WINDOWPLACEMENT wp = { sizeof(wp) };
-                        if (GetWindowPlacement(groupHwnd, &wp))
-                        {
-                            rcWin = wp.rcNormalPosition;
-                            OffsetRect(&rcWin, (int)m_monOriginX, (int)m_monOriginY);
-                        }
-                    }
-                    else if (FAILED(DwmGetWindowAttribute(groupHwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
-                    {
-                        GetWindowRect(groupHwnd, &rcWin);
-                    }
-
-                    if (rcWin.right <= rcWin.left || rcWin.bottom <= rcWin.top)
-                        continue;
-
-                    float scaleX = card.m_srcWidth / m_monW;
-                    float scaleY = card.m_srcHeight / m_monH;
-        
-                    float screenX = (float)(rcWin.left - m_monOriginX);
-                    float screenY = (float)(rcWin.top - m_monOriginY);
-                    float screenW = (float)(rcWin.right - rcWin.left);
-                    float screenH = (float)(rcWin.bottom - rcWin.top);
-        
-                    float gutter = 160.0f;
-                    bool touchesLeft   = (screenX <= 5.0f);
-                    bool touchesRight  = (abs((screenX + screenW) - m_monW) <= 5.0f);
-                    bool touchesTop    = (screenY <= 5.0f);
-                    bool touchesBottom = (abs((screenY + screenH) - m_monH) <= 5.0f);
-        
-                    float adjustedX = screenX + (touchesLeft ? gutter : gutter * 0.5f);
-                    float adjustedY = screenY + (touchesTop ? gutter : gutter * 0.5f);
-                    float adjustedW = screenW - ((touchesLeft ? gutter : gutter * 0.5f) + (touchesRight ? gutter : gutter * 0.5f));
-                    float adjustedH = screenH - ((touchesTop ? gutter : gutter * 0.5f) + (touchesBottom ? gutter : gutter * 0.5f));
-        
-                    int relX = (int)(adjustedX * scaleX);
-                    int relY = (int)(adjustedY * scaleY);
-                    int relW = (int)(adjustedW * scaleX);
-                    int relH = (int)(adjustedH * scaleY);
-
-                    std::vector<HWND> includeHwnds = { groupHwnd };
-                    RECT rcSource = { (LONG)screenX, (LONG)screenY, (LONG)(screenX + screenW), (LONG)(screenY + screenH) };
-                    SIZE destSize = { relW, relH };
-                    DWORD flags = 0x8 | 0x1 | 0x2; // DWM_TNP_VISIBLE | RECTDESTINATION | RECTSOURCE
-
-                    if (m_pfnUpdateSharedMultiWindowVisual)
-                    {
-                        m_pfnUpdateSharedMultiWindowVisual(
-                            hThumb,
-                            includeHwnds.data(),
-                            static_cast<DWORD>(includeHwnds.size()),
-                            nullptr,
-                            0,
-                            &rcSource,
-                            &destSize,
-                            flags
-                        );
-                    }
-                    visual3->SetOffsetX((float)relX);
-                    visual3->SetOffsetY((float)relY);
-                }
-                card.m_containerVisual->AddVisual(visual3.Get(), FALSE, nullptr);
-                card.m_groupSubThumbs.push_back(hThumb);
-                card.m_groupSubVisuals.push_back(visual3);
-            }
-            else if (hThumb)
-            {
-                DwmUnregisterThumbnail(hThumb);
-            }
-        }
-    }
-    card.m_groupSignature = sig;
-    m_dcompDevice->Commit();
-}*/
-
-// ============================================================================
-// Flip3DComp::RefreshDesktopGroupThumbnailsIfStale
-// ============================================================================
-/*void Flip3DComp::RefreshDesktopGroupThumbnailsIfStale()
-{
-    if (!IsFlip3DViewActive())
-        return;
-
-    for (auto& card : m_cards)
-    {
-        if (!card.m_isShellDesktop || !card.m_containerVisual)
-            continue;
-
-        MONITORINFO primaryMi = QueryPrimaryMonitor();
-        std::vector<HWND> allHwnds = EnumerateWindows();
-        std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
-
-        size_t sig = 0;
-        auto mix = [&sig](uintptr_t v) {
-            sig ^= v + 0x9e3779b97f4a7c15ULL + (sig << 6) + (sig >> 2);
-        };
-        for (const auto& group : activeGroups)
-            for (HWND h : group)
-            {
-                mix((uintptr_t)h);
-                mix(IsIconic(h) ? 1u : 0u);
-            }
-
-        if (sig != card.m_groupSignature)
-            RebuildDesktopGroupThumbnails(card);
-        //break;
-    }
-}*/
 
 
 
