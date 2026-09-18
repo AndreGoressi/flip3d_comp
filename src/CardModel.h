@@ -22,10 +22,16 @@ struct CardModel
     HWND                 m_hwnd        = nullptr;   // source window handle (für Einzelfenster)
     int                  m_initialCarouselIndex = 0;  // order at Flip3D enter (before rotates)
     HTHUMBNAIL           m_hThumb      = nullptr;   // DWM shared thumbnail handle
-    //new
-    std::vector<HTHUMBNAIL>             m_groupSubThumbs;
+
+    // ---- NEW: For Snap Layout / Multitasking Groups ----
+    bool                 m_isGroup     = false;     // true, if it's a combo window/card
+    std::vector<HWND>    m_groupHwnds;
+
+    // ---- Desktop-Karte: Live-Sub-Thumbnails für aktive Snap-Groups ----
+    std::vector<HTHUMBNAIL>                   m_groupSubThumbs;
     std::vector<ComPtr<IDCompositionVisual3>> m_groupSubVisuals;
-    size_t                              m_groupSignature = 0;
+    size_t                                    m_groupSignature = 0;
+
     // ---- DirectComposition visuals ----
     ComPtr<IDCompositionVisual3> m_visual;          // thumbnail content visual (DWM)
     ComPtr<IDCompositionVisual3> m_containerVisual; // baked Model×Camera + opacity
