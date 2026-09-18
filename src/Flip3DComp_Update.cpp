@@ -332,7 +332,6 @@ void Flip3DComp::FreezeCarouselVisuals()
                 break;
             }
         }
-
         c.m_displaySlotValid = true;
     }
     m_exitScrollSnapshot = m_scrollPos;
