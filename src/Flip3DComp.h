@@ -245,7 +245,6 @@ private:
     HRESULT AccessibleRotateToIndex(int index);
     HRESULT AccessibleSelectIndex(int index);
     //new
-    bool    IsNeverHiddenWindow(HWND hwnd) const;
     bool    IsSystemFlyoutProcess(HWND hwnd) const;
 
     // ========================================================================
