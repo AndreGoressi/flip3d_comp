@@ -551,11 +551,70 @@ void Flip3DComp::TickSmoothScroll(float dtSeconds)
     StepCarouselScroll(dtSeconds, /*notifyFrontChange=*/true);
 }
 
+static bool IsSystemFlyout(HWND hwndForeground)
+{
+    if (hwndForeground)
+    {
+        DWORD pid = 0;
+        GetWindowThreadProcessId(hwndForeground, &pid);
+        if (pid != 0)
+        {
+            HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+            if (hProcess)
+            {
+                wchar_t path[MAX_PATH] = { 0 };
+                DWORD size = MAX_PATH;
+                if (QueryFullProcessImageNameW(hProcess, 0, path, &size))
+                {
+                    wchar_t* exeName = wcsrchr(path, L'\\');
+                    exeName = exeName ? exeName + 1 : path;
+
+                    if (_wcsicmp(exeName, L"StartMenuExperienceHost.exe") == 0 ||
+                        _wcsicmp(exeName, L"SearchHost.exe") == 0 ||
+                        _wcsicmp(exeName, L"SearchUI.exe") ||
+                        _wcsicmp(exeName, L"ShellExperienceHost.exe") == 0 ||
+                        _wcsicmp(exeName, L"TextInputHost.exe") == 0 ||
+                        _wcsicmp(exeName, L"InputApp.exe") == 0 ||
+                        _wcsicmp(exeName, L"Widgets.exe") == 0 ||
+                        _wcsicmp(exeName, L"TabTip.exe") == 0) ||
+                        _wcsicmp(exeName, L"GameBar.exe")
+
+                    {
+                        CloseHandle(hProcess);
+                        return true;
+                    }
+                }
+                CloseHandle(hProcess);
+            }
+        }
+    }
+    bool systemFlyoutVisible = false;
+    EnumWindows(EnumSystemFlyoutsProc, (LPARAM)&systemFlyoutVisible);
+    return systemFlyoutVisible;
+}
+
 // ============================================================================
 // Flip3DComp::Update
 // ============================================================================
 void Flip3DComp::Update(float dtSeconds)
 {
+    HWND hwndForeground = GetForegroundWindow();
+    bool isSystemFlyoutOpen = IsSystemFlyout(hwndForeground);
+    //
+    static bool s_lastWasSystemFlyoutOpen = false;
+    if (isSystemFlyoutOpen != s_lastWasSystemFlyoutOpen)
+    {
+        s_lastWasSystemFlyoutOpen = isSystemFlyoutOpen;
+        if (isSystemFlyoutOpen)
+        {
+            SetWindowPos(m_hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        }
+        else
+        {
+            SetWindowPos(m_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        }
+    }
+    
     if (m_thumbnailsDirty)
         OnThumbnailSourceSizeChanged();
 
