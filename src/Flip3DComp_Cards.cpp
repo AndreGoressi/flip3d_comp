@@ -106,8 +106,6 @@ void Flip3DComp::UnloadDwmApi()
 {
     m_pfnCreateSharedThumbVisual        = nullptr;
     m_pfnQueryThumbSize                 = nullptr;
-    m_pfnCreateSharedMultiWindowVisual  = nullptr;
-    m_pfnUpdateSharedMultiWindowVisual  = nullptr;
     m_pfnGetWindowMinimizeRect          = nullptr;
     m_pfnActivateLivePreview            = nullptr; // <-- Hier direkt mit ergänzen!
 
