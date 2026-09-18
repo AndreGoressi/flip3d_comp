@@ -446,27 +446,18 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                 {
                     GetWindowRect(groupHwnd, &rcWin);
                 }
-
-                if (rcWin.right <= rcWin.left || rcWin.bottom <= rcWin.top)
-                    continue;
-
-                rcUnion.left   = std::min(rcUnion.left,   rcWin.left);
-                rcUnion.top    = std::min(rcUnion.top,    rcWin.top);
-                rcUnion.right  = std::max(rcUnion.right,  rcWin.right);
-                rcUnion.bottom = std::max(rcUnion.bottom, rcWin.bottom);
-                anyValid = true;
             }
 
-            if (!anyValid)
+            if (rcWin.right <= rcWin.left || rcWin.bottom <= rcWin.top)
                 continue;
 
             float scaleX = card.m_srcWidth / m_monW;
             float scaleY = card.m_srcHeight / m_monH;
 
-            float screenX = (float)(rcUnion.left - m_monOriginX);
-            float screenY = (float)(rcUnion.top  - m_monOriginY);
-            float screenW = (float)(rcUnion.right  - rcUnion.left);
-            float screenH = (float)(rcUnion.bottom - rcUnion.top);
+            float screenX = (float)(rcWin.left - m_monOriginX);
+            float screenY = (float)(rcWin.top - m_monOriginY);
+            float screenW = (float)(rcWin.right - rcWin.left);
+            float screenH = (float)(rcWin.bottom - rcWin.top);
 
             float gutter = 160.0f;
             bool touchesLeft   = (screenX <= 5.0f);
@@ -479,13 +470,10 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
             float adjustedW = screenW - ((touchesLeft ? gutter : gutter * 0.5f) + (touchesRight ? gutter : gutter * 0.5f));
             float adjustedH = screenH - ((touchesTop ? gutter : gutter * 0.5f) + (touchesBottom ? gutter : gutter * 0.5f));
 
-                        int relX = (int)(adjustedX * scaleX);
+            int relX = (int)(adjustedX * scaleX);
             int relY = (int)(adjustedY * scaleY);
             int relW = (int)(adjustedW * scaleX);
             int relH = (int)(adjustedH * scaleY);
-
-            if (relW <= 0 || relH <= 0)
-                continue;
 
             HTHUMBNAIL groupThumb = nullptr;
             void* groupPv = nullptr;
@@ -703,6 +691,119 @@ static RECT GetTrueWindowRect(HWND hwnd)
         GetWindowRect(hwnd, &rc);
     }
     return rc;
+}
+
+std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork)
+{
+    std::vector<std::vector<HWND>> groups;
+    auto getSafeRect = [](HWND hwnd) {
+        RECT rc = {};
+        if (IsIconic(hwnd))
+        {
+            WINDOWPLACEMENT wp = { sizeof(wp) };
+            if (GetWindowPlacement(hwnd, &wp))
+            {
+                rc = wp.rcNormalPosition;
+            }
+        }
+        else
+        {
+            if (FAILED(DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rc, sizeof(rc))))
+            {
+                GetWindowRect(hwnd, &rc);
+            }
+        }
+        return rc;
+    };
+
+    auto rectOverlapArea = [](const RECT& a, const RECT& b) -> long
+    {
+        long ix = std::max(0L, std::min(a.right, b.right) - std::max(a.left, b.left));
+        long iy = std::max(0L, std::min(a.bottom, b.bottom) - std::max(a.top, b.top));
+        return ix * iy;
+    };
+
+
+    std::vector<HWND> candidates;
+    for (HWND h : hwnds)
+    {
+        if (!IsWindow(h) || h == GetShellWindow() || (!IsWindowVisible(h) && !IsIconic(h)))
+            continue;
+
+        RECT rc = getSafeRect(h);
+        if (rc.right <= rc.left || rc.bottom <= rc.top)
+            continue;
+
+        if (IsIconic(h))
+        {
+            const long area = (long)(rc.right - rc.left) * (long)(rc.bottom - rc.top);
+            bool superseded = false;
+            for (HWND other : hwnds)
+            {
+                if (other == h || !IsWindow(other) || IsIconic(other) || !IsWindowVisible(other))
+                    continue;
+
+                RECT rcOther = getSafeRect(other);
+                if (rcOther.right <= rcOther.left || rcOther.bottom <= rcOther.top)
+                    continue;
+
+                if (rectOverlapArea(rc, rcOther) >= (long)(area * 1.0)) 
+                {
+                    superseded = true;
+                    break;
+                }
+            }
+            if (superseded)
+                continue;
+        }
+
+        candidates.push_back(h);
+    }
+
+    for (size_t i = 0; i < hwnds.size(); ++i)
+    for (size_t i = 0; i < candidates.size(); ++i)
+    {
+        if (!IsWindow(hwnds[i]) || hwnds[i] == GetShellWindow() || !IsWindowVisible(hwnds[i]) && !IsIconic(hwnds[i]))
+            continue;
+
+        RECT rc1 = getSafeRect(hwnds[i]);
+        RECT rc1 = getSafeRect(candidates[i]);
+        if (rc1.right <= rc1.left || rc1.bottom <= rc1.top)
+            continue;
+
+        for (size_t j = i + 1; j < hwnds.size(); ++j)
+        for (size_t j = i + 1; j < candidates.size(); ++j)
+        {
+            if (!IsWindow(hwnds[j]) || hwnds[j] == GetShellWindow() || !IsWindowVisible(hwnds[j]) && !IsIconic(hwnds[j]))
+                continue;
+
+            RECT rc2 = getSafeRect(hwnds[j]);
+            RECT rc2 = getSafeRect(candidates[j]);
+            if (rc2.right <= rc2.left || rc2.bottom <= rc2.top)
+                continue;
+
+            bool touchingHorizontally = (abs(rc1.right - rc2.left) <= 8 || abs(rc2.right - rc1.left) <= 8);
+            bool verticalOverlap = (rc1.top < rc2.bottom && rc1.bottom > rc2.top);
+
+            if (touchingHorizontally && verticalOverlap)
+            {
+                groups.push_back({ hwnds[i], hwnds[j] });
+                groups.push_back({ candidates[i], candidates[j] });
+            }
+            else
+            {
+                bool touchingVertically = (abs(rc1.bottom - rc2.top) <= 8 || abs(rc2.bottom - rc1.top) <= 8);
+                bool horizontalOverlap = (rc1.left < rc2.right && rc1.right > rc2.left);
+
+                if (touchingVertically && horizontalOverlap)
+                {
+                    groups.push_back({ hwnds[i], hwnds[j] });
+                    groups.push_back({ candidates[i], candidates[j] });
+                }
+            }
+        }
+    }
+    return groups;
 }
 
 std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork)
