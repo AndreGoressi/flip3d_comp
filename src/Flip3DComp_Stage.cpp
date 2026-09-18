@@ -9,7 +9,6 @@
 #include <vector>
 #include <Windows.h>
 #include <psapi.h>
-#include <wingdi.h>
 
 struct Flip3DComp::EnumContext
 {
@@ -50,6 +49,7 @@ std::vector<HWND> Flip3DComp::EnumerateWindows()
         if (it == ctx.hwnds.end() && ctx.hwnds.size() < (size_t)kMaxCards)
             ctx.hwnds.push_back(shell);
     }
+    //
     return ctx.hwnds;
 }
 // ============================================================================
@@ -62,7 +62,7 @@ void Flip3DComp::ApplyFullscreenLayout()
         return;
     
     MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hMon = nullptr;
+    HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
 
@@ -70,7 +70,7 @@ void Flip3DComp::ApplyFullscreenLayout()
     const int y = mi.rcWork.top;
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
-    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
 
     RECT client = {};
     if (GetClientRect(m_hwnd, &client))
@@ -88,16 +88,16 @@ void Flip3DComp::ApplyFullscreenLayout()
 bool Flip3DComp::InitializeDCompStage()
 {
     WNDCLASSEXW wc = {
-                sizeof(wc),
-                0,
-                &Flip3DComp::WndProc,
-                0, 0,
-                m_hInstance,
-                nullptr,
-                LoadCursorW(nullptr, IDC_ARROW),
-                nullptr, nullptr,
-                L"Flip3DCompClass",
-                nullptr,
+        sizeof(wc),
+        0,
+        &Flip3DComp::WndProc,
+        0, 0,
+        m_hInstance,
+        nullptr,
+        LoadCursorW(nullptr, IDC_ARROW),
+        nullptr, nullptr,
+        L"Flip3DCompClass",
+        nullptr,
     };
     ATOM res = RegisterClassExW(&wc);
     if (!res) {
@@ -119,7 +119,9 @@ bool Flip3DComp::InitializeDCompStage()
         return false;
 
     MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hMon = nullptr;
+    POINT pt;
+    GetCursorPos(&pt);
+    HMONITOR hMon = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
 
@@ -128,7 +130,7 @@ bool Flip3DComp::InitializeDCompStage()
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
     //
-    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
     //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
@@ -144,7 +146,3 @@ bool Flip3DComp::InitializeDCompStage()
     }
     return true;
 }
-
-
-
-
