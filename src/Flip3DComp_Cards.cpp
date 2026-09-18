@@ -407,7 +407,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     hr = container.As(&card.m_containerVisual);
     if (FAILED(hr))
         return hr;
-
+    //
     if (card.m_isShellDesktop)
     {
         MONITORINFO primaryMi = QueryPrimaryMonitor();
@@ -473,8 +473,10 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                 HTHUMBNAIL subThumb = nullptr;
                 DWM_THUMBNAIL_PROPERTIES subTp = {};
                 subTp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D;
+                
                 if (isMin)
                     subTp.dwFlags |= DWM_TNP_FORCECVI;
+                
                 subTp.fVisible = TRUE;
                 subTp.rcDestination = { 0, 0, relW, relH };
 
@@ -491,7 +493,6 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                         subVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
                         subVisual->SetOffsetX((float)relX);
                         subVisual->SetOffsetY((float)relY);
-                        subVisual->SetHitTestVisible(TRUE);
 
                         if (!lastVisual) {
                             container->AddVisual(subVisual.Get(), FALSE, nullptr);
