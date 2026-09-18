@@ -397,18 +397,29 @@ void Flip3DComp::RebuildDesktopGroupThumbnails(CardModel& card)
                     if (rcWin.right <= rcWin.left || rcWin.bottom <= rcWin.top)
                         continue;
 
-                    float scaleX = (float)card.m_srcWidth / m_monW;
-                    float scaleY = (float)card.m_srcHeight / m_monH;
-
+                    float scaleX = card.m_srcWidth / m_monW;
+                    float scaleY = card.m_srcHeight / m_monH;
+        
                     float screenX = (float)(rcWin.left - m_monOriginX);
                     float screenY = (float)(rcWin.top - m_monOriginY);
                     float screenW = (float)(rcWin.right - rcWin.left);
                     float screenH = (float)(rcWin.bottom - rcWin.top);
-
-                    int relX = (int)(screenX * scaleX);
-                    int relY = (int)(screenY * scaleY);
-                    int relW = (int)(screenW * scaleX);
-                    int relH = (int)(screenH * scaleY);
+        
+                    float gutter = 160.0f;
+                    bool touchesLeft   = (screenX <= 5.0f);
+                    bool touchesRight  = (abs((screenX + screenW) - m_monW) <= 5.0f);
+                    bool touchesTop    = (screenY <= 5.0f);
+                    bool touchesBottom = (abs((screenY + screenH) - m_monH) <= 5.0f);
+        
+                    float adjustedX = screenX + (touchesLeft ? gutter : gutter * 0.5f);
+                    float adjustedY = screenY + (touchesTop ? gutter : gutter * 0.5f);
+                    float adjustedW = screenW - ((touchesLeft ? gutter : gutter * 0.5f) + (touchesRight ? gutter : gutter * 0.5f));
+                    float adjustedH = screenH - ((touchesTop ? gutter : gutter * 0.5f) + (touchesBottom ? gutter : gutter * 0.5f));
+        
+                    int relX = (int)(adjustedX * scaleX);
+                    int relY = (int)(adjustedY * scaleY);
+                    int relW = (int)(adjustedW * scaleX);
+                    int relH = (int)(adjustedH * scaleY);
 
                     std::vector<HWND> includeHwnds = { groupHwnd };
                     RECT rcSource = { (LONG)screenX, (LONG)screenY, (LONG)(screenX + screenW), (LONG)(screenY + screenH) };
@@ -443,6 +454,40 @@ void Flip3DComp::RebuildDesktopGroupThumbnails(CardModel& card)
     }
     card.m_groupSignature = sig;
     m_dcompDevice->Commit();
+}
+
+// ============================================================================
+// Flip3DComp::RefreshDesktopGroupThumbnailsIfStale
+// ============================================================================
+void Flip3DComp::RefreshDesktopGroupThumbnailsIfStale()
+{
+    if (!IsFlip3DViewActive())
+        return;
+
+    for (auto& card : m_cards)
+    {
+        if (!card.m_isShellDesktop || !card.m_containerVisual)
+            continue;
+
+        MONITORINFO primaryMi = QueryPrimaryMonitor();
+        std::vector<HWND> allHwnds = EnumerateWindows();
+        std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
+
+        size_t sig = 0;
+        auto mix = [&sig](uintptr_t v) {
+            sig ^= v + 0x9e3779b97f4a7c15ULL + (sig << 6) + (sig >> 2);
+        };
+        for (const auto& group : activeGroups)
+            for (HWND h : group)
+            {
+                mix((uintptr_t)h);
+                mix(IsIconic(h) ? 1u : 0u);
+            }
+
+        if (sig != card.m_groupSignature)
+            RebuildDesktopGroupThumbnails(card);
+        break;
+    }
 }
 // ============================================================================
 // Flip3DComp::UpdateMonitorRect
@@ -657,7 +702,9 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     hr = m_dcompDevice->CreateVisual(&container);
     if (FAILED(hr))
         return hr;
-
+    //
+    RebuildDesktopGroupThumbnails(card);
+    //
     ComPtr<IDCompositionRectangleClip> clip;
     if (SUCCEEDED(m_dcompDevice->CreateRectangleClip(&clip)))
     {
