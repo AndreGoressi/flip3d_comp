@@ -589,7 +589,7 @@ static bool IsSystemFlyout(HWND hwndForeground)
         }
     }
     bool systemFlyoutVisible = false;
-    EnumWindows(EnumSystemFlyoutsProc, (LPARAM)&systemFlyoutVisible);
+    //EnumWindows(EnumSystemFlyoutsProc, (LPARAM)&systemFlyoutVisible);
     return systemFlyoutVisible;
 }
 
