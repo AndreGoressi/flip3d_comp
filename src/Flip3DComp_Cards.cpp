@@ -683,16 +683,6 @@ void Flip3DComp::OnThumbnailSourceSizeChanged()
         m_dcompDevice->Commit();
 }
 
-static RECT GetTrueWindowRect(HWND hwnd)
-{
-    RECT rc = {};
-    if (FAILED(DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rc, sizeof(rc))))
-    {
-        GetWindowRect(hwnd, &rc);
-    }
-    return rc;
-}
-
 std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork)
 {
     std::vector<std::vector<HWND>> groups;
@@ -722,7 +712,6 @@ std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vec
         long iy = std::max(0L, std::min(a.bottom, b.bottom) - std::max(a.top, b.top));
         return ix * iy;
     };
-
 
     std::vector<HWND> candidates;
     for (HWND h : hwnds)
@@ -805,71 +794,5 @@ std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vec
     }
     return groups;
 }
-
-std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork)
-{
-    std::vector<std::vector<HWND>> groups;
-    auto getSafeRect = [](HWND hwnd) {
-        RECT rc = {};
-        if (IsIconic(hwnd))
-        {
-            WINDOWPLACEMENT wp = { sizeof(wp) };
-            if (GetWindowPlacement(hwnd, &wp))
-            {
-                rc = wp.rcNormalPosition;
-            }
-        }
-        else
-        {
-            if (FAILED(DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rc, sizeof(rc))))
-            {
-                GetWindowRect(hwnd, &rc);
-            }
-        }
-        return rc;
-    };
-
-    for (size_t i = 0; i < hwnds.size(); ++i)
-    {
-        if (!IsWindow(hwnds[i]) || hwnds[i] == GetShellWindow() || !IsWindowVisible(hwnds[i]) && !IsIconic(hwnds[i]))
-            continue;
-
-        RECT rc1 = getSafeRect(hwnds[i]);
-        if (rc1.right <= rc1.left || rc1.bottom <= rc1.top)
-            continue;
-
-        for (size_t j = i + 1; j < hwnds.size(); ++j)
-        {
-            if (!IsWindow(hwnds[j]) || hwnds[j] == GetShellWindow() || !IsWindowVisible(hwnds[j]) && !IsIconic(hwnds[j]))
-                continue;
-
-            RECT rc2 = getSafeRect(hwnds[j]);
-            if (rc2.right <= rc2.left || rc2.bottom <= rc2.top)
-                continue;
-
-            // Check horizontal adjacency (side-by-side snap)
-            bool touchingHorizontally = (abs(rc1.right - rc2.left) <= 8 || abs(rc2.right - rc1.left) <= 8);
-            bool verticalOverlap = (rc1.top < rc2.bottom && rc1.bottom > rc2.top);
-
-            if (touchingHorizontally && verticalOverlap)
-            {
-                groups.push_back({ hwnds[i], hwnds[j] });
-            }
-            // Check vertical adjacency (stacked snap)
-            else
-            {
-                bool touchingVertically = (abs(rc1.bottom - rc2.top) <= 8 || abs(rc2.bottom - rc1.top) <= 8);
-                bool horizontalOverlap = (rc1.left < rc2.right && rc1.right > rc2.left);
-
-                if (touchingVertically && horizontalOverlap)
-                {
-                    groups.push_back({ hwnds[i], hwnds[j] });
-                }
-            }
-        }
-    }
-    return groups;
-}
-
 
 
