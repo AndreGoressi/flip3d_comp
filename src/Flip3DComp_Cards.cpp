@@ -127,6 +127,52 @@ void Flip3DComp::UnloadThumbApi()
     }
 }
 
+struct RawVector {
+    void* first;
+    void* last;
+    void* end;
+};
+
+unsigned int ReadU32(const void* base, SIZE_T offset) {
+    unsigned int value = 0;
+    std::memcpy(&value, reinterpret_cast<const BYTE*>(base) + offset, sizeof(value));
+    return value;
+}
+
+bool GetZoneVector(const void* layout, BYTE** firstOut, SIZE_T* countOut) {
+    if (!layout || !firstOut || !countOut)
+        return false;
+
+    RawVector zones{};
+    const BYTE* layoutBytes = reinterpret_cast<const BYTE*>(layout);
+
+    std::memcpy(&zones.first, layoutBytes + 0x28, sizeof(zones.first));
+    std::memcpy(&zones.last, layoutBytes + 0x30, sizeof(zones.last));
+    std::memcpy(&zones.end, layoutBytes + 0x38, sizeof(zones.end));
+
+    const SIZE_T kSnapZoneSize = 0x38;
+    const SIZE_T kMaxReasonableZoneCount = 16;
+    
+    const auto* first = reinterpret_cast<const BYTE*>(zones.first);
+    const auto* last = reinterpret_cast<const BYTE*>(zones.last);
+    const auto* end = reinterpret_cast<const BYTE*>(zones.end);
+
+    if (!first || last < first || end < last)
+        return false;
+
+    SIZE_T sizeBytes = static_cast<SIZE_T>(last - first);
+    if (sizeBytes % kSnapZoneSize != 0)
+        return false;
+
+    SIZE_T count = sizeBytes / kSnapZoneSize;
+    if (count == 0 || count > kMaxReasonableZoneCount)
+        return false;
+
+    *firstOut = const_cast<BYTE*>(first);
+    *countOut = count;
+    return true;
+}
+
 void UpdateSnapGroupGeometry(CardModel& card, const RECT& baseRect, int columnIndex, int totalColumns)
 {
     if (totalColumns <= 0) 
