@@ -127,7 +127,12 @@ private:
 
     void    OnThumbnailSourceSizeChanged();
     void    UpdateCardThumbnailDest(CardModel& card);
+    //new
+    std::vector<std::vector<HWND>> DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork);
+    void RebuildDesktopGroupThumbnails(CardModel& card);
+    //
     HRESULT CreateCardVisuals();
+    //
     // ========================================================================
     // Per-frame update
     // ========================================================================
