@@ -390,18 +390,24 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
     // -------------------------------------------------------------------------------
     if (!c.m_isShellDesktop && !c.m_isMinimized)
     {
-        int totalCols = 0; 
-        int colIndex = 0;  
-        void* activeLayoutPtr = nullptr; 
-        //
-        if (ExtractSnapLayoutInfo(activeLayoutPtr, totalCols, colIndex))
+        int totalCols = 2; // Testweise 2 Spalten
+        int colIndex = 0;  // Testweise Spalte 0 (oder 1 für rechts)
+        
+        void* activeLayoutPtr = GetActiveSnapLayoutForWindow(h); 
+
+        if (activeLayoutPtr && ExtractSnapLayoutInfo(activeLayoutPtr, totalCols, colIndex))
         {
             UpdateSnapGroupGeometry(c, mi.rcWork, colIndex, totalCols);
-            flatBounds.left   = (LONG)c.m_destX;
-            flatBounds.top    = (LONG)c.m_destY;
-            flatBounds.right  = (LONG)(c.m_destX + c.m_destW);
-            flatBounds.bottom = (LONG)(c.m_destY + c.m_destH);
         }
+        else
+        {
+            UpdateSnapGroupGeometry(c, mi.rcWork, 0, 2); 
+        }
+
+        flatBounds.left   = (LONG)c.m_destX;
+        flatBounds.top    = (LONG)c.m_destY;
+        flatBounds.right  = (LONG)(c.m_destX + c.m_destW);
+        flatBounds.bottom = (LONG)(c.m_destY + c.m_destH);
     }
     // -------------------------------------------------------------------------------
 
