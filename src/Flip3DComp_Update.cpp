@@ -551,6 +551,45 @@ void Flip3DComp::TickSmoothScroll(float dtSeconds)
     StepCarouselScroll(dtSeconds, /*notifyFrontChange=*/true);
 }
 
+static BOOL CALLBACK EnumSystemFlyoutsProc(HWND hwnd, LPARAM lParam)
+{
+    if (!IsWindowVisible(hwnd))
+        return TRUE;
+
+    DWORD pid = 0;
+    GetWindowThreadProcessId(hwnd, &pid);
+    if (pid == 0) return TRUE;
+
+    HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    if (!hProcess) return TRUE;
+
+    wchar_t path[MAX_PATH] = { 0 };
+    DWORD size = MAX_PATH;
+    bool found = false;
+
+    if (QueryFullProcessImageNameW(hProcess, 0, path, &size))
+    {
+        wchar_t windowClass[128] = { 0 };
+        if (GetClassNameW(hwnd, windowClass, 127))
+        {
+            if (_wcsicmp(windowClass, L"Xaml_WindowClass") == 0 ||
+                _wcsicmp(windowClass, L"Windows.UI.Core.CoreWindow") == 0)
+            {
+                found = true;
+            }
+        }
+    }
+
+    CloseHandle(hProcess);
+
+    if (found)
+    {
+        *(bool*)lParam = true;
+        return FALSE;
+    }
+    return TRUE;
+}
+
 static bool IsSystemFlyout(HWND hwndForeground)
 {
     if (hwndForeground)
@@ -588,7 +627,7 @@ static bool IsSystemFlyout(HWND hwndForeground)
         }
     }
     bool systemFlyoutVisible = false;
-    //EnumWindows(EnumSystemFlyoutsProc, (LPARAM)&systemFlyoutVisible);
+    EnumWindows(EnumSystemFlyoutsProc, (LPARAM)&systemFlyoutVisible);
     return systemFlyoutVisible;
 }
 
