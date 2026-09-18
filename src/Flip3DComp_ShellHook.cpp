@@ -113,8 +113,7 @@ bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
                     if (exeName)
                     {
                         exeName++; 
-                        return (!_wcsicmp(exeName, L"explorer.exe") ||
-                                !_wcsicmp(exeName, L"StartMenuExperienceHost.exe") ||
+                        return (!_wcsicmp(exeName, L"StartMenuExperienceHost.exe") ||
                                 !_wcsicmp(exeName, L"SearchHost.exe") ||
                                 !_wcsicmp(exeName, L"SearchUI.exe") ||
                                 !_wcsicmp(exeName, L"Widgets.exe") ||
