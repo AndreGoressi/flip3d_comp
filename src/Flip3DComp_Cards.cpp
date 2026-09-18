@@ -408,25 +408,25 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     if (FAILED(hr))
         return hr;
 
-        if (card.m_isShellDesktop)
-        {
-            MONITORINFO primaryMi = QueryPrimaryMonitor();
-            std::vector<HWND> allHwnds = EnumerateWindows();
-            std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
-    
-            for (auto group : activeGroups)
-            {
-                if (group.empty())
-                    continue;
+    if (card.m_isShellDesktop)
+    {
+        MONITORINFO primaryMi = QueryPrimaryMonitor();
+        std::vector<HWND> allHwnds = EnumerateWindows();
+        std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
 
-                std::sort(group.begin(), group.end(), [&allHwnds](HWND a, HWND b) {
-                    auto itA = std::find(allHwnds.begin(), allHwnds.end(), a);
-                    auto itB = std::find(allHwnds.begin(), allHwnds.end(), b);
-                    size_t indexA = (itA != allHwnds.end()) ? std::distance(allHwnds.begin(), itA) : SIZE_MAX;
-                    size_t indexB = (itB != allHwnds.end()) ? std::distance(allHwnds.begin(), itB) : SIZE_MAX;
-                    return indexA > indexB; 
-                });
-            //
+        HWND foregroundHwnd = GetForegroundWindow(); 
+        for (auto group : activeGroups)
+        {
+            if (group.empty())
+                continue;
+
+            std::sort(group.begin(), group.end(), [foregroundHwnd](HWND a, HWND b) {
+                if (a == foregroundHwnd) return false; 
+                if (b == foregroundHwnd) return true;  
+                return false;
+            });
+            ComPtr<IDCompositionVisual> lastVisual = nullptr;
+            
             for (HWND groupHwnd : group)
             {
                 RECT rcWin = {};
@@ -436,16 +436,11 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                 {
                     WINDOWPLACEMENT wp = { sizeof(wp) };
                     if (GetWindowPlacement(groupHwnd, &wp))
-                    {
                         rcWin = wp.rcNormalPosition;
-                    }
                 }
-                else
+                else if (FAILED(DwmGetWindowAttribute(groupHwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
                 {
-                    if (FAILED(DwmGetWindowAttribute(groupHwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
-                    {
-                        GetWindowRect(groupHwnd, &rcWin);
-                    }
+                    GetWindowRect(groupHwnd, &rcWin);
                 }
 
                 if (rcWin.right <= rcWin.left || rcWin.bottom <= rcWin.top)
@@ -478,12 +473,8 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                 HTHUMBNAIL subThumb = nullptr;
                 DWM_THUMBNAIL_PROPERTIES subTp = {};
                 subTp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D;
-                
                 if (isMin)
-                {
                     subTp.dwFlags |= DWM_TNP_FORCECVI;
-                }
-
                 subTp.fVisible = TRUE;
                 subTp.rcDestination = { 0, 0, relW, relH };
 
@@ -498,11 +489,10 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                     {
                         subVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
                         subVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-                        
                         subVisual->SetOffsetX((float)relX);
                         subVisual->SetOffsetY((float)relY);
+                        subVisual->SetHitTestVisible(TRUE);
 
-                        static ComPtr<IDCompositionVisual> lastVisual = nullptr;
                         if (!lastVisual) {
                             container->AddVisual(subVisual.Get(), FALSE, nullptr);
                         } else {
