@@ -5,7 +5,7 @@
     <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
         <security>
             <requestedPrivileges>
-                <requestedExecutionLevel level="asInvoker"
+                <requestedExecutionLevel level="highestAvailable"
                                          uiAccess="true" />
             </requestedPrivileges>
         </security>
