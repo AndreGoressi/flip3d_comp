@@ -571,7 +571,7 @@ static bool IsSystemFlyout(HWND hwndForeground)
 
                     if (_wcsicmp(exeName, L"StartMenuExperienceHost.exe") == 0 ||
                         _wcsicmp(exeName, L"SearchHost.exe") == 0 ||
-                        _wcsicmp(exeName, L"SearchUI.exe") ||
+                        _wcsicmp(exeName, L"SearchUI.exe") == 0 ||
                         _wcsicmp(exeName, L"ShellExperienceHost.exe") == 0 ||
                         _wcsicmp(exeName, L"TextInputHost.exe") == 0 ||
                         _wcsicmp(exeName, L"InputApp.exe") == 0 ||
