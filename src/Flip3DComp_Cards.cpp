@@ -211,6 +211,37 @@ bool ExtractSnapLayoutInfo(const void* layoutPtr, int& outTotalColumns, int& out
     return true;
 }
 
+bool GetActiveSnapLayoutForWindow(HWND hwnd, RECT workArea, int& outColIndex, int& outTotalCols)
+{
+    WINDOWPLACEMENT wp = { sizeof(wp) };
+    if (!GetWindowPlacement(hwnd, &wp))
+        return false;
+
+    RECT rc = wp.rcNormalPosition;
+    float winW = (float)(rc.right - rc.left);
+    float workW = (float)(workArea.right - workArea.left);
+
+    if (winW < workW * 0.75f && winW > workW * 0.25f)
+    {
+        outTotalCols = 2;
+        float workCenter = (float)workArea.left + workW * 0.5f;
+        float winCenter = (float)rc.left + winW * 0.5f;
+        outColIndex = (winCenter < workCenter) ? 0 : 1;
+        return true;
+    }
+
+    else if (winW <= workW * 0.38f)
+    {
+        outTotalCols = 3;
+        float thirdW = workW / 3.0f;
+        outColIndex = (int)((float)(rc.left - workArea.left) / thirdW);
+        if (outColIndex < 0) outColIndex = 0;
+        if (outColIndex >= 3) outColIndex = 2;
+        return true;
+    }
+    return false;
+}
+
 // ============================================================================
 // Flip3DComp::UpdateCardGeometry
 // uDWM Flip3DWindow::OnOriginalRectUpdated:
@@ -390,12 +421,10 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
     // -------------------------------------------------------------------------------
     if (!c.m_isShellDesktop && !c.m_isMinimized)
     {
-        int totalCols = 2; // Testweise 2 Spalten
-        int colIndex = 0;  // Testweise Spalte 0 (oder 1 für rechts)
+        int totalCols = 2; 
+        int colIndex = 0;  
         
-        void* activeLayoutPtr = GetActiveSnapLayoutForWindow(h); 
-
-        if (activeLayoutPtr && ExtractSnapLayoutInfo(activeLayoutPtr, totalCols, colIndex))
+        if (GetActiveSnapLayoutForWindow(h, mi.rcWork, colIndex, totalCols))
         {
             UpdateSnapGroupGeometry(c, mi.rcWork, colIndex, totalCols);
         }
