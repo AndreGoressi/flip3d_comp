@@ -79,8 +79,8 @@ bool Flip3DComp::LoadThumbApi()
     m_pfnUpdateSharedMultiWindowVisual = (DwmpUpdateSharedMultiWindowVisual_fn)
         GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(164));
 
-    m_pfnActivateLivePreview = (DwmActivateLivePreview_fn)
-        GetProcAddress(m_dwmapi, "DwmActivateLivePreview");
+    m_pfnActivateLivePreview = (DwmpActivateLivePreview_fn)
+        GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(113));
 
     m_pfnGetWindowMinimizeRect = (GetWindowMinimizeRect_fn)
         GetProcAddress(GetModuleHandleW(L"user32.dll"), "GetWindowMinimizeRect");
@@ -106,6 +106,12 @@ bool Flip3DComp::LoadThumbApi()
     if (!m_pfnGetWindowMinimizeRect)
     {
         m_initError = L"GetWindowMinimizeRect (user32) is required.";
+        UnloadThumbApi();
+        return false;
+    }
+    if (!m_pfnActivateLivePreview)
+    {
+        m_initError = L"DwmpActivateLivePreview (dwmapi ord 113) failed to load.";
         UnloadThumbApi();
         return false;
     }
