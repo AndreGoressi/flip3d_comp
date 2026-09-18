@@ -553,7 +553,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                 }
             }
         }
-        RebuildDesktopGroupThumbnails(card);
+        //RebuildDesktopGroupThumbnails(card);
     }
     // Apply global rounded corner clipping to the container visual
     ComPtr<IDCompositionRectangleClip> clip;
@@ -786,7 +786,7 @@ std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vec
     return groups;
 }
 
-void Flip3DComp::RebuildDesktopGroupThumbnails(CardModel& card)
+/*void Flip3DComp::RebuildDesktopGroupThumbnails(CardModel& card)
 {
     if (!card.m_isShellDesktop || !card.m_containerVisual || !m_dcompDevice)
         return;
@@ -919,7 +919,7 @@ void Flip3DComp::RebuildDesktopGroupThumbnails(CardModel& card)
     }
     card.m_groupSignature = sig;
     m_dcompDevice->Commit();
-}
+}*/
 
 // ============================================================================
 // Flip3DComp::RefreshDesktopGroupThumbnailsIfStale
@@ -951,7 +951,6 @@ void Flip3DComp::RefreshDesktopGroupThumbnailsIfStale()
 
         if (sig != card.m_groupSignature)
             RebuildDesktopGroupThumbnails(card);
-
         //break;
     }
 }
