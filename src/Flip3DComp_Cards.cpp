@@ -404,7 +404,6 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
             }
         }
     }
-    //
     hr = container.As(&card.m_containerVisual);
     if (FAILED(hr))
         return hr;
@@ -425,9 +424,9 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                     auto itB = std::find(allHwnds.begin(), allHwnds.end(), b);
                     size_t indexA = (itA != allHwnds.end()) ? std::distance(allHwnds.begin(), itA) : SIZE_MAX;
                     size_t indexB = (itB != allHwnds.end()) ? std::distance(allHwnds.begin(), itB) : SIZE_MAX;
-                    return indexA > indexB; 
+                    return indexA < indexB; 
                 });
-
+            //
             for (HWND groupHwnd : group)
             {
                 RECT rcWin = {};
