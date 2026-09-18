@@ -1,7 +1,6 @@
 // ============================================================================
 // main.cpp — Flip3D (DComp) entry point
 // ============================================================================
-#include <windows.h>
 #include "PrepareForUIAccess.h"
 #include "Flip3DComp.h"
 
