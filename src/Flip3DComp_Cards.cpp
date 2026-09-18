@@ -708,7 +708,7 @@ std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vec
                 if (rcOther.right <= rcOther.left || rcOther.bottom <= rcOther.top)
                     continue;
  
-                if (rectOverlapArea(rc, rcOther) >= (long)(area * 1.0)) 
+                if (rectOverlapArea(rc, rcOther) >= (long)(area * 0.6)) 
                 {
                     superseded = true;
                     break;
