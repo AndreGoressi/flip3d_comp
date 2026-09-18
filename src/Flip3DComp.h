@@ -47,6 +47,23 @@ using Microsoft::WRL::ComPtr;
 
 class Flip3DAccessible;
 
+enum class PeekTypes : long
+{
+    /// <summary>
+    /// This flag is here only for completeness and is not used
+    /// </summary>
+    NotUsed = 0,
+
+    /// <summary>
+    /// Denotes that the Peek API is to operate on the desktop
+    /// </summary>
+    Desktop = 1,
+
+    /// <summary>
+    /// Denotes that the Peek API is to operate on a window.
+    /// </summary>
+    Window = 3
+};
 // ============================================================================
 // Flip3DComp — Main application class
 // ============================================================================
