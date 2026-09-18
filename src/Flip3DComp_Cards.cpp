@@ -49,7 +49,7 @@ leave:
 // ============================================================================
 // Flip3DComp::LoadThumbApi
 // ============================================================================
-bool Flip3DComp::LoadThumbApi()
+bool Flip3DComp::LoadDwmApi()
 {
     m_initError.clear();
 
@@ -64,11 +64,6 @@ bool Flip3DComp::LoadThumbApi()
         GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(147));
     m_pfnQueryThumbSize = (DwmpQueryWindowThumbnailSourceSize_fn)
         GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(162));
-
-    m_pfnCreateSharedMultiWindowVisual = (DwmpCreateSharedMultiWindowVisual_fn)
-        GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(163));
-    m_pfnUpdateSharedMultiWindowVisual = (DwmpUpdateSharedMultiWindowVisual_fn)
-        GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(164));
 
     m_pfnActivateLivePreview = (DwmpActivateLivePreview_fn)
         GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(113));
@@ -88,12 +83,7 @@ bool Flip3DComp::LoadThumbApi()
         UnloadThumbApi();
         return false;
     }
-    if (!m_pfnCreateSharedMultiWindowVisual || !m_pfnUpdateSharedMultiWindowVisual)
-    {
-        m_initError = L"DwmpCreateSharedMultiWindowVisual/Update (dwmapi ord 163/164) failed to load.";
-        UnloadThumbApi();
-        return false;
-    }
+
     if (!m_pfnGetWindowMinimizeRect)
     {
         m_initError = L"GetWindowMinimizeRect (user32) is required.";
@@ -112,7 +102,7 @@ bool Flip3DComp::LoadThumbApi()
 // ============================================================================
 // Flip3DComp::UnloadThumbApi
 // ============================================================================
-void Flip3DComp::UnloadThumbApi()
+void Flip3DComp::UnloadDwmApi()
 {
     m_pfnCreateSharedThumbVisual        = nullptr;
     m_pfnQueryThumbSize                 = nullptr;
