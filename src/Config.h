@@ -182,11 +182,5 @@ using GetWindowMinimizeRect_fn = BOOL (WINAPI *)(HWND, LPRECT);
 using DwmpUpdateDesktopThumbnail_fn = HRESULT (WINAPI *)(
     HWND hwnd, LPCRECT rcDest, LPCRECT rcSrc, BYTE opacity, DWORD dwFlags);
 
-using DwmpCreateSharedMultiWindowVisual_fn = HRESULT (WINAPI *)(
-    HWND hwndDestination, void* pDCompDevice, void** ppVisual, HTHUMBNAIL* phThumbnailId);
-
-using DwmpUpdateSharedMultiWindowVisual_fn = HRESULT (WINAPI *)(
-    HTHUMBNAIL hThumbnailId, HWND* phwndsInclude, DWORD chwndsInclude, HWND* phwndsExclude, DWORD chwndsExclude, RECT* prcSource, SIZE* pDestinationSize, DWORD dwFlags);
-
 using DwmpActivateLivePreview_fn = HRESULT(WINAPI*)(
     BOOL fEnable, HWND hPeekWindow, HWND hTopmostWindow, UINT peekType, void* reserved);
