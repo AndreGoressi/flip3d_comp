@@ -74,33 +74,33 @@ bool Flip3DComp::LoadDwmApi()
     if (!m_pfnCreateSharedThumbVisual)
     {
         m_initError = L"DwmpCreateSharedThumbnailVisual (dwmapi ord 147) is required.";
-        UnloadThumbApi();
+        UnloadDwmApi();
         return false;
     }
     if (!m_pfnQueryThumbSize)
     {
         m_initError = L"DwmpQueryWindowThumbnailSourceSize (dwmapi ord 162) is required.";
-        UnloadThumbApi();
+        UnloadDwmApi();
         return false;
     }
 
     if (!m_pfnGetWindowMinimizeRect)
     {
         m_initError = L"GetWindowMinimizeRect (user32) is required.";
-        UnloadThumbApi();
+        UnloadDwmApi();
         return false;
     }
     if (!m_pfnActivateLivePreview)
     {
         m_initError = L"DwmpActivateLivePreview (dwmapi ord 113) failed to load.";
-        UnloadThumbApi();
+        UnloadDwmApi();
         return false;
     }
     return true;
 }
 
 // ============================================================================
-// Flip3DComp::UnloadThumbApi
+// Flip3DComp::UnloadDwmApi
 // ============================================================================
 void Flip3DComp::UnloadDwmApi()
 {
