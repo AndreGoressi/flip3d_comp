@@ -55,24 +55,20 @@ void Flip3DComp::WrapCarouselScroll()
     {
         const HWND  outgoingHwnd = m_cards[0].m_hwnd;
         const float outgoingSlot = GetCardDisplaySlot(0);
-
         RotateListPhysically(false);
         m_scrollPos    -= 1.0f;
         m_scrollTarget -= 1.0f;
         m_wrapScrollAdjustThisFrame -= 1.0f;
-
         OnCarouselWrapForward(outgoingHwnd, outgoingSlot);
     }
     guard = 0;
     while (m_scrollPos <= -0.5f && guard++ <= N)
     {
         const HWND incomingHwnd = m_cards[(size_t)(N - 1)].m_hwnd;
-
         RotateListPhysically(true);
         m_scrollPos    += 1.0f;
         m_scrollTarget += 1.0f;
         m_wrapScrollAdjustThisFrame += 1.0f;
-
         OnCarouselWrapBackward(incomingHwnd);
     }
 }
@@ -279,7 +275,6 @@ void Flip3DComp::OnCarouselWrapForward(HWND outgoingHwnd, float outgoingSlot)
         c.m_displaySlotValid = true;
         break;
     }
-
     SyncDisplaySlotsToList();
 }
 
@@ -310,7 +305,6 @@ void Flip3DComp::OnCarouselWrapBackward(HWND incomingHwnd)
         c.m_displaySlotValid = true;
         break;
     }
-
     SyncDisplaySlotsToList();
 }
 
@@ -341,7 +335,6 @@ void Flip3DComp::FreezeCarouselVisuals()
 
         c.m_displaySlotValid = true;
     }
-
     m_exitScrollSnapshot = m_scrollPos;
     m_scrollTarget       = m_scrollPos;
 }
@@ -374,7 +367,6 @@ void Flip3DComp::UpdateVisualSlots(float enterProgress)
         for (int k = 0; k < cardCount; ++k)
             m_cards[(size_t)k].m_displaySlot = CardListSlot(k);
     }
-
     // ExitRepeatedRotate with more steps pending: keep m_displaySlot unchanged
 }
 
@@ -410,7 +402,6 @@ void Flip3DComp::CommitCarouselScroll()
         InvalidateDisplaySlots();
         return;
     }
-
     AlignCarouselScrollSettled();
 }
 
@@ -438,9 +429,7 @@ void Flip3DComp::AlignCarouselScrollSettled()
         c.m_wrapPhase             = CarouselWrapPhase::None;
         c.m_wrapFadeStartListSlot = 0.0f;
     }
-
     SyncDisplaySlotsToList();
-
     m_exitScrollSnapshot = 0.0f;
 }
 
@@ -489,7 +478,6 @@ float Flip3DComp::ComputeScrollTargetForCard(int listIndex) const
         if (shortDelta < 0.0f && std::abs(shortDelta) < std::abs(visualSlot))
             return m_scrollPos + shortDelta;
     }
-
     return m_scrollPos + visualSlot;
 }
 
@@ -591,18 +579,6 @@ void Flip3DComp::Update(float dtSeconds)
 
     TickSmoothScroll(dtSeconds);
 
-    const float washProgress  = std::clamp(m_animEnter.LinearValue(), 0.0f, 1.0f);
-
-    if (m_sceneVisual)
-        m_sceneVisual->SetOpacity(1.0f);
-    for (auto& mon : m_monitorBackdrops)
-    {
-        if (mon.washVisual)
-            mon.washVisual->SetOpacity(washProgress * kDesktopWashOpacityScale);
-        if (mon.shellContainer)
-            mon.shellContainer->SetOpacity(1.0f);
-    }
-
     if (m_state == ViewState::Enter && !m_animEnter.IsActive())
     {
         m_state = ViewState::Interactive;
@@ -659,7 +635,6 @@ float Flip3DComp::ComputeFlatDepthRank(float slot, float enterProgress,
                                           int listIndex) const
 {
     const float p = enterProgress;
-
     if (m_state == ViewState::Exit || m_state == ViewState::ExitRepeatedRotate)
         return slot;
 
@@ -673,7 +648,6 @@ float Flip3DComp::ComputeFlatDepthRank(float slot, float enterProgress,
             return (float)c.m_initialCarouselIndex;
         }
     }
-
     return slot;
 }
 
@@ -912,7 +886,6 @@ float Flip3DComp::ComputeUpdateAlpha(const CardModel& card, float enterProgress,
         else if (card.m_isShellDesktop)
             enterScale = enterProgress;
     }
-
     return std::clamp(rotationOpacity * enterScale, 0.0f, 1.0f);
 }
 
@@ -1038,6 +1011,5 @@ Matrix4x4 Flip3DComp::BuildModelMatrix(const CardModel& c, float t,
             Translation((float)c.m_srcWidth, 0.0f, 0.0f));
         M = Multiply(Mirror, M);
     }
-
     return M;
 }
