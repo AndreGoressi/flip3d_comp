@@ -41,7 +41,11 @@ void Flip3DComp::InitializeMouseWheelHook()
         return;
 
     s_instance = this;
-    m_mouseHook = SetWindowsHookExW(WH_MOUSE_LL, LowLevelMouseProc, nullptr, 0);
+    m_mouseHook = SetWindowsHookExW(WH_MOUSE_LL, LowLevelMouseProc, GetModuleHandleW(nullptr), 0);
+    if (!m_mouseHook)
+    {
+        DWORD err = GetLastError();
+    }
 }
 
 // ============================================================================
