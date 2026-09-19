@@ -58,15 +58,10 @@ void Flip3DComp::ApplyFullscreenLayout()
     if (!m_hwnd)
         return;
     
-    MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTOPRIMARY);
-    if (hMon)
-        GetMonitorInfoW(hMon, &mi);
-
-    const int x = mi.rcWork.left;
-    const int y = mi.rcWork.top;
-    const int w = mi.rcWork.right - mi.rcWork.left;
-    const int h = mi.rcWork.bottom - mi.rcWork.top;
+    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
     SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
 
     RECT client = {};
@@ -82,7 +77,7 @@ void Flip3DComp::ApplyFullscreenLayout()
 // Flip3DComp::InitializeDCompStage
 // uDWM Flip3D input window: borderless popup, topmost but do not cover the taskbar.
 // ============================================================================
-bool Flip3DComp::InitializeDCompStage()
+/*bool Flip3DComp::InitializeDCompStage()
 {
     WNDCLASSEXW wc = {
         sizeof(wc), 0,
@@ -134,8 +129,91 @@ bool Flip3DComp::InitializeDCompStage()
     ACCENT_POLICY accent = {};
     accent.AccentState =  ACCENT_ENABLE_ACRYLICBLURBEHIND;
     accent.AccentFlags = 2;
-    accent.GradientColor = 0x73190F0F; /*gradientColor*/
+    accent.GradientColor = 0x73190F0F; 
 
+    WINDOWCOMPOSITIONATTRIBDATA data = {};
+    data.Attrib = WCA_ACCENT_POLICY;
+    data.pvData = &accent;
+    data.cbData = sizeof(accent);    
+    m_pfnSetWindowCompositionAttribute(m_hwnd, &data);
+    //
+    m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
+
+    RECT client = {};
+    if (GetClientRect(m_hwnd, &client))
+    {
+        m_width  = std::max(1u, (UINT)(client.right  - client.left));
+        m_height = std::max(1u, (UINT)(client.bottom - client.top));
+    }
+    return true;
+}*/
+
+bool Flip3DComp::InitializeDCompStage()
+{
+    WNDCLASSEXW wc = {
+        sizeof(wc), 0,
+        &Flip3DComp::WndProc,
+        0, 0,
+        m_hInstance,
+        nullptr, nullptr,
+        nullptr, nullptr,
+        L"Flip3DCompClass",
+        nullptr,
+    };
+    ATOM res = RegisterClassExW(&wc);
+    if (!res) {
+        DWORD dwError = GetLastError();
+    }
+
+    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    //
+    m_hwnd = m_pfnCreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
+                                     WS_EX_TOPMOST |
+                                     WS_EX_TOPMOST,
+                                     (LPCWSTR)res, L"",                                          
+                                     0x80000000,                                     
+                                     0, 0, 0, 0,                                   
+                                     nullptr,                                      
+                                     nullptr,                                      
+                                     m_hInstance,                                  
+                                     this,                                         
+                                     ZBID_DESKTOP                                 
+    );
+    
+    if (!m_hwnd)
+        return false;
+    //
+    APPBARDATA abd = {};
+    abd.cbSize = sizeof(abd);
+    if (SHAppBarMessage(ABM_GETTASKBARPOS, &abd))
+    {
+        HRGN fullscreenRgn =
+            CreateRectRgn(0, 0, w, h);
+
+        HRGN taskbarRgn = CreateRectRgn(abd.rc.left - x, 
+                                        abd.rc.top - y, 
+                                        abd.rc.right - x, 
+                                        abd.rc.bottom - y);
+        CombineRgn(fullscreenRgn,
+                   fullscreenRgn,
+                   taskbarRgn,
+                   RGN_DIFF);
+
+        SetWindowRgn(m_hwnd, fullscreenRgn, TRUE);
+        DeleteObject(taskbarRgn);
+    }
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
+    //
+    BOOL exclude = TRUE;
+    DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
+    //
+    ACCENT_POLICY accent = {};
+    accent.AccentState =  ACCENT_ENABLE_ACRYLICBLURBEHIND;
+    accent.AccentFlags = 2;
+    accent.GradientColor = 0x73190F0F; /*gradientColor*/
     WINDOWCOMPOSITIONATTRIBDATA data = {};
     data.Attrib = WCA_ACCENT_POLICY;
     data.pvData = &accent;
