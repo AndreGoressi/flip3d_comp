@@ -86,7 +86,8 @@ void Flip3DComp::ApplyFullscreenLayout()
 bool Flip3DComp::InitializeDCompStage()
 {
     WNDCLASSEXW wc = {
-        sizeof(wc), 0,
+        sizeof(wc), 
+        CS_HREDRAW | CS_VREDRAW,
         &Flip3DComp::WndProc,
         0, 0,
         m_hInstance,
