@@ -46,9 +46,6 @@ leave:
 
 } // namespace
 
-
-    bool    LoadUndocApi();
-    void    UnloadUndocApi();
 // ============================================================================
 // Flip3DComp::LoadThumbApi
 // ============================================================================
@@ -63,6 +60,14 @@ bool Flip3DComp::LoadUndocApi()
         return false;
     }
 
+    HMODULE hUser32 = GetModuleHandleW(L"user32.dll");
+    if (!hUser32)
+    {
+        m_initError = L"Failed to get user32.dll handle.";
+        UnloadUndocApi();
+        return false;
+    }
+
     m_pfnCreateSharedThumbVisual = (DwmpCreateSharedThumbnailVisual_fn)
         GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(147));
     
@@ -73,7 +78,7 @@ bool Flip3DComp::LoadUndocApi()
         GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(113));
 
     m_pfnGetWindowMinimizeRect = (GetWindowMinimizeRect_fn)
-        GetProcAddress(GetModuleHandleW(L"user32.dll"), "GetWindowMinimizeRect");
+        GetProcAddress(hUser32, "GetWindowMinimizeRect");
 
     m_pfnCreateWindowInBand = (CreateWindowInBand_fn)
         GetProcAddress(hUser32, "CreateWindowInBand"); 
@@ -111,9 +116,14 @@ bool Flip3DComp::LoadUndocApi()
         UnloadUndocApi();
         return false;
     }
+    if (!m_pfnSetWindowCompositionAttribute)
+    {
+        m_initError = L"SetWindowCompositionAttribute failed to load.";
+        UnloadUndocApi();
+        return false;
+    }
     return true;
 }
-
 // ============================================================================
 // Flip3DComp::UnloadDwmApi
 // ============================================================================
