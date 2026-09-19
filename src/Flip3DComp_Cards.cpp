@@ -10,9 +10,12 @@ namespace {
 MONITORINFO QueryPrimaryMonitor()
 {
     MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hPrimary = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
-    if (hPrimary)
-        GetMonitorInfoW(hPrimary, &mi);
+    if (!hwnd)
+        hwnd = GetForegroundWindow();
+        
+    HMONITOR hMon = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+    if (hMon)
+        GetMonitorInfoW(hMon, &mi);
     return mi;
 }
 
@@ -432,34 +435,38 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
             }
         }
     }
+    //
     hr = container.As(&card.m_containerVisual);
     if (FAILED(hr))
         return hr;
-    //
-    if (card.m_isShellDesktop)
-    {
-        MONITORINFO primaryMi = QueryPrimaryMonitor();
-        std::vector<HWND> allHwnds = EnumerateWindows();
-        std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
-        
-        for (auto group : activeGroups)
+
+        if (card.m_isShellDesktop)
         {
-            if (group.empty())
-                continue;
-            
+            MONITORINFO primaryMi = QueryPrimaryMonitor();
+            std::vector<HWND> allHwnds = EnumerateWindows();
+            std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
+    
+        for (const auto& group : activeGroups)
+        {
             for (HWND groupHwnd : group)
             {
                 RECT rcWin = {};
-                bool isVis = IsWindowVisible(groupHwnd);
-                if (isVis)
+                bool isMin = IsIconic(groupHwnd);
+
+                if (isMin)
                 {
                     WINDOWPLACEMENT wp = { sizeof(wp) };
                     if (GetWindowPlacement(groupHwnd, &wp))
+                    {
                         rcWin = wp.rcNormalPosition;
+                    }
                 }
-                else if (FAILED(DwmGetWindowAttribute(groupHwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
+                else
                 {
-                    GetWindowRect(groupHwnd, &rcWin);
+                    if (FAILED(DwmGetWindowAttribute(groupHwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
+                    {
+                        GetWindowRect(groupHwnd, &rcWin);
+                    }
                 }
 
                 if (rcWin.right <= rcWin.left || rcWin.bottom <= rcWin.top)
@@ -488,14 +495,16 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                 int relY = (int)(adjustedY * scaleY);
                 int relW = (int)(adjustedW * scaleX);
                 int relH = (int)(adjustedH * scaleY);
-                //
+
                 HTHUMBNAIL subThumb = nullptr;
                 DWM_THUMBNAIL_PROPERTIES subTp = {};
                 subTp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D;
                 
-                if (isVis)
+                if (isMin)
+                {
                     subTp.dwFlags |= DWM_TNP_FORCECVI;
-                
+                }
+
                 subTp.fVisible = TRUE;
                 subTp.rcDestination = { 0, 0, relW, relH };
 
@@ -510,8 +519,10 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                     {
                         subVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
                         subVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+                        //
                         subVisual->SetOffsetX((float)relX);
                         subVisual->SetOffsetY((float)relY);
+
                         container->AddVisual(subVisual.Get(), FALSE, nullptr);
                     }
                 }
