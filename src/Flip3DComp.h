@@ -58,6 +58,7 @@ public:
     bool Initialize(HINSTANCE hInstance);
     bool    OnWheel(int wheelDelta);
     bool    OnMouse(LONG x, LONG y, bool pressed);
+    bool    OnMouseMove(LONG x, LONG y);
     HWND WindowHandle() const { return m_hwnd; }
     const wchar_t* InitErrorMessage() const { return m_initError.c_str(); }
     int  Run();
