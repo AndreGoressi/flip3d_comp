@@ -156,6 +156,36 @@ enum class PeekTypes : long
     Window = 3
 };
 
+enum ACCENT_STATE
+{
+    ACCENT_DISABLED                     = 0,
+    ACCENT_ENABLE_GRADIENT              = 1,
+    ACCENT_ENABLE_TRANSPARENTGRADIENT   = 2,
+    ACCENT_ENABLE_BLURBEHIND            = 3,
+    ACCENT_ENABLE_ACRYLICBLURBEHIND     = 4,
+    ACCENT_ENABLE_HOSTBACKDROP          = 5,
+};
+
+struct ACCENT_POLICY
+{
+    ACCENT_STATE AccentState;
+    DWORD        AccentFlags;
+    DWORD        GradientColor;   // Format 0xAABBGGRR
+    DWORD        AnimationId;
+};
+
+enum WINDOWCOMPOSITIONATTRIB
+{
+    WCA_ACCENT_POLICY = 19
+};
+
+struct WINDOWCOMPOSITIONATTRIBDATA
+{
+    WINDOWCOMPOSITIONATTRIB Attrib;
+    PVOID                   pvData;
+    SIZE_T                  cbData;
+};
+
 // ============================================================================
 // Private DWM thumbnail API (dwmapi.dll ordinal exports)
 // ============================================================================
@@ -184,3 +214,9 @@ using DwmpUpdateDesktopThumbnail_fn = HRESULT (WINAPI *)(
 
 using DwmpActivateLivePreview_fn = HRESULT(WINAPI*)(
     BOOL fEnable, HWND hPeekWindow, HWND hTopmostWindow, UINT peekType, void* reserved);
+
+using CreateWindowInBand_fn = HWND(WINAPI*)(
+    DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam, DWORD dwBand);
+
+using SetWindowCompositionAttribute_fn = BOOL(WINAPI*)(
+    HWND hWnd, void* pData);
