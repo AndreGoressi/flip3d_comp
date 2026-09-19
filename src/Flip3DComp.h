@@ -82,8 +82,8 @@ private:
     // DWM Thumbnail API (dwmapi.dll ordinals 147, 162)
     // ========================================================================
 
-    bool    LoadDwmApi();
-    void    UnloadDwmApi();
+    bool    LoadUndocApi();
+    void    UnloadUndocApi();
 
     // ========================================================================
     // DirectComposition composition
@@ -321,4 +321,6 @@ private:
     GetWindowMinimizeRect_fn              m_pfnGetWindowMinimizeRect    = nullptr;
     //new
     DwmpActivateLivePreview_fn             m_pfnActivateLivePreview = nullptr;
+    CreateWindowInBand_fn            m_pfnCreateWindowInBand          = nullptr;
+    SetWindowCompositionAttribute_fn m_pfnSetWindowCompositionAttribute = nullptr;
 };
