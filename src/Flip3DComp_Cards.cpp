@@ -404,7 +404,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     {
         DWM_THUMBNAIL_PROPERTIES tp = {};
         tp.dwFlags     = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
-        tp.fVisible    = FALSE;
+        tp.fVisible    = TRUE;
         tp.rcDestination = { 0, 0, card.m_srcWidth, card.m_srcHeight };
 
         void* pv = nullptr;
@@ -420,6 +420,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
             {
                 card.m_visual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
                 card.m_visual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+                card.m_visual->SetOpacity(0.0f);
                 container->AddVisual(card.m_visual.Get(), FALSE, nullptr);
             }
         }
