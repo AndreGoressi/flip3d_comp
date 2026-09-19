@@ -26,6 +26,9 @@ struct CardModel
     // ---- NEW: For Snap Layout / Multitasking Groups ----
     bool                 m_isGroup     = false;     // true, if it's a combo window/card
     std::vector<HWND>    m_groupHwnds;
+    std::vector<HTHUMBNAIL>                   m_groupSubThumbs;
+    std::vector<ComPtr<IDCompositionVisual3>> m_groupSubVisuals;
+    size_t                                    m_groupSignature = 0;
 
     // ---- DirectComposition visuals ----
     ComPtr<IDCompositionVisual3> m_visual;          // thumbnail content visual (DWM)
