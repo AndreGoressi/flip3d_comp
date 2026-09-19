@@ -106,7 +106,7 @@ bool Flip3DComp::InitializeDCompStage()
     //
     m_hwnd = m_pfnCreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
                                      WS_EX_TOOLWINDOW, 
-                                     res,                                          
+                                     (LPCWSTR)res,                                          
                                      L"",                                          
                                      WS_POPUP,                                     
                                      0, 0, 0, 0,                                   
