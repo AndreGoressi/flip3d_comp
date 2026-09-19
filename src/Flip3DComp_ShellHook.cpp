@@ -24,7 +24,7 @@ LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
         {
             bool pressed = (wParam == WM_LBUTTONDOWN);
             s_instance->OnMouse(info->pt.x, info->pt.y, pressed);
-            // return 1; 
+            return 1; 
         }
     }
     return CallNextHookEx(nullptr, nCode, wParam, lParam);
