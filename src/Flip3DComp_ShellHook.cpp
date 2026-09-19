@@ -81,12 +81,6 @@ BOOL CALLBACK Flip3DComp::RemoveTopmostCallback(HWND hwnd, LPARAM lParam)
     return TRUE;
 }
 
-void Flip3DComp::StripCompetingTopmost()
-{
-    s_strippedTopmostWindows.clear();
-    EnumWindows(RemoveTopmostCallback, reinterpret_cast<LPARAM>(this));
-}
-
 void Flip3DComp::RestoreCompetingTopmost()
 {
     for (HWND hwnd : s_strippedTopmostWindows)
@@ -102,6 +96,45 @@ void Flip3DComp::RestoreCompetingTopmost()
     }
     s_strippedTopmostWindows.clear();
 }
+
+bool IsAlwaysOnTop(HWND hwnd)
+{
+    return (GetWindowLongPtr(hwnd, GWL_EXSTYLE) & WS_EX_TOPMOST) != 0;
+}
+
+std::unordered_map<HWND, bool> m_savedTopmostState;
+void Flip3DComp::StripTopmostForCards()
+{
+    for (auto& card : m_cards)
+    {
+        if (!card.m_hwnd)
+            continue;
+
+        bool wasTopmost = IsAlwaysOnTop(card.m_hwnd);
+        m_savedTopmostState[card.m_hwnd] = wasTopmost;
+
+        if (wasTopmost)
+        {
+            SetWindowPos(card.m_hwnd, HWND_NOTOPMOST, 0, 0, 0, 0,
+                         SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        }
+    }
+}
+
+void Flip3DComp::RestoreTopmostForCards()
+{
+    for (auto& [hwnd, wasTopmost] : m_savedTopmostState)
+    {
+        if (wasTopmost && IsWindow(hwnd))
+        {
+            SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0,
+                         SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        }
+    }
+    m_savedTopmostState.clear();
+}
+
+
 
 bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
 {
