@@ -121,8 +121,10 @@ bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
         return false;
 
     return !_wcsicmp(cls, L"Shell_TrayWnd")
-    || !_wcsicmp(cls, L"Shell_SecondaryTrayWnd")
-        || !_wcsicmp(cls, L"WorkerW");
+        || !_wcsicmp(cls, L"Shell_SecondaryTrayWnd")
+        || !_wcsicmp(cls, L"WorkerW")
+        || !_wcsicmp(cls, L"NotifyIconOverflowWindow") 
+        || !_wcsicmp(cls, L"TrayNotifyWnd");
 }
 
 bool Flip3DComp::IsSystemFlyoutProcess(HWND hwnd) const
