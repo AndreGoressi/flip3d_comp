@@ -259,7 +259,10 @@ private:
     // ---- Window / instance ----
     HINSTANCE               m_hInstance     = nullptr;
     HWND                    m_hwnd          = nullptr;
-    HHOOK                   m_mouseHook     = nullptr;
+
+    int                     m_framesSinceOpen   = 0;
+    bool                    m_thumbnailsRevealed = false;
+    //HHOOK                   m_mouseHook     = nullptr;
     std::wstring            m_initError;
 
     // ---- Dimensions ----
