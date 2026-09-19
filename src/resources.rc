@@ -6,3 +6,15 @@
 106 ICON "icons/light_alternate.ico"
 107 ICON "icons/light_mica.ico"
 108 ICON "icons/light_mica_alternate.ico"
+
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+#include "winres.h"
+#undef APSTUDIO_READONLY_SYMBOLS
+
+1          RT_MANIFEST      MOVEABLE PURE   ".manifest"
+
+BEGIN
+    CHECKBOX        "&",IDC_MAIN_TOP,
+END
