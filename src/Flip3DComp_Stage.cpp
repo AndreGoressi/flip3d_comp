@@ -108,13 +108,13 @@ bool Flip3DComp::InitializeDCompStage()
                                      WS_EX_TOOLWINDOW, 
                                      (LPCWSTR)res,                                          
                                      L"",                                          
-                                     WS_POPUP,                                     
+                                     0x80000000,                                     
                                      0, 0, 0, 0,                                   
                                      nullptr,                                      
                                      nullptr,                                      
                                      m_hInstance,                                  
-                                     this,                                         
-                                     ZBID_UIACCESS                                 
+                                     LPVOID(res),                                         
+                                     ZBID_DESKTOP                                 
     );
     //
     if (!m_hwnd)
