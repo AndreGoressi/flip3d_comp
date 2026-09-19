@@ -134,6 +134,9 @@ private:
     // Per-frame update
     // ========================================================================
 
+    void RebuildDesktopGroupThumbnails(CardModel& card);
+    void RefreshDesktopGroupThumbnailsIfStale();
+
     void    Update(float dtSeconds);
 
     // ========================================================================
