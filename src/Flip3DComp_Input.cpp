@@ -40,25 +40,6 @@ bool Flip3DComp::OnWheel(int wheelDelta)
     m_scrollTarget -= (float)wheelDelta / (float)WHEEL_DELTA;
     return true;
 }
-
-// ============================================================================
-// Flip3DComp::OnMouseMove
-// ============================================================================
-bool Flip3DComp::OnMouseMove(LONG x, LONG y)
-{
-    if (m_state == ViewState::Exit ||
-        m_state == ViewState::ExitRepeatedRotate)
-        return false;
-
-    POINT pt = { x, y };
-    ScreenToClient(m_hwnd, &pt);
-
-    m_hitHwnd = HitTest3DScene(pt.x, pt.y);
-    SetCursor(LoadCursorW(nullptr, m_hitHwnd ? IDC_HAND : IDC_ARROW));
-
-    return true;
-}
-
 // ============================================================================
 // Flip3DComp::OnKey
 // ============================================================================
