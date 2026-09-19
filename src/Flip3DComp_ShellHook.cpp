@@ -55,6 +55,50 @@ bool Flip3DComp::IsFlip3DViewActive() const
     return m_state != ViewState::Inactive;
 }
 
+#include <vector>
+
+BOOL CALLBACK Flip3DComp::RemoveTopmostCallback(HWND hwnd, LPARAM lParam)
+{
+    auto* pThis = reinterpret_cast<Flip3DComp*>(lParam);
+    if (pThis->IsNeverHiddenWindow(hwnd))
+        return TRUE;
+
+    if (!IsWindowVisible(hwnd))
+        return TRUE;
+
+    LONG_PTR exStyle = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
+    if (exStyle & WS_EX_TOPMOST)
+    {
+        SetWindowLongPtrW(hwnd, GWL_EXSTYLE, exStyle & ~WS_EX_TOPMOST);
+        SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, 
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        
+        s_strippedTopmostWindows.push_back(hwnd);
+    }
+    return TRUE;
+}
+
+void Flip3DComp::StripCompetingTopmost()
+{
+    s_strippedTopmostWindows.clear();
+    EnumWindows(RemoveTopmostCallback, reinterpret_cast<LPARAM>(this));
+}
+
+void Flip3DComp::RestoreCompetingTopmost()
+{
+    for (HWND hwnd : s_strippedTopmostWindows)
+    {
+        if (IsWindow(hwnd))
+        {
+            LONG_PTR exStyle = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
+            SetWindowLongPtrW(hwnd, GWL_EXSTYLE, exStyle | WS_EX_TOPMOST);
+            SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, 
+                         SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        }
+    }
+    s_strippedTopmostWindows.clear();
+}
+
 bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
 {
     if (!hwnd)
@@ -96,7 +140,6 @@ bool Flip3DComp::IsSystemFlyoutProcess(HWND hwnd) const
     {
         wchar_t* exeName = wcsrchr(path, L'\\');
         exeName = exeName ? exeName + 1 : path;
-
         found = _wcsicmp(exeName, L"StartMenuExperienceHost.exe") == 0 ||
                 _wcsicmp(exeName, L"SearchHost.exe") == 0 ||
                 _wcsicmp(exeName, L"SearchUI.exe") == 0 ||
