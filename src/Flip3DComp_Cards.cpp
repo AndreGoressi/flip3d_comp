@@ -269,7 +269,7 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
 // ============================================================================
 void Flip3DComp::UpdateMonitorRect()
 {
-    HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
+    HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
     if (!hMon)
         return;
 
@@ -282,14 +282,14 @@ void Flip3DComp::UpdateMonitorRect()
     m_viewX = (float)(mi.rcWork.left - vx);
     m_viewY = (float)(mi.rcWork.top  - vy);
 
-    const float newMonW      = (float)std::max(1L, mi.rcWork.right  - mi.rcWork.left);
-    const float newMonH      = (float)std::max(1L, mi.rcWork.bottom - mi.rcWork.top);
-    const float newOriginX   = (float)mi.rcWork.left;
-    const float newOriginY   = (float)mi.rcWork.top;
+    const float newMonW     = (float)std::max(1L, mi.rcWork.right  - mi.rcWork.left);
+    const float newMonH     = (float)std::max(1L, mi.rcWork.bottom - mi.rcWork.top);
+    const float newOriginX  = (float)mi.rcWork.left;
+    const float newOriginY  = (float)mi.rcWork.top;
 
     const bool layoutChanged =
-        newMonW    != m_monW        ||
-        newMonH    != m_monH        ||
+        newMonW    != m_monW       ||
+        newMonH    != m_monH       ||
         newOriginX != m_monOriginX ||
         newOriginY != m_monOriginY;
 
@@ -297,13 +297,14 @@ void Flip3DComp::UpdateMonitorRect()
     m_monH       = newMonH;
     m_monOriginX = newOriginX;
     m_monOriginY = newOriginY;
-    
+
     if (layoutChanged)
     {
         for (auto& card : m_cards)
             UpdateCardGeometry(card, m_monW, m_monH);
     }
 }
+
 
 bool Flip3DComp::AddCardForWindow(HWND hwnd)
 {
