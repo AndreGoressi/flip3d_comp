@@ -819,8 +819,9 @@ std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vec
             if (rc2.right <= rc2.left || rc2.bottom <= rc2.top)
                 continue;
 
+            constexpr LONG kTouchTolerance = 16;
             // Check horizontal adjacency (side-by-side snap)
-            bool touchingHorizontally = (abs(rc1.right - rc2.left) <= 8 || abs(rc2.right - rc1.left) <= 8);
+            bool touchingHorizontally = (abs(rc1.right - rc2.left) <= kTouchTolerance || abs(rc2.right - rc1.left) <= kTouchTolerance);
             bool verticalOverlap = (rc1.top < rc2.bottom && rc1.bottom > rc2.top);
 
             if (touchingHorizontally && verticalOverlap)
@@ -830,7 +831,7 @@ std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vec
             // Check vertical adjacency (stacked snap)
             else
             {
-                bool touchingVertically = (abs(rc1.bottom - rc2.top) <= 8 || abs(rc2.bottom - rc1.top) <= 8);
+                bool touchingVertically = (abs(rc1.bottom - rc2.top) <= kTouchTolerance || abs(rc2.bottom - rc1.top) <= kTouchTolerance);
                 bool horizontalOverlap = (rc1.left < rc2.right && rc1.right > rc2.left);
 
                 if (touchingVertically && horizontalOverlap)
