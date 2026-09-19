@@ -85,16 +85,14 @@ void Flip3DComp::ApplyFullscreenLayout()
 bool Flip3DComp::InitializeDCompStage()
 {
     WNDCLASSEXW wc = {
-                sizeof(wc),
-                0,
-                &Flip3DComp::WndProc,
-                0, 0,
-                m_hInstance,
-                nullptr,
-                LoadCursorW(nullptr, IDC_ARROW),
-                nullptr, nullptr,
-                L"Flip3DCompClass",
-                nullptr,
+        sizeof(wc), 0,
+        &Flip3DComp::WndProc,
+        0, 0,
+        m_hInstance,
+        nullptr, nullptr,
+        nullptr, nullptr,
+        L"Flip3DCompClass",
+        nullptr,
     };
     ATOM res = RegisterClassExW(&wc);
     if (!res) {
