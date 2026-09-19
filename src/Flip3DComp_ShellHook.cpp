@@ -19,13 +19,13 @@ LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
             s_instance->OnWheel(delta);
             return 1; 
         }
-        else if (wParam == WM_LBUTTONDOWN || wParam == WM_LBUTTONUP)
+        if (wParam == WM_LBUTTONDOWN || wParam == WM_LBUTTONUP)
         {
             bool pressed = (wParam == WM_LBUTTONDOWN);
             s_instance->OnMouse(info->pt.x, info->pt.y, pressed);
             return 1; 
         }
-        else if (wParam == WM_MOUSEMOVE)
+        if (wParam == WM_MOUSEMOVE)
         {
             s_instance->OnMouseMove(info->pt.x, info->pt.y);
             HCURSOR hCur = LoadCursorW(nullptr, s_instance->IsHitTestValid() ? IDC_HAND : IDC_ARROW);
