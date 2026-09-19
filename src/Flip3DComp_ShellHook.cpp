@@ -61,18 +61,16 @@ BOOL CALLBACK Flip3DComp::RemoveTopmostCallback(HWND hwnd, LPARAM lParam)
 {
     auto* pThis = reinterpret_cast<Flip3DComp*>(lParam);
 
-    if (pThis->IsNeverHiddenWindow(hwnd))
-        return TRUE;
-
-    if (IsIconic(hwnd))
+    if (pThis->IsNeverHiddenWindow(hwnd) || IsIconic(hwnd))
         return TRUE;
 
     LONG_PTR exStyle = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
     if (exStyle & WS_EX_TOPMOST)
     {
-        SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (exStyle & ~WS_EX_TOPMOST) | WS_EX_LAYERED);
+        SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (exStyle & ~WS_EX_TOPMOST) | WS_EX_NOACTIVATE);
         SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, 
                      SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        
         s_strippedTopmostWindows.push_back(hwnd);
     }
     return TRUE;
@@ -85,7 +83,7 @@ void Flip3DComp::RestoreCompetingTopmost()
         if (IsWindow(hwnd))
         {
             LONG_PTR exStyle = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
-            SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (exStyle | WS_EX_TOPMOST) & ~WS_EX_LAYERED);
+            SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (exStyle | WS_EX_TOPMOST) & ~WS_EX_NOACTIVATE);
             SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, 
                          SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
         }
