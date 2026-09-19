@@ -79,10 +79,8 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     EnterFlip3DWindowMode();
     SetTopmostStatus(true);
     InitAccessibility();
-
-    SetCapture(m_hwnd);
-
     Update(0.0f);
+    
     return true;
 }
 
