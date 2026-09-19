@@ -467,28 +467,39 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
 
                 float scaleX = card.m_srcWidth / m_monW;
                 float scaleY = card.m_srcHeight / m_monH;
-
                 float screenX = (float)(rcWin.left - m_monOriginX);
                 float screenY = (float)(rcWin.top - m_monOriginY);
                 float screenW = (float)(rcWin.right - rcWin.left);
                 float screenH = (float)(rcWin.bottom - rcWin.top);
-
                 float gutter = 160.0f;
                 bool touchesLeft   = (screenX <= 5.0f);
                 bool touchesRight  = (abs((screenX + screenW) - m_monW) <= 5.0f);
                 bool touchesTop    = (screenY <= 5.0f);
                 bool touchesBottom = (abs((screenY + screenH) - m_monH) <= 5.0f);
-
-                float adjustedX = screenX + (touchesLeft ? gutter : gutter * 0.5f);
-                float adjustedY = screenY + (touchesTop ? gutter : gutter * 0.5f);
-                float adjustedW = screenW - ((touchesLeft ? gutter : gutter * 0.5f) + (touchesRight ? gutter : gutter * 0.5f));
-                float adjustedH = screenH - ((touchesTop ? gutter : gutter * 0.5f) + (touchesBottom ? gutter : gutter * 0.5f));
-
+                float adjustedX = screenX;
+                float adjustedY = screenY;
+                float adjustedW = screenW;
+                float adjustedH = screenH;
+                //
+                if (touchesLeft && !touchesRight) {
+                    adjustedX = screenX + (gutter * 0.25f);
+                    adjustedW = screenW - (gutter * 0.75f);
+                } else if (touchesRight && !touchesLeft) {
+                    adjustedX = screenX + (gutter * 0.5f);
+                    adjustedW = screenW - (gutter * 0.75f);
+                }
+                if (touchesTop && !touchesBottom) {
+                    adjustedY = screenY + (gutter * 0.25f);
+                    adjustedH = screenH - (gutter * 0.75f);
+                } else if (touchesBottom && !touchesTop) {
+                    adjustedY = screenY + (gutter * 0.5f);
+                    adjustedH = screenH - (gutter * 0.75f);
+                }
                 int relX = (int)(adjustedX * scaleX);
                 int relY = (int)(adjustedY * scaleY);
                 int relW = (int)(adjustedW * scaleX);
                 int relH = (int)(adjustedH * scaleY);
-
+                //
                 HTHUMBNAIL subThumb = nullptr;
                 DWM_THUMBNAIL_PROPERTIES subTp = {};
                 subTp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D;
@@ -655,83 +666,64 @@ void Flip3DComp::OnThumbnailSourceSizeChanged()
  
 std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork)
 {
-    struct ValidWin {
-        HWND hwnd;
-        RECT rc;
-    };
-    std::vector<ValidWin> validWins;
+    std::vector<std::vector<HWND>> groups;
     auto getSafeRect = [](HWND hwnd) {
         RECT rc = {};
-        if (IsIconic(hwnd)) {
+        if (IsIconic(hwnd))
+        {
             WINDOWPLACEMENT wp = { sizeof(wp) };
-            if (GetWindowPlacement(hwnd, &wp)) rc = wp.rcNormalPosition;
-        } else {
-            if (FAILED(DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rc, sizeof(rc)))) {
+            if (GetWindowPlacement(hwnd, &wp))
+            {
+                rc = wp.rcNormalPosition;
+            }
+        }
+        else
+        {
+            if (FAILED(DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rc, sizeof(rc))))
+            {
                 GetWindowRect(hwnd, &rc);
             }
         }
         return rc;
     };
-    for (HWND hwnd : hwnds) {
-        if (!IsWindow(hwnd) || hwnd == GetShellWindow() || (!IsWindowVisible(hwnd) && !IsIconic(hwnd)))
-            continue;
-        RECT rc = getSafeRect(hwnd);
-        if (rc.right <= rc.left || rc.bottom <= rc.top)
-            continue;
-        validWins.push_back({ hwnd, rc });
-    }
-    int n = (int)validWins.size();
-    std::vector<std::vector<int>> adj(n);
-    //
-    for (int i = 0; i < n; ++i) {
-        for (int j = i + 1; j < n; ++j) {
-            const RECT& rc1 = validWins[i].rc;
-            const RECT& rc2 = validWins[j].rc;
 
+    for (size_t i = 0; i < hwnds.size(); ++i)
+    {
+        if (!IsWindow(hwnds[i]) || hwnds[i] == GetShellWindow() || !IsWindowVisible(hwnds[i]) && !IsIconic(hwnds[i]))
+            continue;
+
+        RECT rc1 = getSafeRect(hwnds[i]);
+        if (rc1.right <= rc1.left || rc1.bottom <= rc1.top)
+            continue;
+
+        for (size_t j = i + 1; j < hwnds.size(); ++j)
+        {
+            if (!IsWindow(hwnds[j]) || hwnds[j] == GetShellWindow() || !IsWindowVisible(hwnds[j]) && !IsIconic(hwnds[j]))
+                continue;
+
+            RECT rc2 = getSafeRect(hwnds[j]);
+            if (rc2.right <= rc2.left || rc2.bottom <= rc2.top)
+                continue;
+
+            // Check horizontal adjacency (side-by-side snap)
             bool touchingHorizontally = (abs(rc1.right - rc2.left) <= 8 || abs(rc2.right - rc1.left) <= 8);
             bool verticalOverlap = (rc1.top < rc2.bottom && rc1.bottom > rc2.top);
 
-            bool touchingVertically = (abs(rc1.bottom - rc2.top) <= 8 || abs(rc2.bottom - rc1.top) <= 8);
-            bool horizontalOverlap = (rc1.left < rc2.right && rc1.right > rc2.left);
-            
-            bool cornerTouch = (abs(rc1.right - rc2.left) <= 8 && abs(rc1.bottom - rc2.top) <= 8) ||
-                               (abs(rc2.right - rc1.left) <= 8 && abs(rc1.bottom - rc2.top) <= 8) ||
-                               (abs(rc1.right - rc2.left) <= 8 && abs(rc2.bottom - rc1.top) <= 8) ||
-                               (abs(rc2.right - rc1.left) <= 8 && abs(rc2.bottom - rc1.top) <= 8);
-
-            if ((touchingHorizontally && verticalOverlap) || 
-                (touchingVertically && horizontalOverlap) || 
-                cornerTouch) 
+            if (touchingHorizontally && verticalOverlap)
             {
-                adj[i].push_back(j);
-                adj[j].push_back(i);
+                groups.push_back({ hwnds[i], hwnds[j] });
             }
-        }
-    }
-    std::vector<std::vector<HWND>> groups;
-    std::vector<bool> visited(n, false);
-    for (int i = 0; i < n; ++i) {
-        if (visited[i]) 
-            continue;
+            // Check vertical adjacency (stacked snap)
+            else
+            {
+                bool touchingVertically = (abs(rc1.bottom - rc2.top) <= 8 || abs(rc2.bottom - rc1.top) <= 8);
+                bool horizontalOverlap = (rc1.left < rc2.right && rc1.right > rc2.left);
 
-        std::vector<HWND> currentGroup;
-        std::vector<int> queue;
-        queue.push_back(i);
-        visited[i] = true;
-        size_t head = 0;
-        while (head < queue.size()) {
-            int curr = queue[head++];
-            currentGroup.push_back(validWins[curr].hwnd);
-
-            for (int neighbor : adj[curr]) {
-                if (!visited[neighbor]) {
-                    visited[neighbor] = true;
-                    queue.push_back(neighbor);
+                if (touchingVertically && horizontalOverlap)
+                {
+                    groups.push_back({ hwnds[i], hwnds[j] });
                 }
             }
-        }
-        if (currentGroup.size() >= 2) {
-            groups.push_back(currentGroup);
         }
     }
     return groups;
