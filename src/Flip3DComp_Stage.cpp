@@ -113,7 +113,7 @@ bool Flip3DComp::InitializeDCompStage()
                                      nullptr,                                      
                                      nullptr,                                      
                                      m_hInstance,                                  
-                                     LPVOID(res),                                         
+                                     this,                                         
                                      ZBID_DESKTOP                                 
     );
     //
