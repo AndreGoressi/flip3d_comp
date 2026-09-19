@@ -46,10 +46,13 @@ leave:
 
 } // namespace
 
+
+    bool    LoadUndocApi();
+    void    UnloadUndocApi();
 // ============================================================================
 // Flip3DComp::LoadThumbApi
 // ============================================================================
-bool Flip3DComp::LoadDwmApi()
+bool Flip3DComp::LoadUndocApi()
 {
     m_initError.clear();
 
@@ -62,6 +65,7 @@ bool Flip3DComp::LoadDwmApi()
 
     m_pfnCreateSharedThumbVisual = (DwmpCreateSharedThumbnailVisual_fn)
         GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(147));
+    
     m_pfnQueryThumbSize = (DwmpQueryWindowThumbnailSourceSize_fn)
         GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(162));
 
@@ -71,29 +75,40 @@ bool Flip3DComp::LoadDwmApi()
     m_pfnGetWindowMinimizeRect = (GetWindowMinimizeRect_fn)
         GetProcAddress(GetModuleHandleW(L"user32.dll"), "GetWindowMinimizeRect");
 
+    m_pfnCreateWindowInBand = (CreateWindowInBand_fn)
+        GetProcAddress(hUser32, "CreateWindowInBand"); 
+
+    m_pfnSetWindowCompositionAttribute = (SetWindowCompositionAttribute_fn)
+        GetProcAddress(hUser32, "SetWindowCompositionAttribute"); 
+
     if (!m_pfnCreateSharedThumbVisual)
     {
         m_initError = L"DwmpCreateSharedThumbnailVisual (dwmapi ord 147) is required.";
-        UnloadDwmApi();
+        UnloadUndocApi();
         return false;
     }
     if (!m_pfnQueryThumbSize)
     {
         m_initError = L"DwmpQueryWindowThumbnailSourceSize (dwmapi ord 162) is required.";
-        UnloadDwmApi();
+        UnloadUndocApi();
         return false;
     }
-
     if (!m_pfnGetWindowMinimizeRect)
     {
         m_initError = L"GetWindowMinimizeRect (user32) is required.";
-        UnloadDwmApi();
+        UnloadUndocApi();
         return false;
     }
     if (!m_pfnActivateLivePreview)
     {
         m_initError = L"DwmpActivateLivePreview (dwmapi ord 113) failed to load.";
-        UnloadDwmApi();
+        UnloadUndocApi();
+        return false;
+    }
+    if (!m_pfnCreateWindowInBand)
+    {
+        m_initError = L"CreateWindowInBand failed to load.";
+        UnloadUndocApi();
         return false;
     }
     return true;
@@ -102,12 +117,14 @@ bool Flip3DComp::LoadDwmApi()
 // ============================================================================
 // Flip3DComp::UnloadDwmApi
 // ============================================================================
-void Flip3DComp::UnloadDwmApi()
+void Flip3DComp::UnloadUndocApi()
 {
     m_pfnCreateSharedThumbVisual        = nullptr;
     m_pfnQueryThumbSize                 = nullptr;
     m_pfnGetWindowMinimizeRect          = nullptr;
-    m_pfnActivateLivePreview            = nullptr; // <-- Hier direkt mit ergänzen!
+    m_pfnActivateLivePreview            = nullptr;
+    m_pfnCreateWindowInBand             = nullptr;
+    m_pfnSetWindowCompositionAttribute  = nullptr;
 
     if (m_dwmapi)
     {
