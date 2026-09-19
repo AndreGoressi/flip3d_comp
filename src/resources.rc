@@ -9,12 +9,9 @@
 
 #include "resource.h"
 
-#define APSTUDIO_READONLY_SYMBOLS
+
 #include "winres.h"
-#undef APSTUDIO_READONLY_SYMBOLS
-
 1          RT_MANIFEST      MOVEABLE PURE   "flip3d_comp.manifest"
-
 BEGIN
     CHECKBOX        "&",IDC_MAIN_TOP,
 END
