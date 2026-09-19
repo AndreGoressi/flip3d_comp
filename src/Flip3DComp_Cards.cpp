@@ -440,19 +440,11 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
         MONITORINFO primaryMi = QueryPrimaryMonitor();
         std::vector<HWND> allHwnds = EnumerateWindows();
         std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
-
-        HWND foregroundHwnd = GetForegroundWindow(); 
+        
         for (auto group : activeGroups)
         {
             if (group.empty())
                 continue;
-
-            std::sort(group.begin(), group.end(), [foregroundHwnd](HWND a, HWND b) {
-                if (a == foregroundHwnd) return false; 
-                if (b == foregroundHwnd) return true;  
-                return false;
-            });
-            ComPtr<IDCompositionVisual> lastVisual = nullptr;
             
             for (HWND groupHwnd : group)
             {
@@ -520,13 +512,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                         subVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
                         subVisual->SetOffsetX((float)relX);
                         subVisual->SetOffsetY((float)relY);
-
-                        if (!lastVisual) {
-                            container->AddVisual(subVisual.Get(), FALSE, nullptr);
-                        } else {
-                            container->AddVisual(subVisual.Get(), TRUE, lastVisual.Get());
-                        }
-                        lastVisual = subVisual;
+                        container->AddVisual(subVisual.Get(), FALSE, nullptr);
                     }
                 }
             }
@@ -666,80 +652,88 @@ void Flip3DComp::OnThumbnailSourceSizeChanged()
     if (anyChange && m_dcompDevice)
         m_dcompDevice->Commit();
 }
-
-static RECT GetTrueWindowRect(HWND hwnd)
-{
-    RECT rc = {};
-    if (FAILED(DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rc, sizeof(rc))))
-    {
-        GetWindowRect(hwnd, &rc);
-    }
-    return rc;
-}
  
 std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork)
 {
-    std::vector<std::vector<HWND>> groups;
+    struct ValidWin {
+        HWND hwnd;
+        RECT rc;
+    };
+    std::vector<ValidWin> validWins;
     auto getSafeRect = [](HWND hwnd) {
         RECT rc = {};
-        if (IsIconic(hwnd))
-        {
+        if (IsIconic(hwnd)) {
             WINDOWPLACEMENT wp = { sizeof(wp) };
-            if (GetWindowPlacement(hwnd, &wp))
-            {
-                rc = wp.rcNormalPosition;
-            }
-        }
-        else
-        {
-            if (FAILED(DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rc, sizeof(rc))))
-            {
+            if (GetWindowPlacement(hwnd, &wp)) rc = wp.rcNormalPosition;
+        } else {
+            if (FAILED(DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rc, sizeof(rc)))) {
                 GetWindowRect(hwnd, &rc);
             }
         }
         return rc;
     };
-
-    for (size_t i = 0; i < hwnds.size(); ++i)
-    {
-        if (!IsWindow(hwnds[i]) || hwnds[i] == GetShellWindow() || !IsWindowVisible(hwnds[i]) && !IsIconic(hwnds[i]))
+    for (HWND hwnd : hwnds) {
+        if (!IsWindow(hwnd) || hwnd == GetShellWindow() || (!IsWindowVisible(hwnd) && !IsIconic(hwnd)))
             continue;
-
-        RECT rc1 = getSafeRect(hwnds[i]);
-        if (rc1.right <= rc1.left || rc1.bottom <= rc1.top)
+        RECT rc = getSafeRect(hwnd);
+        if (rc.right <= rc.left || rc.bottom <= rc.top)
             continue;
+        validWins.push_back({ hwnd, rc });
+    }
+    int n = (int)validWins.size();
+    std::vector<std::vector<int>> adj(n);
+    //
+    for (int i = 0; i < n; ++i) {
+        for (int j = i + 1; j < n; ++j) {
+            const RECT& rc1 = validWins[i].rc;
+            const RECT& rc2 = validWins[j].rc;
 
-        for (size_t j = i + 1; j < hwnds.size(); ++j)
-        {
-            if (!IsWindow(hwnds[j]) || hwnds[j] == GetShellWindow() || !IsWindowVisible(hwnds[j]) && !IsIconic(hwnds[j]))
-                continue;
-
-            RECT rc2 = getSafeRect(hwnds[j]);
-            if (rc2.right <= rc2.left || rc2.bottom <= rc2.top)
-                continue;
-
-            // Check horizontal adjacency (side-by-side snap)
             bool touchingHorizontally = (abs(rc1.right - rc2.left) <= 8 || abs(rc2.right - rc1.left) <= 8);
             bool verticalOverlap = (rc1.top < rc2.bottom && rc1.bottom > rc2.top);
 
-            if (touchingHorizontally && verticalOverlap)
-            {
-                groups.push_back({ hwnds[i], hwnds[j] });
-            }
-            // Check vertical adjacency (stacked snap)
-            else
-            {
-                bool touchingVertically = (abs(rc1.bottom - rc2.top) <= 8 || abs(rc2.bottom - rc1.top) <= 8);
-                bool horizontalOverlap = (rc1.left < rc2.right && rc1.right > rc2.left);
+            bool touchingVertically = (abs(rc1.bottom - rc2.top) <= 8 || abs(rc2.bottom - rc1.top) <= 8);
+            bool horizontalOverlap = (rc1.left < rc2.right && rc1.right > rc2.left);
+            
+            bool cornerTouch = (abs(rc1.right - rc2.left) <= 8 && abs(rc1.bottom - rc2.top) <= 8) ||
+                               (abs(rc2.right - rc1.left) <= 8 && abs(rc1.bottom - rc2.top) <= 8) ||
+                               (abs(rc1.right - rc2.left) <= 8 && abs(rc2.bottom - rc1.top) <= 8) ||
+                               (abs(rc2.right - rc1.left) <= 8 && abs(rc2.bottom - rc1.top) <= 8);
 
-                if (touchingVertically && horizontalOverlap)
-                {
-                    groups.push_back({ hwnds[i], hwnds[j] });
+            if ((touchingHorizontally && verticalOverlap) || 
+                (touchingVertically && horizontalOverlap) || 
+                cornerTouch) 
+            {
+                adj[i].push_back(j);
+                adj[j].push_back(i);
+            }
+        }
+    }
+    std::vector<std::vector<HWND>> groups;
+    std::vector<bool> visited(n, false);
+    for (int i = 0; i < n; ++i) {
+        if (visited[i]) 
+            continue;
+
+        std::vector<HWND> currentGroup;
+        std::vector<int> queue;
+        queue.push_back(i);
+        visited[i] = true;
+        size_t head = 0;
+        while (head < queue.size()) {
+            int curr = queue[head++];
+            currentGroup.push_back(validWins[curr].hwnd);
+
+            for (int neighbor : adj[curr]) {
+                if (!visited[neighbor]) {
+                    visited[neighbor] = true;
+                    queue.push_back(neighbor);
                 }
             }
+        }
+        if (currentGroup.size() >= 2) {
+            groups.push_back(currentGroup);
         }
     }
     return groups;
 }
-
 
