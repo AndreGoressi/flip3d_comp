@@ -23,8 +23,6 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
     }
 
     //RestoreCompetingTopmost();
-    ReleaseCapture();
-
     if (commitScroll)
         CommitCarouselScroll();
 
