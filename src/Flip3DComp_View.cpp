@@ -17,6 +17,8 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
     if (m_state == ViewState::Exit || m_state == ViewState::ExitRepeatedRotate)
         return;
     
+    ReleaseCapture();
+    
     if (m_pfnActivateLivePreview)
     {
         m_pfnActivateLivePreview(FALSE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Desktop), nullptr);
