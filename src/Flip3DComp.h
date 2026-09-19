@@ -93,7 +93,6 @@ private:
     // ========================================================================
 
     std::vector<HWND> EnumerateWindows();
-    static std::vector<HWND> s_strippedTopmostWindows;
     static BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam);
     struct EnumContext;
     bool    QualifiesForView(HWND hwnd) const;
@@ -244,7 +243,8 @@ private:
     HRESULT AccessibleSelectIndex(int index);
     //new
     bool    IsSystemFlyoutProcess(HWND hwnd) const;
-    BOOL CALLBACK RemoveTopmostCallback(HWND hwnd, LPARAM lParam);
+    static std::vector<HWND> s_strippedTopmostWindows;
+    static BOOL CALLBACK RemoveTopmostCallback(HWND hwnd, LPARAM lParam);
     void StripCompetingTopmost();
     void RestoreCompetingTopmost();
 
