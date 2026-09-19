@@ -49,11 +49,12 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
         return false;
     }
 
-    EnumWindows(RemoveTopmostCallback, reinterpret_cast<LPARAM>(this));
     if (m_pfnActivateLivePreview)
     {
         m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Desktop), nullptr); 
     }
+    
+    EnumWindows(RemoveTopmostCallback, reinterpret_cast<LPARAM>(this));
 
     m_state = ViewState::Enter;
     m_animEnter.Restart(0.0f, 1.0f, kEnterExitDurationSec);
