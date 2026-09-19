@@ -661,7 +661,6 @@ void Flip3DComp::Update(float dtSeconds)
         OnThumbnailSourceSizeChanged();
 
     //RefreshDesktopGroupThumbnailsIfStale();
-    RefreshDesktopGroupThumbnailsIfStale();
 
     if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
         dtSeconds *= 0.05f;
@@ -679,6 +678,9 @@ void Flip3DComp::Update(float dtSeconds)
 
     const float enterProgress = EnterProgress();
     UpdateVisualSlots(enterProgress);
+
+    RevealThumbnailsIfReady();
+    RefreshDesktopGroupThumbnailsIfStale();
 
     TickSmoothScroll(dtSeconds);
 
