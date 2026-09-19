@@ -5,8 +5,6 @@
 //   Visual tree layout:
 //     Root (DesktopWindowTarget)
 //       └── SceneVisual (IDCompositionVisual3)  ← 3D carousel
-//       └── WashVisual (dark overlay)
-//       └── Per-monitor shell thumbnails + wash (virtual desktop layout)
 //
 //   Thumbnails: DwmpCreateSharedThumbnailVisual (dwmapi.dll ord 147)
 //   3D carousel: parent Visual carries camera matrix; children carry model matrices.
@@ -59,6 +57,7 @@ public:
     // ========================================================================
     bool Initialize(HINSTANCE hInstance);
     bool    OnWheel(int wheelDelta);
+    bool    OnMouse(LONG x, LONG y, bool pressed);
     HWND WindowHandle() const { return m_hwnd; }
     const wchar_t* InitErrorMessage() const { return m_initError.c_str(); }
     int  Run();
@@ -195,7 +194,6 @@ private:
     // (autorepeat-bit detection) but the declaration never had it, so that
     // reference was silently resolving to nothing until it finally errored.
     bool    OnKey(bool down, UINT vkCode, LPARAM lParam);
-    bool    OnMouse(LONG x, LONG y, bool pressed);
     void    InitializeMouseWheelHook(); 
     void    RemoveMouseWheelHook();
 
