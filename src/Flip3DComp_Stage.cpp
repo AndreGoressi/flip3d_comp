@@ -2,8 +2,8 @@
 // Flip3DComp_Window.cpp — Window creation + enumeration
 // ============================================================================
 #include "Flip3DComp.h"
-#include "WindowCompositionAttribute.h"
-#include "pCreateWindowInBand.h"
+//#include "WindowCompositionAttribute.h"
+//#include "pCreateWindowInBand.h"
 //
 #include <algorithm>
 #include <vector>
@@ -88,31 +88,31 @@ void Flip3DComp::ApplyFullscreenLayout()
 bool Flip3DComp::InitializeDCompStage()
 {
     WNDCLASSEXW wc = {
-        sizeof(wc),
-        0,
-        &Flip3DComp::WndProc,
-        0, 0,
-        m_hInstance,
-        nullptr,
-        LoadCursorW(nullptr, IDC_ARROW),
-        nullptr, nullptr,
-        L"Flip3DCompClass",
-        nullptr,
+                sizeof(wc),
+                0,
+                &Flip3DComp::WndProc,
+                0, 0,
+                m_hInstance,
+                nullptr,
+                LoadCursorW(nullptr, IDC_ARROW),
+                nullptr, nullptr,
+                L"Flip3DCompClass",
+                nullptr,
     };
     ATOM res = RegisterClassExW(&wc);
     if (!res) {
         DWORD dwError = GetLastError();
     }
     //
-    m_hwnd = banding::CreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
-                                         WS_EX_TOOLWINDOW,
-                                         res,
-                                         L"",
-                                         WS_POPUP,
-                                         0, 0, 0, 0,
-                                         m_hInstance,
-                                         this,
-                                         ZBID_UIACCESS
+    m_hwnd = m_pfnCreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
+                                     WS_EX_TOOLWINDOW,
+                                     res,
+                                     L"",
+                                     WS_POPUP,
+                                     0, 0, 0, 0,
+                                     m_hInstance,
+                                     this,
+                                     ZBID_UIACCESS
     );
     //
     if (!m_hwnd)
@@ -132,7 +132,17 @@ bool Flip3DComp::InitializeDCompStage()
     //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
-    WindowCompositionAttribute::EnableBlurBehind(m_hwnd);
+
+    ACCENT_POLICY accent = {};
+    accent.AccentState =  ACCENT_ENABLE_ACRYLICBLURBEHIND;
+    accent.AccentFlags = 2;
+    accent.GradientColor = 0x73190F0F; /*gradientColor*/
+
+    WINDOWCOMPOSITIONATTRIBDATA data = {};
+    data.Attrib = WCA_ACCENT_POLICY;
+    data.pvData = &accent;
+    data.cbData = sizeof(accent);    
+    m_pfnSetWindowCompositionAttribute(m_hwnd, &data);
     //
     m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
 
