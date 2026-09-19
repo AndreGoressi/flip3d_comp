@@ -22,7 +22,7 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
 
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
-    if (!LoadDwmApi())
+    if (!LoadUndocApi())
         return false;
     //
     BuildCards();
@@ -98,7 +98,7 @@ int Flip3DComp::Run()
         }
     }
 
-    UnloadDwmApi();
+    UnLoadUndocApi();
     return (int)msg.wParam;
 }
 
