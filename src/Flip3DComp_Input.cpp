@@ -4,6 +4,25 @@
 #include "Flip3DComp.h"
 
 // ============================================================================
+// Flip3DComp::OnMouse
+// ============================================================================
+bool Flip3DComp::OnMouse(LONG x, LONG y, bool pressed)
+{
+    if (!pressed ||
+        m_state == ViewState::Exit ||
+        m_state == ViewState::ExitRepeatedRotate)
+        return false;
+
+    HWND hit = HitTest3DScene(x, y);
+    if (hit)
+        SelectWindow(hit);
+    else
+        ExitView();
+
+    return true;
+}
+
+// ============================================================================
 // Flip3DComp::OnWheel
 // Modern smooth scroll: each WHEEL_DELTA notch nudges the scroll target by one
 // slot. Wheel down (delta < 0) scrolls front→back; wheel up scrolls back→front.
@@ -94,23 +113,4 @@ bool Flip3DComp::OnKey(bool down, UINT vkCode, LPARAM lParam)
     }
 
     return false;
-}
-
-// ============================================================================
-// Flip3DComp::OnMouse
-// ============================================================================
-bool Flip3DComp::OnMouse(LONG x, LONG y, bool pressed)
-{
-    if (!pressed ||
-        m_state == ViewState::Exit ||
-        m_state == ViewState::ExitRepeatedRotate)
-        return false;
-
-    HWND hit = HitTest3DScene(x, y);
-    if (hit)
-        SelectWindow(hit);
-    else
-        ExitView();
-
-    return true;
 }
