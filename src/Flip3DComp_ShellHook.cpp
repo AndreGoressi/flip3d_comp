@@ -6,6 +6,51 @@
 // ============================================================================
 // Flip3DComp::QualifiesForView
 // ============================================================================
+namespace {
+
+Flip3DComp* s_instance = nullptr;
+
+LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+    if (nCode == HC_ACTION && wParam == WM_MOUSEWHEEL && s_instance)
+    {
+        const auto* info = reinterpret_cast<const MSLLHOOKSTRUCT*>(lParam);
+        const int delta = GET_WHEEL_DELTA_WPARAM(info->mouseData);
+
+        s_instance->OnWheel(delta);
+        return 1; 
+    }
+    return CallNextHookEx(nullptr, nCode, wParam, lParam);
+}
+
+} // namespace
+
+// ============================================================================
+// Flip3DComp::InstallMouseWheelHook
+// ============================================================================
+void Flip3DComp::InitializeMouseWheelHook()
+{
+    if (m_mouseHook)
+        return;
+
+    s_instance = this;
+    m_mouseHook = SetWindowsHookExW(WH_MOUSE_LL, LowLevelMouseProc, nullptr, 0);
+}
+
+// ============================================================================
+// Flip3DComp::RemoveMouseWheelHook
+// ============================================================================
+void Flip3DComp::RemoveMouseWheelHook()
+{
+    if (m_mouseHook)
+    {
+        UnhookWindowsHookEx(m_mouseHook);
+        m_mouseHook = nullptr;
+    }
+    if (s_instance == this)
+        s_instance = nullptr;
+}
+
 bool Flip3DComp::QualifiesForView(HWND hwnd) const
 {
     if (!hwnd || hwnd == m_hwnd || hwnd == GetDesktopWindow())
