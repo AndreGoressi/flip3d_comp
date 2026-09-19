@@ -2,7 +2,6 @@
 // main.cpp — Flip3D (DComp) entry point
 // ============================================================================
 #include "Flip3DComp.h"
-
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
 {
     CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
@@ -10,7 +9,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
     Flip3DComp main;
     if (!main.Initialize(hInstance))
     {
-        CoUninitialize();
+        MessageBoxW(nullptr,
+            main.InitErrorMessage(),
+            L"Flip3D (DComp)", MB_OK | MB_ICONERROR);
         return 1;
     }
 
@@ -18,8 +19,5 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
     SetForegroundWindow(main.WindowHandle());
     UpdateWindow(main.WindowHandle());
 
-    int result = main.Run();
-    CoUninitialize();
-
-    return result;
+    return main.Run();
 }
