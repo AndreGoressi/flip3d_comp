@@ -303,9 +303,6 @@ void Flip3DComp::UpdateMonitorRect()
         for (auto& card : m_cards)
             UpdateCardGeometry(card, m_monW, m_monH);
     }
-
-    RebuildMonitorBackdropsIfNeeded();
-    UpdateBackdropLayout();
 }
 
 bool Flip3DComp::AddCardForWindow(HWND hwnd)
