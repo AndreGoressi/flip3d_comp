@@ -27,10 +27,8 @@ LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
         }
         if (wParam == WM_MOUSEMOVE)
         {
-            s_instance->OnMouseMove(info->pt.x, info->pt.y);
-            HCURSOR hCur = LoadCursorW(nullptr, s_instance->IsHitTestValid() ? IDC_HAND : IDC_ARROW);
-            SetCursor(hCur);
-            return 1; 
+            s_instance->OnMouse(info->pt.x, info->pt.y, 0);
+            return 0; 
         }
     }
     return CallNextHookEx(nullptr, nCode, wParam, lParam);
