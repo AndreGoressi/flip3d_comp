@@ -100,7 +100,8 @@ bool Flip3DComp::InitializeDCompStage()
     }
     //
     m_hwnd = m_pfnCreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
-                                     WS_EX_TOOLWINDOW, 
+                                     WS_EX_TOOLWINDOW |
+                                     WS_EX_TOPMOST,
                                      (LPCWSTR)res,                                          
                                      L"",                                          
                                      0x80000000,                                     
@@ -109,7 +110,7 @@ bool Flip3DComp::InitializeDCompStage()
                                      nullptr,                                      
                                      m_hInstance,                                  
                                      this,                                         
-                                     ZBID_UIACCESS                                 
+                                     ZBID_DESKTOP                                 
     );
     //
     if (!m_hwnd)
