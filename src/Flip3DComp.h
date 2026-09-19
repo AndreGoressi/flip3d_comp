@@ -136,6 +136,7 @@ private:
 
     void RebuildDesktopGroupThumbnails(CardModel& card);
     void RefreshDesktopGroupThumbnailsIfStale();
+    void    RevealThumbnailsIfReady();
 
     void    Update(float dtSeconds);
 
