@@ -30,6 +30,9 @@ struct CardModel
     std::vector<ComPtr<IDCompositionVisual3>> m_groupSubVisuals;
     size_t                                    m_groupSignature = 0;
 
+    int                     m_framesSinceOpen   = 0;
+    bool                    m_thumbnailsRevealed = false;
+
     // ---- DirectComposition visuals ----
     ComPtr<IDCompositionVisual3> m_visual;          // thumbnail content visual (DWM)
     ComPtr<IDCompositionVisual3> m_containerVisual; // baked Model×Camera + opacity
