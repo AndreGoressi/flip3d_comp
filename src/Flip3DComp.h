@@ -250,17 +250,6 @@ private:
     bool    IsSystemFlyoutProcess(HWND hwnd) const;
     static std::vector<HWND> s_strippedTopmostWindows;
     static BOOL CALLBACK RemoveTopmostCallback(HWND hwnd, LPARAM lParam);
-
-
-
-
-    static std::unordered_map<HWND, bool> m_savedTopmostState;
-    void StripTopmostForCards();
-    void RestoreTopmostForCards();
-
-
-
-
     void RestoreCompetingTopmost();
 
     // ========================================================================
