@@ -825,10 +825,11 @@ std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vec
         long iy = std::max(0L, std::min(a.bottom, b.bottom) - std::max(a.top, b.top));
         return ix * iy;
     };
-    
+
     std::vector<HWND> candidates;
-    for (HWND h : hwnds)
+    for (size_t idx = 0; idx < hwnds.size(); ++idx)
     {
+        HWND h = hwnds[idx];
         if (!IsWindow(h) || h == GetShellWindow() || (!IsWindowVisible(h) && !IsIconic(h)))
             continue;
 
@@ -836,28 +837,28 @@ std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vec
         if (rc.right <= rc.left || rc.bottom <= rc.top)
             continue;
 
-        if (IsIconic(h))
+        const long area = (long)(rc.right - rc.left) * (long)(rc.bottom - rc.top);
+        bool superseded = false;
+
+        for (size_t otherIdx = 0; otherIdx < idx; ++otherIdx)
         {
-            const long area = (long)(rc.right - rc.left) * (long)(rc.bottom - rc.top);
-            bool superseded = false;
-            for (HWND other : hwnds)
-            {
-                if (other == h || !IsWindow(other) || IsIconic(other) || !IsWindowVisible(other))
-                    continue;
-
-                RECT rcOther = getSafeRect(other);
-                if (rcOther.right <= rcOther.left || rcOther.bottom <= rcOther.top)
-                    continue;
-
-                if (rectOverlapArea(rc, rcOther) >= (long)(area * 0.6))
-                {
-                    superseded = true;
-                    break;
-                }
-            }
-            if (superseded)
+            HWND other = hwnds[otherIdx];
+            if (!IsWindow(other) || (!IsWindowVisible(other) && !IsIconic(other)))
                 continue;
+
+            RECT rcOther = getSafeRect(other);
+            if (rcOther.right <= rcOther.left || rcOther.bottom <= rcOther.top)
+                continue;
+
+            if (rectOverlapArea(rc, rcOther) >= (long)(area * 0.6))
+            {
+                superseded = true;
+                break;
+            }
         }
+
+        if (superseded)
+            continue;
 
         candidates.push_back(h);
     }
