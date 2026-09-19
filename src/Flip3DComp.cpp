@@ -62,6 +62,8 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
 
     EnterFlip3DWindowMode();
     InitAccessibility();
+
+    SetCapture(m_hwnd);
     Update(0.0f);
     
     return true;
@@ -98,7 +100,6 @@ int Flip3DComp::Run()
             m_prevFrame = std::chrono::steady_clock::now();
         }
     }
-
     UnloadUndocApi();
     return (int)msg.wParam;
 }
