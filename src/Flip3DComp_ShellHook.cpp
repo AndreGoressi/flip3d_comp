@@ -102,7 +102,7 @@ bool IsAlwaysOnTop(HWND hwnd)
     return (GetWindowLongPtr(hwnd, GWL_EXSTYLE) & WS_EX_TOPMOST) != 0;
 }
 
-std::unordered_map<HWND, bool> m_savedTopmostState;
+std::unordered_map<HWND__, bool> Flip3DComp::m_savedTopmostState;
 void Flip3DComp::StripTopmostForCards()
 {
     for (auto& card : m_cards)
