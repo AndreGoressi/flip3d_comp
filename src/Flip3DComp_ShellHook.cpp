@@ -3,36 +3,7 @@
 // ============================================================================
 #include "Flip3DComp.h"
 #include <algorithm>
-// ============================================================================
-// Flip3DComp::InstallMouseWheelHook
-// ============================================================================
-void Flip3DComp::InitializeMouseWheelHook()
-{
-    if (m_mouseHook)
-        return;
-
-    s_instance = this;
-    m_mouseHook = SetWindowsHookExW(WH_MOUSE_LL, LowLevelMouseProc, GetModuleHandleW(nullptr), 0);
-    if (!m_mouseHook)
-    {
-        DWORD err = GetLastError();
-    }
-}
-
-// ============================================================================
-// Flip3DComp::RemoveMouseWheelHook
-// ============================================================================
-void Flip3DComp::RemoveMouseWheelHook()
-{
-    if (m_mouseHook)
-    {
-        UnhookWindowsHookEx(m_mouseHook);
-        m_mouseHook = nullptr;
-    }
-    if (s_instance == this)
-        s_instance = nullptr;
-}
-
+//
 bool Flip3DComp::QualifiesForView(HWND hwnd) const
 {
     if (!hwnd || hwnd == m_hwnd || hwnd == GetDesktopWindow())
