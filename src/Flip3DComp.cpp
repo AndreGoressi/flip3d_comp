@@ -34,7 +34,7 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
         return false;
     }
     
-    InstallMouseWheelHook();
+    InitializeMouseWheelHook();
     UpdateMonitorRect();
 
     if (FAILED(InitComposition()))
