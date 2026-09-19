@@ -492,7 +492,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                 DWM_THUMBNAIL_PROPERTIES subTp = {};
                 subTp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D;
                 
-                if (isMin)
+                if (isVis)
                     subTp.dwFlags |= DWM_TNP_FORCECVI;
                 
                 subTp.fVisible = TRUE;
