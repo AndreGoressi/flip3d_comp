@@ -449,9 +449,8 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
             for (HWND groupHwnd : group)
             {
                 RECT rcWin = {};
-                bool isMin = IsIconic(groupHwnd);
-
-                if (isMin)
+                bool isVis = IsWindowVisible(groupHwnd);
+                if (isVis)
                 {
                     WINDOWPLACEMENT wp = { sizeof(wp) };
                     if (GetWindowPlacement(groupHwnd, &wp))
@@ -467,35 +466,22 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
 
                 float scaleX = card.m_srcWidth / m_monW;
                 float scaleY = card.m_srcHeight / m_monH;
+
                 float screenX = (float)(rcWin.left - m_monOriginX);
                 float screenY = (float)(rcWin.top - m_monOriginY);
                 float screenW = (float)(rcWin.right - rcWin.left);
                 float screenH = (float)(rcWin.bottom - rcWin.top);
-                //
+
                 float gutter = 160.0f;
                 bool touchesLeft   = (screenX <= 5.0f);
                 bool touchesRight  = (abs((screenX + screenW) - m_monW) <= 5.0f);
                 bool touchesTop    = (screenY <= 5.0f);
                 bool touchesBottom = (abs((screenY + screenH) - m_monH) <= 5.0f);
 
-                float adjustedX = screenX;
-                float adjustedY = screenY;
-                float adjustedW = screenW;
-                float adjustedH = screenH;
-
-                if (touchesLeft) {
-                    adjustedX = screenX + (gutter * 0.5f);
-                    adjustedW = screenW - (gutter * 0.5f);
-                } else if (touchesRight) {
-                    adjustedW = screenW - (gutter * 0.5f);
-                }
-
-                if (touchesTop) {
-                    adjustedY = screenY + (gutter * 0.5f);
-                    adjustedH = screenH - (gutter * 0.5f);
-                } else if (touchesBottom) {
-                    adjustedH = screenH - (gutter * 0.5f);
-                }
+                float adjustedX = screenX + (touchesLeft ? gutter : gutter * 0.5f);
+                float adjustedY = screenY + (touchesTop ? gutter : gutter * 0.5f);
+                float adjustedW = screenW - ((touchesLeft ? gutter : gutter * 0.5f) + (touchesRight ? gutter : gutter * 0.5f));
+                float adjustedH = screenH - ((touchesTop ? gutter : gutter * 0.5f) + (touchesBottom ? gutter : gutter * 0.5f));
 
                 int relX = (int)(adjustedX * scaleX);
                 int relY = (int)(adjustedY * scaleY);
