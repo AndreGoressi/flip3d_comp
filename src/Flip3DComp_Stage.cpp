@@ -2,9 +2,6 @@
 // Flip3DComp_Window.cpp — Window creation + enumeration
 // ============================================================================
 #include "Flip3DComp.h"
-//#include "WindowCompositionAttribute.h"
-//#include "pCreateWindowInBand.h"
-//
 #include <algorithm>
 #include <vector>
 #include <Windows.h>
