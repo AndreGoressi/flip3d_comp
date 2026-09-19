@@ -33,7 +33,8 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
             m_initError = L"Failed to create the Flip3D input window.";
         return false;
     }
-
+    
+    InstallMouseWheelHook();
     UpdateMonitorRect();
 
     if (FAILED(InitComposition()))
@@ -214,6 +215,7 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_DESTROY:
         //
         ShutdownAccessibility();
+        RemoveMouseWheelHook();
         LeaveFlip3DWindowMode();
         PostQuitMessage(0);
         return 0;
