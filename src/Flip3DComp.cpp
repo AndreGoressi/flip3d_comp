@@ -55,7 +55,6 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     }
     
     //EnumWindows(RemoveTopmostCallback, reinterpret_cast<LPARAM>(this));
-    SetCapture(m_hwnd);
 
     m_state = ViewState::Enter;
     m_animEnter.Restart(0.0f, 1.0f, kEnterExitDurationSec);
