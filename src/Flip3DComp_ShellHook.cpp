@@ -56,6 +56,7 @@ bool Flip3DComp::IsFlip3DViewActive() const
     return m_state != ViewState::Inactive;
 }
 
+std::vector<HWND> Flip3DComp::s_strippedTopmostWindows;
 BOOL CALLBACK Flip3DComp::RemoveTopmostCallback(HWND hwnd, LPARAM lParam)
 {
     auto* pThis = reinterpret_cast<Flip3DComp*>(lParam);
