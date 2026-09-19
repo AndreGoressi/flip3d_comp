@@ -80,6 +80,8 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     SetTopmostStatus(true);
     InitAccessibility();
 
+    SetCapture(m_hwnd);
+
     Update(0.0f);
     return true;
 }
