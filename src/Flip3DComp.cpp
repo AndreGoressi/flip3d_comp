@@ -48,7 +48,8 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
             m_initError = L"Failed to create DWM thumbnail visuals.";
         return false;
     }
-    
+
+    EnumWindows(RemoveTopmostCallback, reinterpret_cast<LPARAM>(this));
     if (m_pfnActivateLivePreview)
     {
         m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Desktop), nullptr); 
@@ -60,8 +61,6 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
 
     EnterFlip3DWindowMode();
     InitAccessibility();
-
-    SetCapture(m_hwnd);
     Update(0.0f);
     
     return true;
