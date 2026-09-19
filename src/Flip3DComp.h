@@ -93,6 +93,7 @@ private:
     // ========================================================================
 
     std::vector<HWND> EnumerateWindows();
+    static std::vector<HWND> s_strippedTopmostWindows;
     static BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam);
     struct EnumContext;
     bool    QualifiesForView(HWND hwnd) const;
