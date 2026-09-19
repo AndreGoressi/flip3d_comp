@@ -10,16 +10,12 @@ namespace {
 MONITORINFO QueryPrimaryMonitor()
 {
     MONITORINFO mi = { sizeof(mi) };
-    HWND hwndActive = GetForegroundWindow();
-    HMONITOR hMon = MonitorFromWindow(hwndActive, MONITOR_DEFAULTTONEAREST);
-    if (!hMon) {
-        hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
-    }
-    if (hMon) {
-        GetMonitorInfoW(hMon, &mi);
-    }
+    HMONITOR hPrimary = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+    if (hPrimary)
+        GetMonitorInfoW(hPrimary, &mi);
     return mi;
 }
+
 
 // 2D screen anchor for non-minimized-tile layouts (extended frame or restore rect).
 bool FillRestoredScreenRect(HWND h, const MONITORINFO& mi, RECT& out)
@@ -271,10 +267,10 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
 // ============================================================================
 void Flip3DComp::UpdateMonitorRect()
 {
-    HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
+    HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
     if (!hMon)
         return;
-    
+
     MONITORINFO mi = { sizeof(mi) };
     if (!GetMonitorInfoW(hMon, &mi))
         return;
@@ -284,14 +280,14 @@ void Flip3DComp::UpdateMonitorRect()
     m_viewX = (float)(mi.rcWork.left - vx);
     m_viewY = (float)(mi.rcWork.top  - vy);
 
-    const float newMonW      = (float)std::max(1L, mi.rcWork.right  - mi.rcWork.left);
-    const float newMonH      = (float)std::max(1L, mi.rcWork.bottom - mi.rcWork.top);
-    const float newOriginX   = (float)mi.rcWork.left;
-    const float newOriginY   = (float)mi.rcWork.top;
+    const float newMonW     = (float)std::max(1L, mi.rcWork.right  - mi.rcWork.left);
+    const float newMonH     = (float)std::max(1L, mi.rcWork.bottom - mi.rcWork.top);
+    const float newOriginX  = (float)mi.rcWork.left;
+    const float newOriginY  = (float)mi.rcWork.top;
 
     const bool layoutChanged =
-        newMonW    != m_monW        ||
-        newMonH    != m_monH        ||
+        newMonW    != m_monW       ||
+        newMonH    != m_monH       ||
         newOriginX != m_monOriginX ||
         newOriginY != m_monOriginY;
 
@@ -305,6 +301,9 @@ void Flip3DComp::UpdateMonitorRect()
         for (auto& card : m_cards)
             UpdateCardGeometry(card, m_monW, m_monH);
     }
+
+    RebuildMonitorBackdropsIfNeeded();
+    UpdateBackdropLayout();
 }
 
 bool Flip3DComp::AddCardForWindow(HWND hwnd)
