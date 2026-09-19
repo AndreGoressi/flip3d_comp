@@ -679,7 +679,7 @@ void Flip3DComp::Update(float dtSeconds)
     const float enterProgress = EnterProgress();
     UpdateVisualSlots(enterProgress);
 
-    //RevealThumbnailsIfReady();
+    RevealThumbnailsIfReady();
     RefreshDesktopGroupThumbnailsIfStale();
 
     TickSmoothScroll(dtSeconds);
