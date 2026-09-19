@@ -105,14 +105,16 @@ bool Flip3DComp::InitializeDCompStage()
     }
     //
     m_hwnd = m_pfnCreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
-                                     WS_EX_TOOLWINDOW,
-                                     res,
-                                     L"",
-                                     WS_POPUP,
-                                     0, 0, 0, 0,
-                                     m_hInstance,
-                                     this,
-                                     ZBID_UIACCESS
+                                     WS_EX_TOOLWINDOW, 
+                                     res,                                          
+                                     L"",                                          
+                                     WS_POPUP,                                     
+                                     0, 0, 0, 0,                                   
+                                     nullptr,                                      
+                                     nullptr,                                      
+                                     m_hInstance,                                  
+                                     this,                                         
+                                     ZBID_UIACCESS                                 
     );
     //
     if (!m_hwnd)
