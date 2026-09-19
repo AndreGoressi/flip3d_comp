@@ -9,16 +9,23 @@
 namespace {
 
 Flip3DComp* s_instance = nullptr;
-
 LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-    if (nCode == HC_ACTION && wParam == WM_MOUSEWHEEL && s_instance)
+    if (nCode == HC_ACTION && s_instance)
     {
         const auto* info = reinterpret_cast<const MSLLHOOKSTRUCT*>(lParam);
-        const int delta = GET_WHEEL_DELTA_WPARAM(info->mouseData);
-
-        s_instance->OnWheel(delta);
-        return 1; 
+        if (wParam == WM_MOUSEWHEEL)
+        {
+            const int delta = GET_WHEEL_DELTA_WPARAM(info->mouseData);
+            s_instance->OnWheel(delta);
+            return 1; 
+        }
+        else if (wParam == WM_LBUTTONDOWN || wParam == WM_LBUTTONUP)
+        {
+            bool pressed = (wParam == WM_LBUTTONDOWN);
+            s_instance->OnMouse(info->pt.x, info->pt.y, pressed);
+            // return 1; 
+        }
     }
     return CallNextHookEx(nullptr, nCode, wParam, lParam);
 }
