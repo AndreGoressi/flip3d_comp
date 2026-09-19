@@ -471,30 +471,32 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
                 float screenY = (float)(rcWin.top - m_monOriginY);
                 float screenW = (float)(rcWin.right - rcWin.left);
                 float screenH = (float)(rcWin.bottom - rcWin.top);
+                //
                 float gutter = 160.0f;
                 bool touchesLeft   = (screenX <= 5.0f);
                 bool touchesRight  = (abs((screenX + screenW) - m_monW) <= 5.0f);
                 bool touchesTop    = (screenY <= 5.0f);
                 bool touchesBottom = (abs((screenY + screenH) - m_monH) <= 5.0f);
+
                 float adjustedX = screenX;
                 float adjustedY = screenY;
                 float adjustedW = screenW;
                 float adjustedH = screenH;
-                //
-                if (touchesLeft && !touchesRight) {
-                    adjustedX = screenX + (gutter * 0.25f);
-                    adjustedW = screenW - (gutter * 0.75f);
-                } else if (touchesRight && !touchesLeft) {
+
+                if (touchesLeft) {
                     adjustedX = screenX + (gutter * 0.5f);
-                    adjustedW = screenW - (gutter * 0.75f);
+                    adjustedW = screenW - (gutter * 0.5f);
+                } else if (touchesRight) {
+                    adjustedW = screenW - (gutter * 0.5f);
                 }
-                if (touchesTop && !touchesBottom) {
-                    adjustedY = screenY + (gutter * 0.25f);
-                    adjustedH = screenH - (gutter * 0.75f);
-                } else if (touchesBottom && !touchesTop) {
+
+                if (touchesTop) {
                     adjustedY = screenY + (gutter * 0.5f);
-                    adjustedH = screenH - (gutter * 0.75f);
+                    adjustedH = screenH - (gutter * 0.5f);
+                } else if (touchesBottom) {
+                    adjustedH = screenH - (gutter * 0.5f);
                 }
+
                 int relX = (int)(adjustedX * scaleX);
                 int relY = (int)(adjustedY * scaleY);
                 int relW = (int)(adjustedW * scaleX);
