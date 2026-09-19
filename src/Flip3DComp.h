@@ -56,8 +56,6 @@ public:
     // Public interface
     // ========================================================================
     bool Initialize(HINSTANCE hInstance);
-    bool    OnWheel(int wheelDelta);
-    bool    OnMouse(LONG x, LONG y, bool pressed);
     HWND WindowHandle() const { return m_hwnd; }
     const wchar_t* InitErrorMessage() const { return m_initError.c_str(); }
     int  Run();
@@ -194,8 +192,8 @@ private:
     // (autorepeat-bit detection) but the declaration never had it, so that
     // reference was silently resolving to nothing until it finally errored.
     bool    OnKey(bool down, UINT vkCode, LPARAM lParam);
-    void    InitializeMouseWheelHook(); 
-    void    RemoveMouseWheelHook();
+    bool    OnWheel(int wheelDelta);
+    bool    OnMouse(LONG x, LONG y, bool pressed);
 
     // ========================================================================
     // Hit testing (3D ray-triangle intersection)
@@ -245,6 +243,9 @@ private:
     HRESULT AccessibleSelectIndex(int index);
     //new
     bool    IsSystemFlyoutProcess(HWND hwnd) const;
+    bool RemoveTopmostCallback(HWND hwnd, LPARAM lParam);
+    void StripCompetingTopmost();
+    void RestoreCompetingTopmost();
 
     // ========================================================================
     // Member variables
