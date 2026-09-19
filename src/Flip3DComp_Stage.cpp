@@ -90,7 +90,8 @@ bool Flip3DComp::InitializeDCompStage()
         &Flip3DComp::WndProc,
         0, 0,
         m_hInstance,
-        nullptr, nullptr,
+        nullptr, 
+        LoadCursor(nullptr, IDC_ARROW),
         nullptr, nullptr,
         L"Flip3DCompClass",
         nullptr,
@@ -126,6 +127,8 @@ bool Flip3DComp::InitializeDCompStage()
         return false;
     
     SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
+    SetForegroundWindow(m_hwnd);
+    SetFocus(m_hwnd);
     //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
