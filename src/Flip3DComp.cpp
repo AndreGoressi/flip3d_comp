@@ -61,6 +61,8 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     m_prevFrame = std::chrono::steady_clock::now();
 
     EnterFlip3DWindowMode();
+    SetForegroundWindow(m_hwnd);
+    SetActiveWindow(m_hwnd);
     InitAccessibility();
 
     Update(0.0f);
