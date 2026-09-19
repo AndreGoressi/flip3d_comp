@@ -3,6 +3,7 @@
 // ============================================================================
 #include "Flip3DComp.h"
 #include <algorithm>
+#include <vector>
 //
 bool Flip3DComp::QualifiesForView(HWND hwnd) const
 {
@@ -54,8 +55,6 @@ bool Flip3DComp::IsFlip3DViewActive() const
 {
     return m_state != ViewState::Inactive;
 }
-
-#include <vector>
 
 BOOL CALLBACK Flip3DComp::RemoveTopmostCallback(HWND hwnd, LPARAM lParam)
 {
