@@ -98,7 +98,7 @@ int Flip3DComp::Run()
         }
     }
 
-    UnLoadUndocApi();
+    UnloadUndocApi();
     return (int)msg.wParam;
 }
 
