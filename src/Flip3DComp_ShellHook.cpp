@@ -3,12 +3,11 @@
 // ============================================================================
 #include "Flip3DComp.h"
 #include <algorithm>
-// ============================================================================
-// Flip3DComp::QualifiesForView
-// ============================================================================
+
 namespace {
 
 Flip3DComp* s_instance = nullptr;
+
 LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
     if (nCode == HC_ACTION && s_instance)
