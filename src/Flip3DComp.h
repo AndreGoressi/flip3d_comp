@@ -75,7 +75,7 @@ private:
     // Lifecycle
     // ========================================================================
 
-    bool InitializeDCompStage();
+    bool    InitializeDCompStage();
     void    ApplyFullscreenLayout();
 
     // ========================================================================
@@ -197,6 +197,8 @@ private:
     bool    OnKey(bool down, UINT vkCode, LPARAM lParam);
     bool    OnWheel(int wheelDelta);
     bool    OnMouse(LONG x, LONG y, bool pressed);
+    void    InitializeMouseWheelHook(); 
+    void    RemoveMouseWheelHook();
 
     // ========================================================================
     // Hit testing (3D ray-triangle intersection)
@@ -254,6 +256,7 @@ private:
     // ---- Window / instance ----
     HINSTANCE               m_hInstance     = nullptr;
     HWND                    m_hwnd          = nullptr;
+    HHOOK                   m_mouseHook     = nullptr;
     std::wstring            m_initError;
 
     // ---- Dimensions ----
