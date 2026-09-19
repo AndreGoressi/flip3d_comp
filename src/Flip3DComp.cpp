@@ -154,9 +154,9 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         m_thumbnailsDirty = true;
         return 0;
 
-    /*case WM_MOUSEWHEEL:
+    case WM_MOUSEWHEEL:
         OnWheel(GET_WHEEL_DELTA_WPARAM(wParam));
-        return 0;*/
+        return 0;
 
     case WM_MOUSEMOVE:
         m_hitHwnd = HitTest3DScene(
