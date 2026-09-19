@@ -29,7 +29,7 @@ LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
         }
         else if (wParam == WM_MOUSEMOVE)
         {
-            return 1;
+            s_instance->OnMouseMove(info->pt.x, info->pt.y);
         }
     }
     return CallNextHookEx(nullptr, nCode, wParam, lParam);
