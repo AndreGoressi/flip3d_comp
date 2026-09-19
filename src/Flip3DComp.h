@@ -145,6 +145,7 @@ private:
     // ========================================================================
 
     float   EnterProgress() const;
+    void SetTopmostStatus(bool fAlwaysTop);
     void    ExitView(bool commitScroll = true,
                      float exitDurationSec = kExitDurationSec);
 
