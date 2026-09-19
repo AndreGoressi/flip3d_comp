@@ -16,7 +16,6 @@ MONITORINFO QueryPrimaryMonitor()
     return mi;
 }
 
-
 // 2D screen anchor for non-minimized-tile layouts (extended frame or restore rect).
 bool FillRestoredScreenRect(HWND h, const MONITORINFO& mi, RECT& out)
 {
@@ -185,11 +184,14 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
 
     RECT flatBounds = {};
 
-    if (c.m_isShellDesktop)
+    /*if (c.m_isShellDesktop)
     {
-        // uDWM shell: relative origin {0,0} on primary - use primary rcWork.
         MONITORINFO primaryMi = QueryPrimaryMonitor();
         flatBounds = primaryMi.rcWork;
+    }*/
+    if (c.m_isShellDesktop)
+    {
+        flatBounds = mi.rcWork;
     }
     else if (c.m_isMinimized)
     {
