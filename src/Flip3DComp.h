@@ -244,7 +244,7 @@ private:
     HRESULT AccessibleSelectIndex(int index);
     //new
     bool    IsSystemFlyoutProcess(HWND hwnd) const;
-    bool RemoveTopmostCallback(HWND hwnd, LPARAM lParam);
+    BOOL CALLBACK RemoveTopmostCallback(HWND hwnd, LPARAM lParam);
     void StripCompetingTopmost();
     void RestoreCompetingTopmost();
 
