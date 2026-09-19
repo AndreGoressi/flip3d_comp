@@ -71,7 +71,7 @@ BOOL CALLBACK Flip3DComp::RemoveTopmostCallback(HWND hwnd, LPARAM lParam)
     if (exStyle & WS_EX_TOPMOST)
     {
         SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (exStyle & ~WS_EX_TOPMOST) | WS_EX_LAYERED | WS_EX_TRANSPARENT);
-        SetLayeredWindowAttributes(hwnd, 0, 0, LWA_ALPHA);
+        //SetLayeredWindowAttributes(hwnd, 0, 0, LWA_ALPHA);
 
         SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, 
                      SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_FRAMECHANGED);
@@ -89,51 +89,13 @@ void Flip3DComp::RestoreCompetingTopmost()
         {
             LONG_PTR exStyle = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
             SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (exStyle | WS_EX_TOPMOST) & ~WS_EX_LAYERED & ~WS_EX_TRANSPARENT);
-            SetLayeredWindowAttributes(hwnd, 0, 255, LWA_ALPHA);
+            //SetLayeredWindowAttributes(hwnd, 0, 255, LWA_ALPHA);
             SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, 
                          SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_FRAMECHANGED);
         }
     }
     s_strippedTopmostWindows.clear();
 }
-
-bool IsAlwaysOnTop(HWND hwnd)
-{
-    return (GetWindowLongPtr(hwnd, GWL_EXSTYLE) & WS_EX_TOPMOST) != 0;
-}
-std::unordered_map<HWND, bool> Flip3DComp::m_savedTopmostState;
-void Flip3DComp::StripTopmostForCards()
-{
-    for (auto& card : m_cards)
-    {
-        if (!card.m_hwnd)
-            continue;
-
-        bool wasTopmost = IsAlwaysOnTop(card.m_hwnd);
-        m_savedTopmostState[card.m_hwnd] = wasTopmost;
-
-        if (wasTopmost)
-        {
-            SetWindowPos(card.m_hwnd, HWND_NOTOPMOST, 0, 0, 0, 0,
-                         SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-        }
-    }
-}
-
-void Flip3DComp::RestoreTopmostForCards()
-{
-    for (auto& [hwnd, wasTopmost] : m_savedTopmostState)
-    {
-        if (wasTopmost && IsWindow(hwnd))
-        {
-            SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0,
-                         SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-        }
-    }
-    m_savedTopmostState.clear();
-}
-
-
 
 bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
 {
