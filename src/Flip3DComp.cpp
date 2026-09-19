@@ -166,10 +166,6 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         SetCursor(LoadCursorW(nullptr, m_hitHwnd ? IDC_HAND : IDC_ARROW));
         return 0;
 
-    case WM_SETCURSOR:
-        SetCursor(LoadCursorW(nullptr, m_hitHwnd ? IDC_HAND : IDC_ARROW));
-        return TRUE;
-
     case WM_LBUTTONDOWN:
         OnMouse((LONG)(short)LOWORD(lParam),
                 (LONG)(short)HIWORD(lParam), true);
