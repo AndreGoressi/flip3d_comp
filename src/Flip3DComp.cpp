@@ -14,22 +14,6 @@
 #pragma comment(lib, "gdi32.lib")
 
 // ============================================================================
-// Flip3DComp::SetTopmostStatus
-// ============================================================================
-void Flip3DComp::SetTopmostStatus(bool fAlwaysTop)
-{
-    if (!m_hwnd)
-        return;
-
-    UINT dwFlags = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE;
-    HWND hwndIns = fAlwaysTop ? HWND_TOPMOST : HWND_NOTOPMOST;
-
-    SetActiveWindow(m_hwnd);
-    SetWindowPos(m_hwnd, hwndIns, 0, 0, 0, 0, dwFlags);
-    SetForegroundWindow(m_hwnd);
-}
-
-// ============================================================================
 // Flip3DComp::Initialize
 // ============================================================================
 bool Flip3DComp::Initialize(HINSTANCE hInstance)
@@ -77,7 +61,6 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     m_prevFrame = std::chrono::steady_clock::now();
 
     EnterFlip3DWindowMode();
-    SetTopmostStatus(true);
     InitAccessibility();
     Update(0.0f);
     
