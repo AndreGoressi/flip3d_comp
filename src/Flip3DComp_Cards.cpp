@@ -712,8 +712,6 @@ void Flip3DComp::RebuildDesktopGroupThumbnails(CardModel& card)
                 ComPtr<IDCompositionVisual3> subVisual;
                 if (SUCCEEDED(subThumbBase.As(&subVisual)))
                 {
-                    /*subVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-                    subVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);*/
                     subVisual->SetOffsetX((float)relX);
                     subVisual->SetOffsetY((float)relY);
 
@@ -731,110 +729,6 @@ void Flip3DComp::RebuildDesktopGroupThumbnails(CardModel& card)
     card.m_groupSignature = sig;
     m_dcompDevice->Commit();
 }
-
-/*std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork)
-{
-    std::vector<std::vector<HWND>> groups;
-    auto getSafeRect = [](HWND hwnd) {
-        RECT rc = {};
-        if (IsIconic(hwnd))
-        {
-            WINDOWPLACEMENT wp = { sizeof(wp) };
-            if (GetWindowPlacement(hwnd, &wp))
-            {
-                rc = wp.rcNormalPosition;
-            }
-        }
-        else
-        {
-            if (FAILED(DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rc, sizeof(rc))))
-            {
-                GetWindowRect(hwnd, &rc);
-            }
-        }
-        return rc;
-    };
-
-    auto rectOverlapArea = [](const RECT& a, const RECT& b) -> long
-    {
-        long ix = std::max(0L, std::min(a.right, b.right) - std::max(a.left, b.left));
-        long iy = std::max(0L, std::min(a.bottom, b.bottom) - std::max(a.top, b.top));
-        return ix * iy;
-    };
-
-    std::vector<HWND> candidates;
-    for (size_t idx = 0; idx < hwnds.size(); ++idx)
-    {
-        HWND h = hwnds[idx];
-        if (!IsWindow(h) || h == GetShellWindow() || (!IsWindowVisible(h) && !IsIconic(h)))
-            continue;
-
-        RECT rc = getSafeRect(h);
-        if (rc.right <= rc.left || rc.bottom <= rc.top)
-            continue;
-
-        const long area = (long)(rc.right - rc.left) * (long)(rc.bottom - rc.top);
-        bool superseded = false;
-
-        for (size_t otherIdx = 0; otherIdx < idx; ++otherIdx)
-        {
-            HWND other = hwnds[otherIdx];
-            if (!IsWindow(other) || (!IsWindowVisible(other) && !IsIconic(other)))
-                continue;
-
-            RECT rcOther = getSafeRect(other);
-            if (rcOther.right <= rcOther.left || rcOther.bottom <= rcOther.top)
-                continue;
-
-            if (rectOverlapArea(rc, rcOther) >= (long)(area * 0.6))
-            {
-                superseded = true;
-                break;
-            }
-        }
-
-        if (superseded)
-            continue;
-
-        candidates.push_back(h);
-    }
-
-    for (size_t i = 0; i < candidates.size(); ++i)
-    {
-        RECT rc1 = getSafeRect(candidates[i]);
-        if (rc1.right <= rc1.left || rc1.bottom <= rc1.top)
-            continue;
-
-        for (size_t j = i + 1; j < candidates.size(); ++j)
-        {
-            RECT rc2 = getSafeRect(candidates[j]);
-            if (rc2.right <= rc2.left || rc2.bottom <= rc2.top)
-                continue;
-
-            constexpr LONG kTouchTolerance = 16;
-            // Check horizontal adjacency (side-by-side snap)
-            bool touchingHorizontally = (abs(rc1.right - rc2.left) <= kTouchTolerance || abs(rc2.right - rc1.left) <= kTouchTolerance);
-            bool verticalOverlap = (rc1.top < rc2.bottom && rc1.bottom > rc2.top);
-
-            if (touchingHorizontally && verticalOverlap)
-            {
-                groups.push_back({ candidates[i], candidates[j] });
-            }
-            // Check vertical adjacency (stacked snap)
-            else
-            {
-                bool touchingVertically = (abs(rc1.bottom - rc2.top) <= kTouchTolerance || abs(rc2.bottom - rc1.top) <= kTouchTolerance);
-                bool horizontalOverlap = (rc1.left < rc2.right && rc1.right > rc2.left);
-
-                if (touchingVertically && horizontalOverlap)
-                {
-                    groups.push_back({ candidates[i], candidates[j] });
-                }
-            }
-        }
-    }
-    return groups;
-}*/
 
 std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork)
 {
