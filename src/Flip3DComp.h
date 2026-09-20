@@ -58,7 +58,6 @@ public:
     // ========================================================================
     bool Initialize(HINSTANCE hInstance);
     HWND WindowHandle() const { return m_hwnd; }
-    bool    IsFlip3DViewActive() const;
     const wchar_t* InitErrorMessage() const { return m_initError.c_str(); }
     int  Run();
 
@@ -98,7 +97,7 @@ private:
     static BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam);
     struct EnumContext;
     bool    QualifiesForView(HWND hwnd) const;
-    //bool    IsFlip3DViewActive() const;
+    bool    IsFlip3DViewActive() const;
     bool    IsNeverHiddenWindow(HWND hwnd) const;
 
     // Shell Hook drives dynamic card add/remove (no ShowWindow on live windows).
@@ -159,6 +158,10 @@ private:
     float   RotationDurationForRotateList() const;
     void    SelectWindow(HWND hwndTarget);
     void    SelectFront();
+    //new
+    static std::unordered_map<HWND, StrippedAotWindowState> m_strippedAotWindows;
+    void EnterInteractionOverride();
+    void LeaveInteractionOverride();
 
     // ========================================================================
     // Rotation (uDWM m_leWindows linked-list model)
@@ -200,11 +203,6 @@ private:
     bool    OnKey(bool down, UINT vkCode, LPARAM lParam);
     bool    OnWheel(int wheelDelta);
     bool    OnMouse(LONG x, LONG y, bool pressed);
-
-    void    ApplyMouseWheelHook();
-    void    RemoveMouseWheelHook();
-    void    PollCursorPosition();
-
     // ========================================================================
     // Hit testing (3D ray-triangle intersection)
     // ========================================================================
