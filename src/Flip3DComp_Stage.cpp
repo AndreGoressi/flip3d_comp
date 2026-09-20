@@ -144,12 +144,12 @@ bool Flip3DComp::InitializeDCompStage()
                                      nullptr,                                      
                                      m_hInstance,                                  
                                      this,                                         
-                                     ZBID_SYSTEM_TOOLS                                 
+                                     ZBID_UIACCESS               
     );
     if (!m_hwnd)
         return false;
 	//
-	SetWindowBand(m_hwnd, nullptr, ZBID_UIACCESS);
+	SetWindowBand(m_hwnd, nullptr, ZBID_SYSTEM_TOOLS);
 	SetTopmost(m_hwnd, TRUE);
 	//
 	m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
