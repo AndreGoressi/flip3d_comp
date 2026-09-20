@@ -6,7 +6,7 @@
         <security>
             <requestedPrivileges>
                 <requestedExecutionLevel level="highestAvailable"
-                                         uiAccess="true" />
+                                         uiAccess="false" />
             </requestedPrivileges>
         </security>
     </trustInfo>
