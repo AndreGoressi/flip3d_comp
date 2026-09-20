@@ -395,9 +395,6 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     // Create container visual for the card
     ComPtr<IDCompositionVisual2> container;
     HRESULT hr = m_dcompDevice->CreateVisual(&container);
-    /*if (FAILED(hr))
-        return hr;*/
-
     // 1. Render the primary source (either the single window or the desktop background)
     HWND primarySourceHwnd = card.m_isGroup ? nullptr : card.m_hwnd;
     if (primarySourceHwnd)
@@ -420,17 +417,10 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
             {
                 container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
                 container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-                //card.m_visual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-                //card.m_visual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-                //card.m_visual->SetOpacity(0.0f);
                 container->AddVisual(card.m_visual.Get(), FALSE, nullptr);
             }
         }
     }
-    /*hr = container.As(&card.m_containerVisual);
-    if (FAILED(hr))
-        return hr;*/
-
     if (card.m_isShellDesktop)
     {
         RebuildDesktopGroupThumbnails(card);
@@ -454,8 +444,7 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
         clip->SetBottomRightRadiusY(radius);
         container->SetClip(clip.Get());
     }
-    /*container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-    container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);*/
+    
     hr = container.As(&card.m_containerVisual);    
     hr = m_sceneVisual->AddVisual(container.Get(), TRUE, nullptr);
     if (FAILED(hr))
@@ -720,17 +709,15 @@ void Flip3DComp::RebuildDesktopGroupThumbnails(CardModel& card)
             {
                 ComPtr<IDCompositionVisual> subThumbBase;
                 subThumbBase.Attach((IDCompositionVisual*)subPv);
-
                 ComPtr<IDCompositionVisual3> subVisual;
                 if (SUCCEEDED(subThumbBase.As(&subVisual)))
                 {
-                    subVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-                    subVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+                    /*subVisual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+                    subVisual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);*/
                     subVisual->SetOffsetX((float)relX);
                     subVisual->SetOffsetY((float)relY);
 
                     card.m_containerVisual->AddVisual(subVisual.Get(), FALSE, nullptr);
-
                     card.m_groupSubThumbs.push_back(subThumb);
                     card.m_groupSubVisuals.push_back(subVisual);
                 }
