@@ -55,22 +55,6 @@ bool Flip3DComp::IsFlip3DViewActive() const
     return m_state != ViewState::Inactive;
 }
 
-std::vector<HWND> Flip3DComp::s_strippedTopmostWindows;
-BOOL CALLBACK Flip3DComp::RemoveTopmostCallback(HWND hwnd, LPARAM lParam)
-{
-
-}
-
-void Flip3DComp::StripCompetingTopmost()
-{
-    EnumWindows(RemoveTopmostCallback, reinterpret_cast<LPARAM>(this));
-}
-
-void Flip3DComp::RestoreCompetingTopmost()
-{
-
-}
-
 bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
 {
     if (!hwnd)
