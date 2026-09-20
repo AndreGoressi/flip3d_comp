@@ -108,23 +108,24 @@ bool Flip3DComp::SetTopmost(HWND hwnd, bool topmost)
 bool Flip3DComp::InitializeDCompStage()
 {
     WNDCLASSEXW wc = {
-        sizeof(wc), 0,
-        &Flip3DComp::WndProc,
-        0, 0,
-        m_hInstance,
-        nullptr, 
-        LoadCursor(nullptr, IDC_ARROW),
-        nullptr, nullptr,
-        L"Flip3DCompClass",
-        nullptr,
+		        sizeof(wc), 
+		        0,
+		        &Flip3DComp::WndProc,
+		        0, 0,
+		        m_hInstance,
+		        nullptr, 
+		        LoadCursor(nullptr, IDC_ARROW),
+		        nullptr, nullptr,
+		        L"Flip3DCompClass",
+		        nullptr,
     };
     ATOM res = RegisterClassExW(&wc);
     if (!res) {
         DWORD dwError = GetLastError();
     }
     //
-    HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTOPRIMARY);
-	MONITORINFO mi = { sizeof(mi) };
+    HMONITOR hMon = MonitorFromPoint({0, 0}, MONITOR_DEFAULTTOPRIMARY);
+    MONITORINFO mi = { sizeof(mi) };
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
 
@@ -132,29 +133,31 @@ bool Flip3DComp::InitializeDCompStage()
     const int y = mi.rcWork.top;
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
-	//
+    //
     m_hwnd = m_pfnCreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
-                                     WS_EX_TOPMOST |
-                                     WS_EX_TOOLWINDOW,
-                                     (LPCWSTR)res, L"",                                          
-                                     0x80000000,                                     
-                                     x, y, w, h,                                   
-                                     nullptr,                                      
-                                     nullptr,                                      
-                                     m_hInstance,                                  
-                                     this,                                         
-                                     ZBID_UIACCESS
+                                       WS_EX_TOPMOST |
+                                       WS_EX_TOOLWINDOW,
+                                       (LPCWSTR)res, L"",                         
+                                       0x80000000,                     
+                                       x, y, w, h,                     
+                                       nullptr,                        
+                                       nullptr,                        
+                                       m_hInstance,                    
+                                       this,                           
+                                       ZBID_UIACCESS
     );
-	if (!m_hwnd)
+    if (!m_hwnd)
         return false;
-	//
-	SetWindowBand(m_hwnd, nullptr, ZBID_UIACCESS);
-	SetTopmost(m_hwnd, TRUE);
-	ShowWindow(m_hwnd, SW_SHOW);
+    //
+    SetWindowBand(m_hwnd, nullptr, ZBID_UIACCESS);
+    SetWindowBand(m_hwnd, nullptr, ZBID_SYSTEMTOOLS);
+    //
+    SetTopmost(m_hwnd, TRUE);
+    ShowWindow(m_hwnd, SW_SHOW);
     UpdateWindow(m_hwnd);
-	//
-	m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
-	//
+    //
+    m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
+    //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
     //
