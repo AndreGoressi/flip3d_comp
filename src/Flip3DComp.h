@@ -250,7 +250,7 @@ private:
     static std::vector<HWND> s_strippedTopmostWindows;
     BOOL CALLBACK RemoveTopmostCallback(HWND hwnd, LPARAM lParam);
     void StripCompetingTopmost();
-    void RestoreCompetingTopmost()
+    void RestoreCompetingTopmost();
 
     // ========================================================================
     // Member variables
