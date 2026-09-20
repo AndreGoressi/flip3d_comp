@@ -56,6 +56,85 @@ bool Flip3DComp::IsFlip3DViewActive() const
     return m_state != ViewState::Inactive;
 }
 
+
+// ============================================================================
+namespace {
+
+Flip3DComp* s_instance = nullptr;
+
+LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+    if (nCode == HC_ACTION && s_instance && s_instance->IsFlip3DViewActive())
+    {
+        const auto* info = reinterpret_cast<const MSLLHOOKSTRUCT*>(lParam);
+        HWND target = s_instance->WindowHandle();
+
+        switch (wParam)
+        {
+        case WM_MOUSEWHEEL:
+        {
+            const short delta = HIWORD(info->mouseData);
+            const WPARAM wheelWParam = MAKEWPARAM(0, delta);
+            PostMessage(target, WM_MOUSEWHEEL, wheelWParam,
+                        MAKELPARAM(info->pt.x, info->pt.y));
+            return 1; 
+        }
+
+        case WM_MOUSEMOVE:
+        {
+            POINT client = info->pt;
+            ScreenToClient(target, &client);
+            PostMessage(target, WM_MOUSEMOVE, 0,
+                        MAKELPARAM((short)client.x, (short)client.y));
+            return 1;
+        }
+
+        case WM_LBUTTONDOWN:
+        {
+            POINT client = info->pt;
+            ScreenToClient(target, &client);
+            PostMessage(target, WM_LBUTTONDOWN, MK_LBUTTON,
+                        MAKELPARAM((short)client.x, (short)client.y));
+            return 1;
+        }
+
+        default:
+            break;
+        }
+    }
+
+    return CallNextHookEx(nullptr, nCode, wParam, lParam);
+}
+
+} // namespace
+
+void Flip3DComp::ApplyMouseWheelHook()
+{
+    if (m_mouseHook)
+        return;
+
+    s_instance = this;
+    m_hookActive = true;
+    m_mouseHook = SetWindowsHookExW(WH_MOUSE_LL, LowLevelMouseProc, nullptr, 0);
+
+    if (!m_mouseHook)
+        m_hookActive = false;
+}
+void Flip3DComp::RemoveMouseWheelHook()
+{
+    if (m_mouseHook)
+    {
+        UnhookWindowsHookEx(m_mouseHook);
+        m_mouseHook = nullptr;
+    }
+
+    m_hookActive = false;
+
+    if (s_instance == this)
+        s_instance = nullptr;
+}
+// ============================================================================
+
 bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
 {
     if (!hwnd)
