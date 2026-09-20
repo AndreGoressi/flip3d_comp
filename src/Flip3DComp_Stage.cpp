@@ -101,21 +101,6 @@ bool Flip3DComp::InitializeDCompStage()
         DWORD dwError = GetLastError();
     }
     //
-    m_hwnd = m_pfnCreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
-                                     WS_EX_TOOLWINDOW |
-                                     WS_EX_TOPMOST,
-                                     (LPCWSTR)res, L"",                                          
-                                     0x80000000,                                     
-                                     0, 0, 0, 0,                                   
-                                     nullptr,                                      
-                                     nullptr,                                      
-                                     m_hInstance,                                  
-                                     this,                                         
-                                     ZBID_DESKTOP                                 
-    );
-    if (!m_hwnd)
-        return false;
-
     MONITORINFO mi = { sizeof(mi) };
     HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTOPRIMARY);
     if (hMon)
@@ -125,7 +110,31 @@ bool Flip3DComp::InitializeDCompStage()
     const int y = mi.rcWork.top;
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
-    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+    m_hwnd = m_pfnCreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
+                                     WS_EX_TOOLWINDOW |
+                                     WS_EX_TOPMOST,
+                                     (LPCWSTR)res, L"",                                          
+                                     0x80000000,                                     
+                                     x, y, w, h,                                   
+                                     nullptr,                                      
+                                     nullptr,                                      
+                                     m_hInstance,                                  
+                                     this,                                         
+                                     ZBID_DESKTOP                                 
+    );
+    if (!m_hwnd)
+        return false;
+
+    /*MONITORINFO mi = { sizeof(mi) };
+    HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTOPRIMARY);
+    if (hMon)
+        GetMonitorInfoW(hMon, &mi);
+
+    const int x = mi.rcWork.left;
+    const int y = mi.rcWork.top;
+    const int w = mi.rcWork.right - mi.rcWork.left;
+    const int h = mi.rcWork.bottom - mi.rcWork.top;
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);*/
     //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
