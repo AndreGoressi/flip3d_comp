@@ -56,11 +56,18 @@ bool Flip3DComp::IsFlip3DViewActive() const
     return m_state != ViewState::Inactive;
 }
 
+bool Flip3DComp::IsAlwaysOnTop(HWND hwnd) {
+    LONG_PTR exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+    return (exStyle & WS_EX_TOPMOST) != 0;
+}
+
 struct StrippedAotWindowState
 {
+    LONG_PTR exStyle;
     LONG_PTR originalExStyle = 0;
 };
-std::unordered_map<HWND, StrippedAotWindowState> m_strippedAotWindows;
+
+std::unordered_map<HWND, StrippedAotWindowState> Flip3DComp::m_strippedAotWindows;
 void Flip3DComp::EnterInteractionOverride()
 {
     for (HWND h : EnumerateWindows())
