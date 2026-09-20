@@ -144,6 +144,7 @@ void Flip3DComp::UnloadUndocApi()
     m_pfnActivateLivePreview            = nullptr;
     m_pfnCreateWindowInBand             = nullptr;
     m_pfnSetWindowCompositionAttribute  = nullptr;
+    m_SetWindowBand                     = nullptr;
 
     if (m_dwmapi)
     {
