@@ -3,7 +3,6 @@
 // ============================================================================
 #include "Flip3DComp.h"
 #include "PrepareForUIAccess.h"
-
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
 {
     DWORD dwErr = PrepareForUIAccess();
@@ -28,6 +27,5 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
     UpdateWindow(main.WindowHandle());
     int exitCode = main.Run();
     CoUninitialize();
-    dbgend();
     return exitCode;
 }
