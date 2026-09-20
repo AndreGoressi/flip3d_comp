@@ -56,101 +56,44 @@ bool Flip3DComp::IsFlip3DViewActive() const
     return m_state != ViewState::Inactive;
 }
 
+struct StrippedAotWindowState
+{
+    LONG_PTR originalExStyle = 0;
+};
+std::unordered_map<HWND, StrippedAotWindowState> m_strippedAotWindows;
+void Flip3DComp::EnterInteractionOverride()
+{
+    for (HWND h : EnumerateWindows())
+    {
+        if (!h || h == m_hwnd || !IsAlwaysOnTop(h))
+            continue;
 
+        LONG_PTR exStyle = GetWindowLongPtr(h, GWL_EXSTYLE);
+        if (exStyle & WS_EX_TRANSPARENT)
+            continue; 
+
+        m_strippedAotWindows[h] = { exStyle };
+
+        SetWindowLongPtr(h, GWL_EXSTYLE, exStyle | WS_EX_TRANSPARENT);
+        SetWindowPos(h, HWND_NOTOPMOST, 0, 0, 0, 0,
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+    }
+}
 // ============================================================================
-namespace {
-
-Flip3DComp* s_instance = nullptr;
-LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
+// Flip3DComp::LeaveInteractionOverride
+// ============================================================================
+void Flip3DComp::LeaveInteractionOverride()
 {
-    if (nCode == HC_ACTION && s_instance && s_instance->IsFlip3DViewActive())
+    for (auto& [hwnd, state] : m_strippedAotWindows)
     {
-        const auto* info = reinterpret_cast<const MSLLHOOKSTRUCT*>(lParam);
-        HWND target = s_instance->WindowHandle();
-
-        switch (wParam)
+        if (IsWindow(hwnd))
         {
-        case WM_MOUSEWHEEL:
-        {
-            const short delta = HIWORD(info->mouseData);
-            const WPARAM wheelWParam = MAKEWPARAM(0, delta);
-            PostMessage(target, WM_MOUSEWHEEL, wheelWParam,
-                        MAKELPARAM(info->pt.x, info->pt.y));
-            return 1; 
-        }
-
-        case WM_MOUSEMOVE:
-        {
-            break;
-        }
-
-        case WM_LBUTTONDOWN:
-        {
-            POINT client = info->pt;
-            ScreenToClient(target, &client);
-            PostMessage(target, WM_LBUTTONDOWN, MK_LBUTTON,
-                        MAKELPARAM((short)client.x, (short)client.y));
-            return 1;
-        }
-        default:
-            break;
+            SetWindowLongPtr(hwnd, GWL_EXSTYLE, state.originalExStyle);
+            SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0,
+                         SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_FRAMECHANGED);
         }
     }
-    return CallNextHookEx(nullptr, nCode, wParam, lParam);
-}
-
-} // namespace
-
-void Flip3DComp::ApplyMouseWheelHook()
-{
-    if (m_mouseHook)
-        return;
-
-    s_instance = this;
-    m_hookActive = true;
-    m_mouseHook = SetWindowsHookExW(WH_MOUSE_LL, LowLevelMouseProc, nullptr, 0);
-
-    if (!m_mouseHook)
-        m_hookActive = false;
-    
-    SetCapture(m_hwnd);
-}
-
-void Flip3DComp::RemoveMouseWheelHook()
-{
-    ReleaseCapture();
-    if (m_mouseHook)
-    {
-        UnhookWindowsHookEx(m_mouseHook);
-        m_mouseHook = nullptr;
-    }
-
-    m_hookActive = false;
-
-    if (s_instance == this)
-        s_instance = nullptr;
-}
-
-void Flip3DComp::PollCursorPosition()
-{
-    if (!m_hookActive || !IsFlip3DViewActive())
-        return;
-
-    if (GetCapture() != m_hwnd)
-        SetCapture(m_hwnd);
-
-    POINT pt = {};
-    if (!GetCursorPos(&pt))
-        return;
-
-    ScreenToClient(m_hwnd, &pt);
-    if (pt.x == m_lastPolledCursorClient.x && pt.y == m_lastPolledCursorClient.y)
-        SetCursor(LoadCursorW(nullptr, m_hitHwnd ? IDC_HAND : IDC_ARROW));
-        return; 
-
-    m_lastPolledCursorClient = pt;
-    PostMessage(m_hwnd, WM_MOUSEMOVE, 0, MAKELPARAM((short)pt.x, (short)pt.y));
-    SetCursor(LoadCursorW(nullptr, m_hitHwnd ? IDC_HAND : IDC_ARROW));
+    m_strippedAotWindows.clear();
 }
 // ============================================================================
 
