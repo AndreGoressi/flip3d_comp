@@ -79,7 +79,7 @@ void Flip3DComp::ApplyFullscreenLayout()
     UpdateMonitorRect();
 }
 
-BOOL Flip3DComp::SetWindowBandInternal(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand)
+BOOL Flip3DComp::SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand)
 {
 	if (g_iam_key)
 	{
