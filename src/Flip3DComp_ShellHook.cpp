@@ -75,7 +75,7 @@ void Flip3DComp::EnterInteractionOverride()
 
         m_strippedAotWindows[h] = { exStyle };
 
-        SetWindowLongPtrW(h, GWL_EXSTYLE, state.exStyle | WS_EX_TRANSPARENT);
+        SetWindowLongPtr(h, GWL_EXSTYLE, StrippedAotWindowState.exStyle | WS_EX_TRANSPARENT);
         SetWindowPos(h, HWND_NOTOPMOST, 0, 0, 0, 0,
                      SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_FRAMECHANGED);
     }
@@ -89,7 +89,7 @@ void Flip3DComp::LeaveInteractionOverride()
     {
         if (IsWindow(hwnd))
         {
-            SetWindowLongPtr(hwnd, GWL_EXSTYLE, state.originalExStyle);
+            SetWindowLongPtr(hwnd, GWL_EXSTYLE, StrippedAotWindowState.originalExStyle);
             SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0,
                          SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_FRAMECHANGED);
         }
