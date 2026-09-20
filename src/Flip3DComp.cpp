@@ -48,7 +48,9 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
             m_initError = L"Failed to create DWM thumbnail visuals.";
         return false;
     }
-    
+
+    StripCompetingTopmost();
+    //
     if (m_pfnActivateLivePreview)
     {
         m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Desktop), nullptr);
