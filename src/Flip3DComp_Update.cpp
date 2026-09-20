@@ -681,6 +681,7 @@ void Flip3DComp::Update(float dtSeconds)
 
     RevealThumbnailsIfReady();
     RefreshDesktopGroupThumbnailsIfStale();
+    PollCursorPosition();
 
     TickSmoothScroll(dtSeconds);
 
