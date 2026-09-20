@@ -47,10 +47,8 @@ static DWORD DuplicateWinloginToken(DWORD dwSessionId, DWORD dwDesiredAccess, PH
 					}
 					CloseHandle(hProcess);
 				}
-
 				if (bFound) break;
 			}
-
 			CloseHandle(hSnapshot);
 		} else {
 			dwErr = GetLastError();
@@ -58,21 +56,16 @@ static DWORD DuplicateWinloginToken(DWORD dwSessionId, DWORD dwDesiredAccess, PH
 	} else {
 		dwErr = GetLastError();
 	}
-
-
 	return dwErr;
 }
 
 static DWORD CreateUIAccessToken(PHANDLE phToken) {
 	DWORD dwErr;
 	HANDLE hTokenSelf;
-
 	if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE, &hTokenSelf)) {
 		DWORD dwSessionId, dwRetLen;
-
 		if (GetTokenInformation(hTokenSelf, TokenSessionId, &dwSessionId, sizeof (dwSessionId), &dwRetLen)) {
 			HANDLE hTokenSystem;
-
 			dwErr = DuplicateWinloginToken(dwSessionId, TOKEN_IMPERSONATE, &hTokenSystem);
 			if (ERROR_SUCCESS == dwErr) {
 				if (SetThreadToken(NULL, hTokenSystem)) {
@@ -95,12 +88,10 @@ static DWORD CreateUIAccessToken(PHANDLE phToken) {
 		} else {
 			dwErr = GetLastError();
 		}
-
 		CloseHandle(hTokenSelf);
 	} else {
 		dwErr = GetLastError();
 	}
-
 	return dwErr;
 }
 
@@ -120,24 +111,21 @@ static BOOL CheckForUIAccess(DWORD *pdwErr, DWORD *pfUIAccess) {
 	} else {
 		*pdwErr = GetLastError();
 	}
-
 	return result;
 }
 
 DWORD PrepareForUIAccess() {
 	DWORD dwErr;
 	HANDLE hTokenUIAccess;
-	BOOL fUIAccess;
-
-	if (CheckForUIAccess(&dwErr, &fUIAccess)) {
-		if (fUIAccess) {
+	DWORD dwUIAccess = 0; 
+	if (CheckForUIAccess(&dwErr, &dwUIAccess)) {
+		if (dwUIAccess) {
 			dwErr = ERROR_SUCCESS;
 		} else {
 			dwErr = CreateUIAccessToken(&hTokenUIAccess);
 			if (ERROR_SUCCESS == dwErr) {
 				STARTUPINFO si;
 				PROCESS_INFORMATION pi;
-
 				GetStartupInfo(&si);
 				if (CreateProcessAsUser(hTokenUIAccess, NULL, GetCommandLine(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
 					CloseHandle(pi.hProcess), CloseHandle(pi.hThread);
@@ -145,11 +133,9 @@ DWORD PrepareForUIAccess() {
 				} else {
 					dwErr = GetLastError();
 				}
-
 				CloseHandle(hTokenUIAccess);
 			}
 		}
 	}
-
 	return dwErr;
 }
