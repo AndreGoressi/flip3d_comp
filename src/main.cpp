@@ -21,7 +21,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
         CoUninitialize();
         return 1;
     }
-    SetTopmost(main.WindowHandle(), TRUE);
+    Flip3DComp::SetTopmost(main.WindowHandle(), TRUE);
     int result = main.Run();
     CoUninitialize();
     return result;
