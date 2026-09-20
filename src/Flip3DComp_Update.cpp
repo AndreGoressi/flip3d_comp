@@ -681,8 +681,7 @@ void Flip3DComp::Update(float dtSeconds)
 
     RevealThumbnailsIfReady();
     RefreshDesktopGroupThumbnailsIfStale();
-    PollCursorPosition();
-
+    
     TickSmoothScroll(dtSeconds);
 
     if (m_state == ViewState::Enter && !m_animEnter.IsActive())
