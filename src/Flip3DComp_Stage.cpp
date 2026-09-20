@@ -144,7 +144,7 @@ bool Flip3DComp::InitializeDCompStage()
                                        nullptr,                        
                                        m_hInstance,                    
                                        this,                           
-                                       ZBID_UIACCESS
+                                       ZBID_DEFAULT
     );
     if (!m_hwnd)
         return false;
