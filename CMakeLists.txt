@@ -20,6 +20,7 @@ add_executable(Flip3DComp WIN32
     src/Flip3DComp_Accessible.cpp
     src/Flip3DAccessible.cpp
     src/Timeline.cpp
+    src/PrepareForUIAccess.cpp
 )
 
 set_target_properties(Flip3DComp PROPERTIES
