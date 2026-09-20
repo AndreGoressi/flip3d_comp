@@ -144,7 +144,7 @@ bool Flip3DComp::InitializeDCompStage()
                                      nullptr,                                      
                                      m_hInstance,                                  
                                      this,                                         
-                                     ZBID_SYSTEM_TOOLS                                 
+                                     ZBID_DESKTOP                                 
     );
     if (!m_hwnd)
         return false;
