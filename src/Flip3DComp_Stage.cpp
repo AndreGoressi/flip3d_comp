@@ -150,7 +150,7 @@ bool Flip3DComp::InitializeDCompStage()
         return false;
     //
     SetWindowBand(m_hwnd, nullptr, ZBID_UIACCESS);
-    SetWindowBand(m_hwnd, nullptr, ZBID_SYSTEMTOOLS);
+    SetWindowBand(m_hwnd, nullptr, ZBID_SYSTEM_TOOLS);
     //
     SetTopmost(m_hwnd, TRUE);
     ShowWindow(m_hwnd, SW_SHOW);
