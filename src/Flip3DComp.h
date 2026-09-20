@@ -247,7 +247,6 @@ private:
     static BOOL CALLBACK RemoveTopmostCallback(HWND hwnd, LPARAM lParam);
     void StripCompetingTopmost();
     void RestoreCompetingTopmost();
-    void UpdatePersistentLivePreviews();
 
     // ========================================================================
     // Member variables
