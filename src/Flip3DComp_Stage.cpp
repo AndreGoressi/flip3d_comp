@@ -58,10 +58,15 @@ void Flip3DComp::ApplyFullscreenLayout()
     if (!m_hwnd)
         return;
     
-    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
-    const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    MONITORINFO mi = { sizeof(mi) };
+    HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTOPRIMARY);
+    if (hMon)
+        GetMonitorInfoW(hMon, &mi);
+
+    const int x = mi.rcWork.left;
+    const int y = mi.rcWork.top;
+    const int w = mi.rcWork.right - mi.rcWork.left;
+    const int h = mi.rcWork.bottom - mi.rcWork.top;
     //
     SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
 
@@ -81,8 +86,7 @@ void Flip3DComp::ApplyFullscreenLayout()
 bool Flip3DComp::InitializeDCompStage()
 {
     WNDCLASSEXW wc = {
-        sizeof(wc), 
-        CS_HREDRAW | CS_VREDRAW,
+        sizeof(wc), 0,
         &Flip3DComp::WndProc,
         0, 0,
         m_hInstance,
@@ -96,18 +100,23 @@ bool Flip3DComp::InitializeDCompStage()
     if (!res) {
         DWORD dwError = GetLastError();
     }
-    
-    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
-    const int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-    const int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
+    MONITORINFO mi = { sizeof(mi) };
+    HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTOPRIMARY);
+    if (hMon)
+        GetMonitorInfoW(hMon, &mi);
+
+    const int x = mi.rcWork.left;
+    const int y = mi.rcWork.top;
+    const int w = mi.rcWork.right - mi.rcWork.left;
+    const int h = mi.rcWork.bottom - mi.rcWork.top;
     //
     m_hwnd = m_pfnCreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
                                      WS_EX_TOOLWINDOW |
                                      WS_EX_TOPMOST,
                                      (LPCWSTR)res, L"",                                          
                                      0x80000000,                                     
-                                     x, y, w, h,                                   
+                                     0, 0, 0, 0,                                   
                                      nullptr,                                      
                                      nullptr,                                      
                                      m_hInstance,                                  
@@ -117,7 +126,7 @@ bool Flip3DComp::InitializeDCompStage()
     if (!m_hwnd)
         return false;
     
-    //SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
     //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
