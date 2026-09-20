@@ -50,6 +50,20 @@ bool Flip3DComp::QualifiesForView(HWND hwnd) const
     return true;
 }
 
+void Flip3DComp::UpdatePersistentLivePreviews()
+{
+    for (auto& card : m_cards)
+    {
+        if (card.m_hwnd && IsWindow(card.m_hwnd))
+        {
+            if (IsIconic(card.m_hwnd) || card.m_isMinimized)
+            {
+                DwmInvalidateIconicBitmaps(card.m_hwnd);
+            }
+        }
+    }
+}
+
 // ============================================================================
 bool Flip3DComp::IsFlip3DViewActive() const
 {
