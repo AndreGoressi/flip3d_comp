@@ -145,7 +145,7 @@ bool Flip3DComp::InitializeDCompStage()
                                      nullptr,                                      
                                      m_hInstance,                                  
                                      this,                                         
-                                     ZBID_DEFAULT                                 
+                                     ZBID_DESKTOP                                 
     );
 	auto  test = SetTopmost(m_hwnd, TRUE);
     if (!test)
