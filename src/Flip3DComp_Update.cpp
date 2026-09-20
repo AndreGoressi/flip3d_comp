@@ -691,9 +691,6 @@ void Flip3DComp::Update(float dtSeconds)
         NotifyAccessibilityEvent(EVENT_SYSTEM_DIALOGSTART);
         NotifyAccessibilityFocusFront();
     }
-
-    UpdatePersistentLivePreviews();
-
     UpdateCamera(enterProgress);
     UpdateCards(enterProgress);
 
