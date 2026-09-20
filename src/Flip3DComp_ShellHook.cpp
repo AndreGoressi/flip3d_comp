@@ -61,12 +61,6 @@ bool Flip3DComp::IsAlwaysOnTop(HWND hwnd) {
     return (exStyle & WS_EX_TOPMOST) != 0;
 }
 
-struct StrippedAotWindowState
-{
-    LONG_PTR exStyle;
-    LONG_PTR originalExStyle = 0;
-};
-
 std::unordered_map<HWND, StrippedAotWindowState> Flip3DComp::m_strippedAotWindows;
 void Flip3DComp::EnterInteractionOverride()
 {
