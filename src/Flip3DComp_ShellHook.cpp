@@ -82,10 +82,6 @@ LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 
         case WM_MOUSEMOVE:
         {
-            POINT client = info->pt;
-            ScreenToClient(target, &client);
-            PostMessage(target, WM_MOUSEMOVE, 0,
-                        MAKELPARAM((short)client.x, (short)client.y));
             return 1;
         }
 
@@ -97,12 +93,10 @@ LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
                         MAKELPARAM((short)client.x, (short)client.y));
             return 1;
         }
-
         default:
             break;
         }
     }
-
     return CallNextHookEx(nullptr, nCode, wParam, lParam);
 }
 
@@ -120,6 +114,7 @@ void Flip3DComp::ApplyMouseWheelHook()
     if (!m_mouseHook)
         m_hookActive = false;
 }
+
 void Flip3DComp::RemoveMouseWheelHook()
 {
     if (m_mouseHook)
@@ -132,6 +127,24 @@ void Flip3DComp::RemoveMouseWheelHook()
 
     if (s_instance == this)
         s_instance = nullptr;
+}
+
+void Flip3DComp::PollCursorPosition()
+{
+    if (!m_hookActive || !IsFlip3DViewActive())
+        return;
+
+    POINT pt = {};
+    if (!GetCursorPos(&pt))
+        return;
+
+    ScreenToClient(m_hwnd, &pt);
+
+    if (pt.x == m_lastPolledCursorClient.x && pt.y == m_lastPolledCursorClient.y)
+        return; 
+
+    m_lastPolledCursorClient = pt;
+    PostMessage(m_hwnd, WM_MOUSEMOVE, 0, MAKELPARAM((short)pt.x, (short)pt.y));
 }
 // ============================================================================
 
