@@ -21,13 +21,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
         CoUninitialize();
         return 1;
     }
-
-    ShowWindow(main.WindowHandle(), SW_SHOW);
-    SetForegroundWindow(main.WindowHandle());
-    UpdateWindow(main.WindowHandle());
-
+    SetTopmost(main.WindowHandle(), TRUE);
     int result = main.Run();
     CoUninitialize();
-
     return result;
 }
