@@ -60,7 +60,6 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
 
     EnterFlip3DWindowMode();
     InitAccessibility();  
-    ApplyMouseWheelHook();
     Update(0.0f);
     
     return true;
