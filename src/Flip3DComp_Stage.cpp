@@ -122,6 +122,8 @@ bool Flip3DComp::InitializeDCompStage()
     const int y = mi.rcWork.top;
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
+
+	SetWindowBand(m_hwnd, nullptr, ZBID_UIACCESS);
     m_hwnd = m_pfnCreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
                                      WS_EX_TOOLWINDOW |
                                      WS_EX_TOPMOST,
@@ -132,7 +134,7 @@ bool Flip3DComp::InitializeDCompStage()
                                      nullptr,                                      
                                      m_hInstance,                                  
                                      this,                                         
-                                     ZBID_DESKTOP                                 
+                                     ZBID_UIACCESS                                 
     );
     if (!m_hwnd)
         return false;
