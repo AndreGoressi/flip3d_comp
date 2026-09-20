@@ -250,3 +250,7 @@ using SetWindowCompositionAttribute_fn = BOOL(WINAPI*)(
 
 using SetWindowBand_fn = BOOL(WINAPI*)(
     HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
+
+using NtUserEnableIAMAccess_fn = BOOL(WINAPI*)(
+    ULONG64 key, BOOL enable);
+    
