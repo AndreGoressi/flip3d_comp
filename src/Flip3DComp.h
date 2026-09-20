@@ -75,6 +75,7 @@ private:
 
     bool    InitializeDCompStage();
     void    ApplyFullscreenLayout();
+    static bool SetTopmost(HWND hwnd, bool topmost);
 
     // ========================================================================
     // DWM Thumbnail API (dwmapi.dll ordinals 147, 162)
