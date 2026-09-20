@@ -58,6 +58,7 @@ public:
     // ========================================================================
     bool Initialize(HINSTANCE hInstance);
     HWND WindowHandle() const { return m_hwnd; }
+    bool    IsFlip3DViewActive() const;
     const wchar_t* InitErrorMessage() const { return m_initError.c_str(); }
     int  Run();
 
@@ -97,7 +98,7 @@ private:
     static BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam);
     struct EnumContext;
     bool    QualifiesForView(HWND hwnd) const;
-    bool    IsFlip3DViewActive() const;
+    //bool    IsFlip3DViewActive() const;
     bool    IsNeverHiddenWindow(HWND hwnd) const;
 
     // Shell Hook drives dynamic card add/remove (no ShowWindow on live windows).
