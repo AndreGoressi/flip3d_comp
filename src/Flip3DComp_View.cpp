@@ -22,8 +22,6 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
     if (commitScroll)
         CommitCarouselScroll();
 
-    RemoveMouseWheelHook();
-
     m_lastPaintOrder.clear();
     m_state = ViewState::Exit;
     NotifyAccessibilityEvent(EVENT_SYSTEM_DIALOGEND);
