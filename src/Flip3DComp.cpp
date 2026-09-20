@@ -53,12 +53,14 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     {
         m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Desktop), nullptr); 
     }
+    
     m_state = ViewState::Enter;
     m_animEnter.Restart(0.0f, 1.0f, kEnterExitDurationSec);
     m_prevFrame = std::chrono::steady_clock::now();
 
     EnterFlip3DWindowMode();
-    InitAccessibility();
+    InitAccessibility();  
+    ApplyMouseWheelHook();
     Update(0.0f);
     
     return true;
