@@ -418,9 +418,9 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
             thumbBase.Attach((IDCompositionVisual*)pv);
             if (SUCCEEDED(thumbBase.As(&card.m_visual)))
             {
-                card.m_visual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-                card.m_visual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-                card.m_visual->SetOpacity(0.0f);
+                //card.m_visual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+                //card.m_visual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+                //card.m_visual->SetOpacity(0.0f);
                 container->AddVisual(card.m_visual.Get(), FALSE, nullptr);
             }
         }
