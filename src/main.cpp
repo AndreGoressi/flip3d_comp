@@ -1,28 +1,33 @@
 // ============================================================================
-// main.cpp — Flip3D (DComp) entry point with UIAccess Token Magic
+// main.cpp — Flip3D (DComp) entry point
 // ============================================================================
 #include "Flip3DComp.h"
 #include "PrepareForUIAccess.h"
+
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
 {
+    CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+
     DWORD dwErr = PrepareForUIAccess();
-    if (ERROR_SUCCESS != dwErr)
+
+    if (dwErr != ERROR_SUCCESS)
     {
         //...
     }
 
-    CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-
     Flip3DComp main;
     if (!main.Initialize(hInstance))
     {
-        MessageBoxW(nullptr,
-            main.InitErrorMessage(),
-            L"Flip3D (DComp)", MB_OK | MB_ICONERROR);
         CoUninitialize();
         return 1;
     }
-    int exitCode = main.Run();
+
+    ShowWindow(main.WindowHandle(), SW_SHOW);
+    SetForegroundWindow(main.WindowHandle());
+    UpdateWindow(main.WindowHandle());
+
+    int result = main.Run();
     CoUninitialize();
-    return exitCode;
+
+    return result;
 }
