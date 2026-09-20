@@ -61,7 +61,6 @@ bool Flip3DComp::IsFlip3DViewActive() const
 namespace {
 
 Flip3DComp* s_instance = nullptr;
-
 LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
     if (nCode == HC_ACTION && s_instance && s_instance->IsFlip3DViewActive())
@@ -113,10 +112,13 @@ void Flip3DComp::ApplyMouseWheelHook()
 
     if (!m_mouseHook)
         m_hookActive = false;
+    
+    SetCapture(m_hwnd);
 }
 
 void Flip3DComp::RemoveMouseWheelHook()
 {
+    ReleaseCapture();
     if (m_mouseHook)
     {
         UnhookWindowsHookEx(m_mouseHook);
