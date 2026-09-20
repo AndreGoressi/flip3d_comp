@@ -91,6 +91,16 @@ BOOL Flip3DComp::SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand)
 	}
 	return FALSE;
 }
+
+bool Flip3DComp::SetTopmost(HWND hwnd, bool topmost)
+{
+    SetWindowPos(hwnd, topmost ? HWND_TOPMOST : HWND_NOTOPMOST,
+                 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+	
+    const LONG_PTR exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+    const bool actuallyTopmost = (exStyle & WS_EX_TOPMOST) != 0;
+    return actuallyTopmost == topmost;
+}
 // ============================================================================
 // Flip3DComp::InitializeDCompStage
 // uDWM Flip3D input window: borderless popup, topmost but do not cover the taskbar.
@@ -135,21 +145,12 @@ bool Flip3DComp::InitializeDCompStage()
                                      nullptr,                                      
                                      m_hInstance,                                  
                                      this,                                         
-                                     ZBID_DESKTOP                                 
+                                     ZBID_DEFAULT                                 
     );
-    if (!m_hwnd)
+	auto  test = SetTopmost(m_hwnd, TRUE);
+    if (!test)
         return false;
 
-    /*MONITORINFO mi = { sizeof(mi) };
-    HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTOPRIMARY);
-    if (hMon)
-        GetMonitorInfoW(hMon, &mi);
-
-    const int x = mi.rcWork.left;
-    const int y = mi.rcWork.top;
-    const int w = mi.rcWork.right - mi.rcWork.left;
-    const int h = mi.rcWork.bottom - mi.rcWork.top;
-    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);*/
     //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
