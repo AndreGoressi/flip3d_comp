@@ -79,6 +79,18 @@ void Flip3DComp::ApplyFullscreenLayout()
     UpdateMonitorRect();
 }
 
+BOOL Flip3DComp::SetWindowBandInternal(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand)
+{
+	if (g_iam_key)
+	{
+		m_NtUserEnableIAMAccess(g_iam_key, TRUE);
+		const auto callResult = m_SetWindowBand(hWnd, hwndInsertAfter, dwBand);
+		lSet = GetLastError();
+		m_NtUserEnableIAMAccess(g_iam_key, FALSE);
+		return callResult;
+	}
+	return FALSE;
+}
 // ============================================================================
 // Flip3DComp::InitializeDCompStage
 // uDWM Flip3D input window: borderless popup, topmost but do not cover the taskbar.
