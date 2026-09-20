@@ -646,10 +646,10 @@ void Flip3DComp::RebuildDesktopGroupThumbnails(CardModel& card)
             mix((uintptr_t)groupHwnd);
             mix(IsIconic(groupHwnd) ? 1u : 0u);
 
-            RECT rcWin = {};
-            bool isMin = IsIconic(groupHwnd);
+            /*RECT rcWin = {};
+            bool isMin = IsIconic(groupHwnd);*/
 
-            if (isMin)
+            /*if (isMin)
             {
                 WINDOWPLACEMENT wp = { sizeof(wp) };
                 if (GetWindowPlacement(groupHwnd, &wp))
@@ -663,8 +663,20 @@ void Flip3DComp::RebuildDesktopGroupThumbnails(CardModel& card)
                 {
                     GetWindowRect(groupHwnd, &rcWin);
                 }
-            }
+            }*/
 
+
+            WINDOWPLACEMENT wp = { sizeof(wp) };
+            if (GetWindowPlacement(groupHwnd, &wp))
+            {
+                rcWin = wp.rcNormalPosition;
+            }
+            
+            if (FAILED(DwmGetWindowAttribute(groupHwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
+            {
+                GetWindowRect(groupHwnd, &rcWin);
+            }
+            
             if (rcWin.right <= rcWin.left || rcWin.bottom <= rcWin.top)
                 continue;
 
@@ -694,12 +706,12 @@ void Flip3DComp::RebuildDesktopGroupThumbnails(CardModel& card)
 
             HTHUMBNAIL subThumb = nullptr;
             DWM_THUMBNAIL_PROPERTIES subTp = {};
-            subTp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D;
+            subTp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
 
-            if (isMin)
+            /*if (isMin)
             {
                 subTp.dwFlags |= DWM_TNP_FORCECVI;
-            }
+            }*/
 
             subTp.fVisible = TRUE;
             subTp.rcDestination = { 0, 0, relW, relH };
