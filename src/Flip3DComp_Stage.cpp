@@ -58,8 +58,8 @@ void Flip3DComp::ApplyFullscreenLayout()
     if (!m_hwnd)
         return;
     
-    MONITORINFO mi = { sizeof(mi) };
     HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTOPRIMARY);
+	MONITORINFO mi = { sizeof(mi) };
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
 
@@ -108,8 +108,7 @@ bool Flip3DComp::SetTopmost(HWND hwnd, bool topmost)
 bool Flip3DComp::InitializeDCompStage()
 {
     WNDCLASSEXW wc = {
-        sizeof(wc), 
-		CS_HREDRAW | CS_VREDRAW,
+        sizeof(wc), 0,
         &Flip3DComp::WndProc,
         0, 0,
         m_hInstance,
@@ -124,8 +123,8 @@ bool Flip3DComp::InitializeDCompStage()
         DWORD dwError = GetLastError();
     }
     //
-    MONITORINFO mi = { sizeof(mi) };
     HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTOPRIMARY);
+	MONITORINFO mi = { sizeof(mi) };
     if (hMon)
         GetMonitorInfoW(hMon, &mi);
 
@@ -146,10 +145,12 @@ bool Flip3DComp::InitializeDCompStage()
                                      this,                                         
                                      ZBID_UIACCESS
     );
+	if (!m_hwnd)
+        return false;
+	//
 	SetWindowBand(m_hwnd, nullptr, ZBID_UIACCESS);
 	SetTopmost(m_hwnd, TRUE);
-    if (!m_hwnd)
-        return false;
+	UpdateWindow(m_hwnd);
 	//
 	m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
 	//
