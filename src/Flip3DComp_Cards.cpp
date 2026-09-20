@@ -273,8 +273,8 @@ void Flip3DComp::UpdateMonitorRect()
     if (!GetMonitorInfoW(hMon, &mi))
         return;
 
-    const int vx = GetSystemMetrics(SM_CXFULLSCREEN);
-    const int vy = GetSystemMetrics(SM_CYFULLSCREEN);
+    const int vx = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    const int vy = GetSystemMetrics(SM_YVIRTUALSCREEN);
     m_viewX = (float)(mi.rcWork.left - vx);
     m_viewY = (float)(mi.rcWork.top  - vy);
 
