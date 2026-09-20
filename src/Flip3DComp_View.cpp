@@ -17,6 +17,7 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
     if (m_pfnActivateLivePreview)
     {
         m_pfnActivateLivePreview(FALSE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Window), nullptr);
+        LeaveInteractionOverride();
     }
 
     if (commitScroll)
