@@ -58,50 +58,17 @@ bool Flip3DComp::IsFlip3DViewActive() const
 std::vector<HWND> Flip3DComp::s_strippedTopmostWindows;
 BOOL CALLBACK Flip3DComp::RemoveTopmostCallback(HWND hwnd, LPARAM lParam)
 {
-    auto* pThis = reinterpret_cast<Flip3DComp*>(lParam);
-    if (!pThis || pThis->IsNeverHiddenWindow(hwnd))
-        return TRUE;
 
-    if (IsWindowVisible(hwnd) && !IsIconic(hwnd))
-    {
-        if (s_strippedTopmostWindows.empty()) {
-            //s_strippedTopmostWindows.reserve(8);
-        }
-        s_strippedTopmostWindows.push_back(hwnd);  
-    }
-    return TRUE;
 }
 
 void Flip3DComp::StripCompetingTopmost()
 {
-    if (!IsMainTopmostChecked())
-        return;
-
-    if (g_hdlg)
-    {
-        CheckDlgButton(g_hdlg, IDC_MAIN_TOP, BST_UNCHECKED);
-    }
-    s_strippedTopmostWindows.clear();
-    //s_strippedTopmostWindows.reserve(16);
     EnumWindows(RemoveTopmostCallback, reinterpret_cast<LPARAM>(this));
 }
 
 void Flip3DComp::RestoreCompetingTopmost()
 {
-    if (s_strippedTopmostWindows.empty())
-        return;
 
-    for (HWND hwnd : s_strippedTopmostWindows)
-    {
-        if (IsWindow(hwnd))
-        {
-            if (g_hdlg)
-            {
-                CheckDlgButton(g_hdlg, IDC_MAIN_TOP, BST_CHECKED);
-            }
-        }
-    }
-    s_strippedTopmostWindows.clear();
 }
 
 bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
