@@ -44,11 +44,6 @@
 
 using Microsoft::WRL::ComPtr;
 
-struct StrippedAotWindowState {
-    LONG_PTR exStyle;
-    LONG_PTR originalExStyle = 0;
-};
-
 class Flip3DAccessible;
 // ============================================================================
 // Flip3DComp — Main application class
@@ -163,12 +158,6 @@ private:
     float   RotationDurationForRotateList() const;
     void    SelectWindow(HWND hwndTarget);
     void    SelectFront();
-    //new
-    static std::unordered_map<HWND, StrippedAotWindowState> m_strippedAotWindows;
-    bool IsAlwaysOnTop(HWND hwnd);
-    void EnterInteractionOverride();
-    void LeaveInteractionOverride();
-
     // ========================================================================
     // Rotation (uDWM m_leWindows linked-list model)
     // ========================================================================
