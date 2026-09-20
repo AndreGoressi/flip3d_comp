@@ -22,9 +22,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
         CoUninitialize();
         return 1;
     }
-    ShowWindow(main.WindowHandle(), SW_SHOW);
-    SetForegroundWindow(main.WindowHandle());
-    UpdateWindow(main.WindowHandle());
     int exitCode = main.Run();
     CoUninitialize();
     return exitCode;
