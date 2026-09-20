@@ -395,8 +395,8 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     // Create container visual for the card
     ComPtr<IDCompositionVisual2> container;
     HRESULT hr = m_dcompDevice->CreateVisual(&container);
-    if (FAILED(hr))
-        return hr;
+    /*if (FAILED(hr))
+        return hr;*/
 
     // 1. Render the primary source (either the single window or the desktop background)
     HWND primarySourceHwnd = card.m_isGroup ? nullptr : card.m_hwnd;
@@ -418,6 +418,8 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
             thumbBase.Attach((IDCompositionVisual*)pv);
             if (SUCCEEDED(thumbBase.As(&card.m_visual)))
             {
+                container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+                container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
                 //card.m_visual->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
                 //card.m_visual->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
                 //card.m_visual->SetOpacity(0.0f);
@@ -425,14 +427,15 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
             }
         }
     }
-    hr = container.As(&card.m_containerVisual);
+    /*hr = container.As(&card.m_containerVisual);
     if (FAILED(hr))
-        return hr;
+        return hr;*/
 
     if (card.m_isShellDesktop)
     {
         RebuildDesktopGroupThumbnails(card);
     }
+    
     ComPtr<IDCompositionRectangleClip> clip;
     if (SUCCEEDED(m_dcompDevice->CreateRectangleClip(&clip)))
     {
@@ -451,10 +454,13 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
         clip->SetBottomRightRadiusY(radius);
         container->SetClip(clip.Get());
     }
-    container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
-    container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
-
+    /*container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+    container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);*/
+    hr = container.As(&card.m_containerVisual);    
     hr = m_sceneVisual->AddVisual(container.Get(), TRUE, nullptr);
+    if (FAILED(hr))
+        return hr;
+    //
     return hr;
 }
 
@@ -470,7 +476,7 @@ void Flip3DComp::RevealThumbnailsIfReady()
     {
          if (!c.m_visual)
             continue;
-         c.m_visual->SetOpacity(1.0f);
+         //c.m_visual->SetOpacity(1.0f);
     }
 
     if (m_dcompDevice)
