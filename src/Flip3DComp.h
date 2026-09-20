@@ -124,17 +124,13 @@ private:
 
     void    OnThumbnailSourceSizeChanged();
     void    UpdateCardThumbnailDest(CardModel& card);
-    //new
-    std::vector<std::vector<HWND>> DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork);
-    //void RebuildDesktopGroupThumbnails(CardModel& card);
-    //void RefreshDesktopGroupThumbnailsIfStale();
     //
     HRESULT CreateCardVisuals();
     //
     // ========================================================================
     // Per-frame update
     // ========================================================================
-
+    std::vector<std::vector<HWND>> DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork);
     void RebuildDesktopGroupThumbnails(CardModel& card);
     void RefreshDesktopGroupThumbnailsIfStale();
     void    RevealThumbnailsIfReady();
@@ -248,7 +244,7 @@ private:
     bool    IsSystemFlyoutProcess(HWND hwnd) const;
     //
     static std::vector<HWND> s_strippedTopmostWindows;
-    BOOL CALLBACK RemoveTopmostCallback(HWND hwnd, LPARAM lParam);
+    static BOOL CALLBACK RemoveTopmostCallback(HWND hwnd, LPARAM lParam);
     void StripCompetingTopmost();
     void RestoreCompetingTopmost();
 
