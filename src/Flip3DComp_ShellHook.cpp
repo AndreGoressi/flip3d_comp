@@ -70,10 +70,9 @@ BOOL CALLBACK Flip3DComp::RemoveTopmostCallback(HWND hwnd, LPARAM lParam)
     if (exStyle & WS_EX_TOPMOST)
     {
         SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (exStyle & ~WS_EX_TOPMOST) | WS_EX_LAYERED | WS_EX_TRANSPARENT);
-        /*SetLayeredWindowAttributes(hwnd, 0, 0, LWA_ALPHA);
-
         SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, 
-                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_FRAMECHANGED);*/
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+        //
         s_strippedTopmostWindows.push_back(hwnd);
     }
     return TRUE;
@@ -91,10 +90,8 @@ void Flip3DComp::RestoreCompetingTopmost()
         {
             LONG_PTR exStyle = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
             SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (exStyle | WS_EX_TOPMOST) & ~WS_EX_LAYERED & ~WS_EX_TRANSPARENT);
-            /*SetLayeredWindowAttributes(hwnd, 0, 255, LWA_ALPHA);
-
             SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, 
-                         SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_FRAMECHANGED);*/
+                         SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_FRAMECHANGED);
         }
     }
     s_strippedTopmostWindows.clear();
