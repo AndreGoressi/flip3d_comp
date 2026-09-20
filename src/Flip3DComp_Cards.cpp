@@ -644,7 +644,7 @@ void Flip3DComp::RebuildDesktopGroupThumbnails(CardModel& card)
         for (HWND groupHwnd : group)
         {
             mix((uintptr_t)groupHwnd);
-            //mix(IsIconic(groupHwnd) ? 1u : 0u);
+            mix(IsIconic(groupHwnd) ? 1u : 0u);
 
             RECT rcWin = {};
             WINDOWPLACEMENT wp = { sizeof(wp) };
