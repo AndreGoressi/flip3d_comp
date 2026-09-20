@@ -108,7 +108,8 @@ bool Flip3DComp::SetTopmost(HWND hwnd, bool topmost)
 bool Flip3DComp::InitializeDCompStage()
 {
     WNDCLASSEXW wc = {
-        sizeof(wc), 0,
+        sizeof(wc), 
+		CS_HREDRAW | CS_VREDRAW,
         &Flip3DComp::WndProc,
         0, 0,
         m_hInstance,
@@ -118,10 +119,11 @@ bool Flip3DComp::InitializeDCompStage()
         L"Flip3DCompClass",
         nullptr,
     };
-    ATOM res = RegisterClassExW(&wc);
+    /*ATOM res = RegisterClassExW(&wc);
     if (!res) {
         DWORD dwError = GetLastError();
-    }
+    }*/
+	RegisterClassExW(&wc);
     //
     MONITORINFO mi = { sizeof(mi) };
     HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTOPRIMARY);
@@ -132,12 +134,11 @@ bool Flip3DComp::InitializeDCompStage()
     const int y = mi.rcWork.top;
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
-
-	SetWindowBand(m_hwnd, nullptr, ZBID_UIACCESS);
+	//SetWindowBand(m_hwnd, nullptr, ZBID_UIACCESS);
 	//
-    m_hwnd = m_pfnCreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
-                                     WS_EX_TOOLWINDOW |
-                                     WS_EX_TOPMOST,
+    /*m_hwnd = m_pfnCreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
+                                     WS_EX_TOPMOST |
+                                     WS_EX_TOOLWINDOW,
                                      (LPCWSTR)res, L"",                                          
                                      0x80000000,                                     
                                      x, y, w, h,                                   
@@ -149,8 +150,22 @@ bool Flip3DComp::InitializeDCompStage()
     );
 	auto  test = SetTopmost(m_hwnd, TRUE);
     if (!test)
+        return false;*/
+m_hwnd = CreateWindowExW(WS_EX_NOREDIRECTIONBITMAP | 
+						 WS_EX_TOPMOST | 
+						 WS_EX_TOOLWINDOW,
+						 L"Flip3DCompClass",
+						 L"",
+						 WS_POPUP,
+						 x, y, w, h,
+						 nullptr, nullptr,
+						 m_hInstance,
+						 this);
+    if (!m_hwnd)
         return false;
     //
+	m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
+	//
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
     //
@@ -164,8 +179,6 @@ bool Flip3DComp::InitializeDCompStage()
     data.cbData = sizeof(accent);    
     m_pfnSetWindowCompositionAttribute(m_hwnd, &data);
     //
-    m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
-
     RECT client = {};
     if (GetClientRect(m_hwnd, &client))
     {
