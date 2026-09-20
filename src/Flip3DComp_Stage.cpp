@@ -97,12 +97,10 @@ bool Flip3DComp::InitializeDCompStage()
         L"Flip3DCompClass",
         nullptr,
     };
-    /*ATOM res = RegisterClassExW(&wc);
+    ATOM res = RegisterClassExW(&wc);
     if (!res) {
         DWORD dwError = GetLastError();
-    }*/
-
-    RegisterClassExW(&wc);
+    }
 
     MONITORINFO mi = { sizeof(mi) };
     HMONITOR hMon = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTOPRIMARY);
@@ -114,7 +112,7 @@ bool Flip3DComp::InitializeDCompStage()
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
     //
-    /*m_hwnd = m_pfnCreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
+    m_hwnd = m_pfnCreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
                                      WS_EX_TOOLWINDOW |
                                      WS_EX_TOPMOST,
                                      (LPCWSTR)res, L"",                                          
@@ -125,24 +123,11 @@ bool Flip3DComp::InitializeDCompStage()
                                      m_hInstance,                                  
                                      this,                                         
                                      ZBID_DESKTOP                                 
-    );*/
-    m_hwnd = CreateWindowExW(WS_EX_NOREDIRECTIONBITMAP | 
-                             WS_EX_TOPMOST | 
-                             WS_EX_TOOLWINDOW,
-                             L"Flip3DCompClass",
-                             L"",
-                             WS_POPUP,
-                             x, y, w, h,
-                             nullptr, nullptr,
-                             m_hInstance,
-                             this);
-    
+    );
     if (!m_hwnd)
         return false;
     
-    /*SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
-    SetForegroundWindow(m_hwnd);
-    SetFocus(m_hwnd);*/
+    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
     //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
