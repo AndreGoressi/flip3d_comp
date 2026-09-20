@@ -144,12 +144,13 @@ void Flip3DComp::PollCursorPosition()
         return;
 
     ScreenToClient(m_hwnd, &pt);
-
     if (pt.x == m_lastPolledCursorClient.x && pt.y == m_lastPolledCursorClient.y)
+        SetCursor(LoadCursorW(nullptr, m_hitHwnd ? IDC_HAND : IDC_ARROW));
         return; 
 
     m_lastPolledCursorClient = pt;
     PostMessage(m_hwnd, WM_MOUSEMOVE, 0, MAKELPARAM((short)pt.x, (short)pt.y));
+    SetCursor(LoadCursorW(nullptr, m_hitHwnd ? IDC_HAND : IDC_ARROW));
 }
 // ============================================================================
 
