@@ -248,9 +248,6 @@ private:
     HRESULT AccessibleSelectIndex(int index);
     //new
     bool    IsSystemFlyoutProcess(HWND hwnd) const;
-    static std::vector<HWND> s_strippedTopmostWindows;
-    static BOOL CALLBACK RemoveTopmostCallback(HWND hwnd, LPARAM lParam);
-    void RestoreCompetingTopmost();
 
     // ========================================================================
     // Member variables
