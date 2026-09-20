@@ -646,8 +646,8 @@ void Flip3DComp::RebuildDesktopGroupThumbnails(CardModel& card)
             mix((uintptr_t)groupHwnd);
             mix(IsIconic(groupHwnd) ? 1u : 0u);
 
-            /*RECT rcWin = {};
-            bool isMin = IsIconic(groupHwnd);*/
+            RECT rcWin = {};
+            //bool isMin = IsIconic(groupHwnd);*/
 
             /*if (isMin)
             {
