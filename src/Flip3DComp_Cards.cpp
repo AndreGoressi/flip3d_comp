@@ -89,6 +89,9 @@ bool Flip3DComp::LoadUndocApi()
     m_SetWindowBand = (SetWindowBand_fn)
         GetProcAddress(hUser32, "SetWindowBand"); 
 
+    m_NtUserEnableIAMAccess = (NtUserEnableIAMAccess_fn)
+        GetProcAddress(hUser32, MAKEINTRESOURCEA(2510));
+
     if (!m_pfnCreateSharedThumbVisual)
     {
         m_initError = L"DwmpCreateSharedThumbnailVisual (dwmapi ord 147) is required.";
@@ -131,6 +134,12 @@ bool Flip3DComp::LoadUndocApi()
         UnloadUndocApi();
         return false;
     }
+    if (!m_NtUserEnableIAMAccess)
+    {
+        m_initError = L"NtUserEnableIAMAccess failed to load.";
+        UnloadUndocApi();
+        return false;
+    }
     return true;
 }
 // ============================================================================
@@ -145,6 +154,7 @@ void Flip3DComp::UnloadUndocApi()
     m_pfnCreateWindowInBand             = nullptr;
     m_pfnSetWindowCompositionAttribute  = nullptr;
     m_SetWindowBand                     = nullptr;
+    m_NtUserEnableIAMAccess             = nullptr;
 
     if (m_dwmapi)
     {
