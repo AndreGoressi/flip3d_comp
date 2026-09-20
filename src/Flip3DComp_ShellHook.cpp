@@ -59,25 +59,31 @@ std::vector<HWND> Flip3DComp::s_strippedTopmostWindows;
 BOOL CALLBACK Flip3DComp::RemoveTopmostCallback(HWND hwnd, LPARAM lParam)
 {
     auto* pThis = reinterpret_cast<Flip3DComp*>(lParam);
-    if (pThis->IsNeverHiddenWindow(hwnd))
+    if (!pThis || pThis->IsNeverHiddenWindow(hwnd))
         return TRUE;
 
-    if (!IsWindowVisible(hwnd) || IsIconic(hwnd))
-        return TRUE;
-
-    LONG_PTR exStyle = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
-    if (exStyle & WS_EX_TOPMOST)
+    if (IsWindowVisible(hwnd) && !IsIconic(hwnd))
     {
-        SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (exStyle & ~WS_EX_TOPMOST) | WS_EX_LAYERED | WS_EX_TRANSPARENT);
-        s_strippedTopmostWindows.push_back(hwnd);
+        LONG_PTR exStyle = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
+        if (exStyle & WS_EX_TOPMOST)
+        {
+            if (s_strippedTopmostWindows.empty()) {
+                s_strippedTopmostWindows.reserve(8);
+            }
+
+            SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (exStyle & ~WS_EX_TOPMOST) | WS_EX_LAYERED | WS_EX_TRANSPARENT);
+            s_strippedTopmostWindows.push_back(hwnd);
+        }
     }
     return TRUE;
 }
+
 void Flip3DComp::StripCompetingTopmost()
 {
     s_strippedTopmostWindows.clear();
     EnumWindows(RemoveTopmostCallback, reinterpret_cast<LPARAM>(this));
 }
+
 void Flip3DComp::RestoreCompetingTopmost()
 {
     for (HWND hwnd : s_strippedTopmostWindows)
@@ -90,8 +96,6 @@ void Flip3DComp::RestoreCompetingTopmost()
     }
     s_strippedTopmostWindows.clear();
 }
-
-//EnumWindows(RemoveTopmostCallback, reinterpret_cast<LPARAM>(this));
 
 bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
 {
