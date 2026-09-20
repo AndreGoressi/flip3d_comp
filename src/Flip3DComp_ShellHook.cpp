@@ -64,34 +64,41 @@ BOOL CALLBACK Flip3DComp::RemoveTopmostCallback(HWND hwnd, LPARAM lParam)
 
     if (IsWindowVisible(hwnd) && !IsIconic(hwnd))
     {
-        LONG_PTR exStyle = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
-        if (exStyle & WS_EX_TOPMOST)
-        {
-            if (s_strippedTopmostWindows.empty()) {
-                s_strippedTopmostWindows.reserve(8);
-            }
-
-            SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (exStyle & ~WS_EX_TOPMOST) | WS_EX_LAYERED | WS_EX_TRANSPARENT);
-            s_strippedTopmostWindows.push_back(hwnd);
+        if (s_strippedTopmostWindows.empty()) {
+            //s_strippedTopmostWindows.reserve(8);
         }
+        s_strippedTopmostWindows.push_back(hwnd);  
     }
     return TRUE;
 }
 
 void Flip3DComp::StripCompetingTopmost()
 {
+    if (!IsMainTopmostChecked())
+        return;
+
+    if (g_hdlg)
+    {
+        CheckDlgButton(g_hdlg, IDC_MAIN_TOP, BST_UNCHECKED);
+    }
     s_strippedTopmostWindows.clear();
+    //s_strippedTopmostWindows.reserve(16);
     EnumWindows(RemoveTopmostCallback, reinterpret_cast<LPARAM>(this));
 }
 
 void Flip3DComp::RestoreCompetingTopmost()
 {
+    if (s_strippedTopmostWindows.empty())
+        return;
+
     for (HWND hwnd : s_strippedTopmostWindows)
     {
         if (IsWindow(hwnd))
         {
-            LONG_PTR exStyle = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
-            SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (exStyle | WS_EX_TOPMOST) & ~WS_EX_LAYERED & ~WS_EX_TRANSPARENT);
+            if (g_hdlg)
+            {
+                CheckDlgButton(g_hdlg, IDC_MAIN_TOP, BST_CHECKED);
+            }
         }
     }
     s_strippedTopmostWindows.clear();
