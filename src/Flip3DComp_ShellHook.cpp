@@ -82,7 +82,7 @@ LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 
         case WM_MOUSEMOVE:
         {
-            return 1;
+            break;
         }
 
         case WM_LBUTTONDOWN:
