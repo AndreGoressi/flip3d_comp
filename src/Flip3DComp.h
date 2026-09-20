@@ -200,6 +200,9 @@ private:
     bool    OnWheel(int wheelDelta);
     bool    OnMouse(LONG x, LONG y, bool pressed);
 
+    void    InstallMouseWheelHook();
+    void    RemoveMouseWheelHook();
+
     // ========================================================================
     // Hit testing (3D ray-triangle intersection)
     // ========================================================================
@@ -259,7 +262,8 @@ private:
 
     int                     m_framesSinceOpen   = 0;
     bool                    m_thumbnailsRevealed = false;
-    //HHOOK                   m_mouseHook     = nullptr;
+    HHOOK                   m_mouseHook     = nullptr;
+    bool                    m_hookActive    = false;
     std::wstring            m_initError;
 
     // ---- Dimensions ----
