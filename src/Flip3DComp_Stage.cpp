@@ -107,7 +107,7 @@ bool Flip3DComp::InitializeDCompStage()
                                      WS_EX_TOPMOST,
                                      (LPCWSTR)res, L"",                                          
                                      0x80000000,                                     
-                                     0, 0, 0, 0,                                   
+                                     x, y, w, h,                                   
                                      nullptr,                                      
                                      nullptr,                                      
                                      m_hInstance,                                  
@@ -117,7 +117,7 @@ bool Flip3DComp::InitializeDCompStage()
     if (!m_hwnd)
         return false;
     
-    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
+    //SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
     //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
