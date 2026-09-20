@@ -133,7 +133,6 @@ bool Flip3DComp::InitializeDCompStage()
     const int y = mi.rcWork.top;
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
-	SetWindowBand(m_hwnd, nullptr, ZBID_UIACCESS);
 	//
     m_hwnd = m_pfnCreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
                                      WS_EX_TOPMOST |
@@ -145,12 +144,14 @@ bool Flip3DComp::InitializeDCompStage()
                                      nullptr,                                      
                                      m_hInstance,                                  
                                      this,                                         
-                                     ZBID_DESKTOP                                 
+                                     ZBID_SYSTEM_TOOLS                                 
     );
-	SetTopmost(m_hwnd, TRUE);
     if (!m_hwnd)
         return false;
-    //
+	//
+	SetWindowBand(m_hwnd, nullptr, ZBID_SYSTEM_TOOLS);
+	SetTopmost(m_hwnd, TRUE);
+	//
 	m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
 	//
     BOOL exclude = TRUE;
