@@ -136,6 +136,9 @@ void Flip3DComp::PollCursorPosition()
     if (!m_hookActive || !IsFlip3DViewActive())
         return;
 
+    if (GetCapture() != m_hwnd)
+        SetCapture(m_hwnd);
+
     POINT pt = {};
     if (!GetCursorPos(&pt))
         return;
