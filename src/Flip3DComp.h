@@ -44,6 +44,10 @@
 
 using Microsoft::WRL::ComPtr;
 
+struct StrippedAotWindowState {
+    LONG_PTR exStyle;
+};
+
 class Flip3DAccessible;
 // ============================================================================
 // Flip3DComp — Main application class
