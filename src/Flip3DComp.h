@@ -200,7 +200,7 @@ private:
     bool    OnWheel(int wheelDelta);
     bool    OnMouse(LONG x, LONG y, bool pressed);
 
-    void    InstallMouseWheelHook();
+    void    ApplyMouseWheelHook();
     void    RemoveMouseWheelHook();
 
     // ========================================================================
