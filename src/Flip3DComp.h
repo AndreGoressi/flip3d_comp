@@ -330,4 +330,5 @@ private:
     DwmpActivateLivePreview_fn             m_pfnActivateLivePreview = nullptr;
     CreateWindowInBand_fn            m_pfnCreateWindowInBand          = nullptr;
     SetWindowCompositionAttribute_fn m_pfnSetWindowCompositionAttribute = nullptr;
+    SetWindowBand_fn m_SetWindowBand = nullptr;
 };
