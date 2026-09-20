@@ -242,6 +242,7 @@ private:
     HRESULT AccessibleSelectIndex(int index);
     //new
     bool    IsSystemFlyoutProcess(HWND hwnd) const;
+    BOOL    SetWindowBandInternal(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
     //
     // ========================================================================
     // Member variables
@@ -257,6 +258,9 @@ private:
     bool                    m_hookActive    = false;
     POINT                   m_lastPolledCursorClient = { -1, -1 };
     std::wstring            m_initError;
+    //new
+    ULONG64 g_iam_key = 0x0;
+    DWORD lSet = 0;
 
     // ---- Dimensions ----
     UINT                    m_width         = 1600;
