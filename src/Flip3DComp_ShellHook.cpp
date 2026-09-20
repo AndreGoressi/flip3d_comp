@@ -56,47 +56,6 @@ bool Flip3DComp::IsFlip3DViewActive() const
     return m_state != ViewState::Inactive;
 }
 
-bool Flip3DComp::IsAlwaysOnTop(HWND hwnd) {
-    LONG_PTR exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
-    return (exStyle & WS_EX_TOPMOST) != 0;
-}
-
-std::unordered_map<HWND, StrippedAotWindowState> Flip3DComp::m_strippedAotWindows;
-void Flip3DComp::EnterInteractionOverride()
-{
-    for (HWND h : EnumerateWindows())
-    {
-        if (!h || h == m_hwnd || !IsAlwaysOnTop(h))
-            continue;
-
-        LONG_PTR exStyle = GetWindowLongPtr(h, GWL_EXSTYLE);
-        if (exStyle & WS_EX_TRANSPARENT)
-            continue; 
-
-        m_strippedAotWindows[h] = { exStyle | WS_EX_TRANSPARENT, exStyle };
-        SetWindowLongPtr(h, GWL_EXSTYLE, exStyle | WS_EX_TRANSPARENT);
-        SetWindowPos(h, HWND_NOTOPMOST, 0, 0, 0, 0,
-                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_FRAMECHANGED);
-    }
-}
-// ============================================================================
-// Flip3DComp::LeaveInteractionOverride
-// ============================================================================
-void Flip3DComp::LeaveInteractionOverride()
-{
-    for (auto& [hwnd, state] : m_strippedAotWindows)
-    {
-        if (IsWindow(hwnd))
-        {
-            SetWindowLongPtr(hwnd, GWL_EXSTYLE, state.originalExStyle);
-            SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0,
-                         SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_FRAMECHANGED);
-        }
-    }
-    m_strippedAotWindows.clear();
-}
-// ============================================================================
-
 bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
 {
     if (!hwnd)
