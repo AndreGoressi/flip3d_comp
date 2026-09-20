@@ -203,6 +203,7 @@ private:
 
     void    ApplyMouseWheelHook();
     void    RemoveMouseWheelHook();
+    void    PollCursorPosition();
 
     // ========================================================================
     // Hit testing (3D ray-triangle intersection)
@@ -265,6 +266,7 @@ private:
     bool                    m_thumbnailsRevealed = false;
     HHOOK                   m_mouseHook     = nullptr;
     bool                    m_hookActive    = false;
+    POINT                   m_lastPolledCursorClient = { -1, -1 };
     std::wstring            m_initError;
 
     // ---- Dimensions ----
