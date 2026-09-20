@@ -86,6 +86,9 @@ bool Flip3DComp::LoadUndocApi()
     m_pfnSetWindowCompositionAttribute = (SetWindowCompositionAttribute_fn)
         GetProcAddress(hUser32, "SetWindowCompositionAttribute"); 
 
+    m_SetWindowBand = (SetWindowBand_fn)
+        GetProcAddress(hUser32, "SetWindowBand"); 
+
     if (!m_pfnCreateSharedThumbVisual)
     {
         m_initError = L"DwmpCreateSharedThumbnailVisual (dwmapi ord 147) is required.";
@@ -119,6 +122,12 @@ bool Flip3DComp::LoadUndocApi()
     if (!m_pfnSetWindowCompositionAttribute)
     {
         m_initError = L"SetWindowCompositionAttribute failed to load.";
+        UnloadUndocApi();
+        return false;
+    }
+    if (!m_SetWindowBand)
+    {
+        m_initError = L"SetWindowBand failed to load.";
         UnloadUndocApi();
         return false;
     }
