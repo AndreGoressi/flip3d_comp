@@ -51,7 +51,7 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
 
     if (m_pfnActivateLivePreview)
     {
-        m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Desktop), nullptr); 
+        m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Window), nullptr); 
     }
     
     m_state = ViewState::Enter;
