@@ -160,6 +160,7 @@ private:
     void    SelectFront();
     //new
     static std::unordered_map<HWND, StrippedAotWindowState> m_strippedAotWindows;
+    bool IsAlwaysOnTop(HWND hwnd);
     void EnterInteractionOverride();
     void LeaveInteractionOverride();
 
