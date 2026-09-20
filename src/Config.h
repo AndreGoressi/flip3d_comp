@@ -247,3 +247,6 @@ using CreateWindowInBand_fn = HWND(WINAPI*)(
 
 using SetWindowCompositionAttribute_fn = BOOL(WINAPI*)(
     HWND hWnd, void* pData);
+
+using SetWindowBand_fn = BOOL(WINAPI*)(
+    HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
