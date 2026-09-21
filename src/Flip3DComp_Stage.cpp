@@ -125,7 +125,7 @@ bool Flip3DComp::InitializeDCompStage()
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
     //
-	m_hwnd = m_pfnCreateWindowInBandEx(WS_EX_NOREDIRECTIONBITMAP | 
+	m_hwnd = m_pfnCreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
 									 WS_EX_TOOLWINDOW,
 	    							 (LPCWSTR)res, 
 									 L"",
@@ -135,8 +135,7 @@ bool Flip3DComp::InitializeDCompStage()
 	    							 nullptr,
 	    							 m_hInstance,
 	    							 this,
-	    							 ZBID_DESKTOP,
-	    							 0 // dwTypeFlags
+	    							 ZBID_DESKTOP
 	);
     if (!m_hwnd)
         return false;
