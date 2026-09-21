@@ -62,6 +62,68 @@ BOOL Flip3DComp::SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand)
 	}
 	return FALSE;
 }
+
+BOOL Flip3DComp::GetWindowBand(HWND hWnd, DWORD* pdwBand)
+{
+    if (!m_GetWindowBand || !pdwBand)
+        return FALSE;
+
+    BOOL result = FALSE;
+    if (g_iam_key)
+    {
+        m_NtUserEnableIAMAccess(g_iam_key, TRUE);
+        result = m_GetWindowBand(hWnd, pdwBand);
+        lSet = GetLastError(); 
+        m_NtUserEnableIAMAccess(g_iam_key, FALSE);
+    }
+    else
+    {
+        result = m_GetWindowBand(hWnd, pdwBand);
+    }
+    return result;
+}
+
+std::vector<HWND> Flip3DComp::s_strippedUIAccessWindows;
+BOOL CALLBACK Flip3DComp::RemoveUIAccessCallback(HWND hwnd, LPARAM lParam)
+{
+    auto* pThis = reinterpret_cast<Flip3DComp*>(lParam);
+    if (pThis->IsNeverHiddenWindow(hwnd))
+        return TRUE;
+
+    if (!IsWindowVisible(hwnd))
+        return TRUE;
+
+    DWORD band = 0;
+    if (pThis->GetWindowBand(hwnd, &band)) 
+    {
+        bool isSystemTools = (band == ZBID_SYSTEM_TOOLS);
+        bool isUIAccess = (band == ZBID_UIACCESS);
+        if (isSystemTools ^ isUIAccess) //XOR imperator
+        {
+            SetWindowBand(hwnd, HWND_NOTOPMOST, ZBID_DEFAULT);
+            s_strippedUIAccessWindows.push_back(hwnd);
+        }
+    }
+    return TRUE;
+}
+
+void Flip3DComp::StripCompetingUIAccess()
+{
+    s_strippedUIAccessWindows.clear();
+    EnumWindows(RemoveUIAccessCallback, reinterpret_cast<LPARAM>(this));
+}
+
+void Flip3DComp::RestoreCompetingUIAccess()
+{
+    for (HWND hwnd : s_strippedUIAccessWindows)
+    {
+        if (IsWindow(hwnd))
+        {
+            SetWindowBand(hwnd, HWND_TOPMOST, ZBID_DEFAULT);
+        }
+    }
+    s_strippedUIAccessWindows.clear();
+}
 // ============================================================================
 bool Flip3DComp::IsFlip3DViewActive() const
 {
