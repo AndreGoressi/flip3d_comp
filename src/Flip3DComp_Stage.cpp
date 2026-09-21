@@ -139,7 +139,9 @@ bool Flip3DComp::InitializeDCompStage()
                                        ZBID_DESKTOP,
 									   0
     );
+	SetTopmostDynamic(m_hwnd, true);
     if (!m_hwnd)
+		    SetTopmostDynamic(m_hwnd, false);
         return false;
     //
     m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
