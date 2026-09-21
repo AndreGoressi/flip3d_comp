@@ -244,6 +244,7 @@ private:
     bool SetTopmost(HWND hwnd, bool topmost);
     //
     BOOL    SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
+    BOOL GetWindowBand(HWND hWnd, DWORD* pdwBand);
     static std::vector<HWND> s_strippedUIAccessWindows;
     static BOOL CALLBACK RemoveUIAccessCallback(HWND hwnd, LPARAM lParam);
     void StripCompetingUIAccess();
