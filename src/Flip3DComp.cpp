@@ -66,7 +66,7 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     return true;
 }
 
-bool Flip3DComp::SetTopmost(HWND hwnd, bool topmost)
+/*bool Flip3DComp::SetTopmost(HWND hwnd, bool topmost)
 {
     if (!hwnd) 
         return false;
@@ -77,6 +77,17 @@ bool Flip3DComp::SetTopmost(HWND hwnd, bool topmost)
     const LONG_PTR exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
     const bool actuallyTopmost = (exStyle & WS_EX_TOPMOST) != 0;
     return actuallyTopmost == topmost;
+}*/
+bool Flip3DComp::SetTopmost(HWND hwnd, bool topmost)
+{
+    if (!hwnd) 
+        return false;
+    //
+    SetWindowPos(hwnd, topmost ? HWND_TOPMOST : HWND_NOTOPMOST,
+                 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
+                 
+    const LONG_PTR exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+    return ((exStyle & WS_EX_TOPMOST) != 0) == topmost;
 }
 // ============================================================================
 // Flip3DComp::Run
