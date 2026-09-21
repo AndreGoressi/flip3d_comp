@@ -257,6 +257,9 @@ using CreateWindowInBandEx_fn = HWND(WINAPI*)(
 using SetWindowBand_fn = BOOL(WINAPI*)(
     HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
 
+using GetWindowBand_fn = BOOL(WINAPI*)(
+    HWND hWnd, PDWORD pdwBand); 
+
 using NtUserEnableIAMAccess_fn = BOOL(WINAPI*)(
     ULONG64 key, BOOL enable);
     
