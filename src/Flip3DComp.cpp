@@ -39,7 +39,7 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     {
         m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Desktop), nullptr);
     }
-    SetTopmost(m_hwnd, TRUE);
+    SetTopmostDynamic(m_hwnd, TRUE);
 
     if (FAILED(InitComposition()))
     {
