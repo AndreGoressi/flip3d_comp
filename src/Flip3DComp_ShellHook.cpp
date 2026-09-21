@@ -49,6 +49,19 @@ bool Flip3DComp::QualifiesForView(HWND hwnd) const
     }
     return true;
 }
+
+BOOL Flip3DComp::SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand)
+{
+	if (g_iam_key)
+	{
+		m_NtUserEnableIAMAccess(g_iam_key, TRUE);
+		const auto callResult = m_SetWindowBand(hWnd, hwndInsertAfter, dwBand);
+		lSet = GetLastError();
+		m_NtUserEnableIAMAccess(g_iam_key, FALSE);
+		return callResult;
+	}
+	return FALSE;
+}
 // ============================================================================
 bool Flip3DComp::IsFlip3DViewActive() const
 {
