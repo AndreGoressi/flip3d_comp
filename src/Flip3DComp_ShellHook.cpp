@@ -96,9 +96,7 @@ BOOL CALLBACK Flip3DComp::RemoveUIAccessCallback(HWND hwnd, LPARAM lParam)
     DWORD band = 0;
     if (pThis->GetWindowBand(hwnd, &band)) 
     {
-        bool isSystemTools = (band == ZBID_SYSTEM_TOOLS);
-        bool isUIAccess = (band == ZBID_UIACCESS);
-        if (isSystemTools ^ isUIAccess) //XOR imperator
+        if (band == ZBID_SYSTEM_TOOLS || band == ZBID_UIACCESS)
         {
             pThis->SetWindowBand(hwnd, HWND_NOTOPMOST, ZBID_DEFAULT);
             s_strippedUIAccessWindows.push_back(hwnd);
