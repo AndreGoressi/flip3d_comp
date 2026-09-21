@@ -16,7 +16,7 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
 
     if (m_pfnActivateLivePreview)
     {
-        m_pfnActivateLivePreview(FALSE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Desktop), nullptr);
+        m_pfnActivateLivePreview(FALSE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Window), nullptr);
         SetTopmostDynamic(m_hwnd, FALSE);
     }
     
