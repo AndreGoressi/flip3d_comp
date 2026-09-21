@@ -174,6 +174,7 @@ void Flip3DComp::UnloadUndocApi()
     m_pfnCreateWindowInBand             = nullptr;
     m_pfnCreateWindowInBandEx             = nullptr;
     m_SetWindowBand                     = nullptr;
+    m_GetWindowBand                     = nullptr;
     m_NtUserEnableIAMAccess             = nullptr;
     //
     if (m_dwmapi)
