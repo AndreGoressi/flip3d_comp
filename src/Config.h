@@ -249,17 +249,6 @@ using CreateWindowInBand_fn = HWND(WINAPI*)(
     DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, 
     HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam, DWORD dwBand);
 
-using CreateWindowInBandEx_fn = HWND(WINAPI*)(
-    DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle,
-    int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu,
-    HINSTANCE hInstance, LPVOID lpParam, DWORD dwBand, DWORD dwTypeFlags);
-
-using SetWindowBand_fn = BOOL(WINAPI*)(
-    HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
-
-using GetWindowBand_fn = BOOL(WINAPI*)(
-    HWND hWnd, PDWORD pdwBand); 
-
 using NtUserEnableIAMAccess_fn = BOOL(WINAPI*)(
     ULONG64 key, BOOL enable);
     
