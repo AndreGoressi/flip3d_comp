@@ -125,7 +125,7 @@ bool Flip3DComp::InitializeDCompStage()
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
     //
-	m_hwnd = pfnCreateWindowInBandEx(WS_EX_NOREDIRECTIONBITMAP | 
+	m_hwnd = m_pfnCreateWindowInBandEx(WS_EX_NOREDIRECTIONBITMAP | 
 									 WS_EX_TOOLWINDOW,
 	    							 (LPCWSTR)res, 
 									 L"",
