@@ -87,6 +87,18 @@ bool Flip3DComp::LoadUndocApi()
     m_pfnCreateWindowInBand = (CreateWindowInBand_fn)
         GetProcAddress(hUser32, "CreateWindowInBand"); 
 
+    m_pfnCreateWindowInBandEx = (CreateWindowInBandEx_fn)
+        GetProcAddress(hUser32, "CreateWindowInBandEx"); 
+
+    m_SetWindowBand = (SetWindowBand_fn)
+        GetProcAddress(hUser32, "SetWindowBand");
+    
+    m_GetWindowBand = (GetWindowBand_fn)
+        GetProcAddress(hUser32, "GetWindowBand"); 
+
+    m_NtUserEnableIAMAccess = (NtUserEnableIAMAccess_fn)
+        GetProcAddress(hUser32, MAKEINTRESOURCEA(2510));
+
     if (!m_pfnCreateSharedThumbVisual)
     {
         m_initError = L"DwmpCreateSharedThumbnailVisual (dwmapi ord 147) is required.";
@@ -123,6 +135,30 @@ bool Flip3DComp::LoadUndocApi()
         UnloadUndocApi();
         return false;
     }
+    if (!m_pfnCreateWindowInBandEx)
+    {
+        m_initError = L"CreateWindowInBandEx failed to load.";
+        UnloadUndocApi();
+        return false;
+    }
+    if (!m_SetWindowBand)
+    {
+        m_initError = L"SetWindowBand failed to load.";
+        UnloadUndocApi();
+        return false;
+    }
+    if (!m_GetWindowBand)
+    {
+        m_initError = L"GetWindowBand failed to load.";
+        UnloadUndocApi();
+        return false;
+    }
+    if (!m_NtUserEnableIAMAccess)
+    {
+        m_initError = L"NtUserEnableIAMAccess failed to load.";
+        UnloadUndocApi();
+        return false;
+    }
     return true;
 }
 // ============================================================================
@@ -136,6 +172,9 @@ void Flip3DComp::UnloadUndocApi()
     m_pfnActivateLivePreview            = nullptr;
     m_pfnSetWindowCompositionAttribute  = nullptr;
     m_pfnCreateWindowInBand             = nullptr;
+    m_pfnCreateWindowInBandEx             = nullptr;
+    m_SetWindowBand                     = nullptr;
+    m_NtUserEnableIAMAccess             = nullptr;
     //
     if (m_dwmapi)
     {
