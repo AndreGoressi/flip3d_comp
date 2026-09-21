@@ -13,19 +13,22 @@ bool SetTopmost(HWND hwnd, bool topmost)
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
 {
+    DWORD dwErr = PrepareForUIAccess();
+    if (ERROR_SUCCESS != dwErr)
+    {
+        //...
+    }
     CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
     Flip3DComp main;
     if (!main.Initialize(hInstance))
     {
         CoUninitialize();
         return 1;
-    }
-    HWND hwnd = main.WindowHandle();
-    ShowWindow(hwnd, SW_SHOW);
-    UpdateWindow(hwnd);
-    SetTopmost(hwnd, TRUE);
-    SetForegroundWindow(hwnd);
-    int result = main.Run();
+    }    
+    ShowWindow(main.WindowHandle(), SW_SHOW);
+    UpdateWindow(main.WindowHandle());
+    SetTopmost(main.WindowHandle(), TRUE);
+    SetForegroundWindow(main.WindowHandle());
     CoUninitialize();
-    return result;
+    return main.Run();
 }
