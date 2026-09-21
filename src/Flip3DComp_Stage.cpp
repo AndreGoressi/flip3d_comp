@@ -56,7 +56,7 @@ bool Flip3DComp::SetTopmostDynamic(HWND hwnd, bool topmost)
         return false;
     //
     SetWindowPos(hwnd, topmost ? HWND_TOPMOST : HWND_NOTOPMOST,
-                 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
+                 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
                  
     const LONG_PTR exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
     return ((exStyle & WS_EX_TOPMOST) != 0) == topmost;
@@ -139,7 +139,7 @@ bool Flip3DComp::InitializeDCompStage()
                                        ZBID_DESKTOP,
 									   0
     );
-	//SetTopmostDynamic(m_hwnd, true);
+	SetTopmostDynamic(m_hwnd, true);
     if (!m_hwnd)
 		    //SetTopmostDynamic(m_hwnd, false);
         return false;
