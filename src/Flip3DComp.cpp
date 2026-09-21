@@ -39,7 +39,6 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     //
     BuildCards();
     //
-    //SetTopmost(TRUE);
     if (!InitializeDCompStage())
     {
         if (m_initError.empty())
@@ -47,7 +46,6 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
         return false;
     }
     UpdateMonitorRect();
-    SetTopmost(TRUE);
 
     if (FAILED(InitComposition()))
     {
