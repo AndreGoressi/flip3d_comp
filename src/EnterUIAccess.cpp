@@ -2,9 +2,8 @@
 #include <tchar.h>
 #include "PrepareForUIAccess.h"
 #include "resource.h"
+#include "Flip3DComp.h"
 
-static HINSTANCE g_hInstance;
-static HWND g_hdlg = NULL;
 static BOOL g_fHasUIAccess;
 static BOOL g_fAlwaysTop = TRUE;
 
@@ -15,11 +14,10 @@ static void SetTopmostStatus(BOOL fAlwaysTop)
 
 	dwFlags = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE;
 	hwndIns = fAlwaysTop ? HWND_TOPMOST : HWND_NOTOPMOST;
-	SetWindowPos(g_hdlg, hwndIns, 0, 0, 0, 0, dwFlags);
+	SetWindowPos(m_hwnd, hwndIns, 0, 0, 0, 0, dwFlags);
 
-	dwExStyle = (DWORD)GetWindowLongPtr(g_hdlg, GWL_EXSTYLE);
+	dwExStyle = (DWORD)GetWindowLongPtr(m_hwnd, GWL_EXSTYLE);
 	g_fAlwaysTop = dwExStyle & WS_EX_TOPMOST;
-	CheckDlgButton(g_hdlg, IDC_MAIN_TOP, g_fAlwaysTop);
 }
 
 static INT_PTR CALLBACK DialogProc(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
@@ -28,23 +26,17 @@ static INT_PTR CALLBACK DialogProc(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM l
 		{
 			UINT id = LOWORD(wParam), code = HIWORD(wParam);
 			switch (id){
-			case IDOK:
-			case IDCANCEL:
-				EndDialog(hdlg, id);
-                break;
-
+				
 			case IDC_MAIN_TOP:
-				SetTopmostStatus(!g_fAlwaysTop);
+				SetTopmostStatus(g_fAlwaysTop);
 				break;
             }
         }
 		return 0;
 
     case WM_INITDIALOG:
-		g_hdlg = hdlg;
-		CheckDlgButton(hdlg, IDC_MAIN_UIACCESS, g_fHasUIAccess);
+		m_hwnd = hdlg;
 		SetTopmostStatus(g_fAlwaysTop);
-		SetDlgItemText(hdlg, IDC_MAIN_CMD, GetCommandLine());
         return TRUE;
     }
     return FALSE;
@@ -64,10 +56,10 @@ static int InitInstance(HINSTANCE hInstance)
 		dbg("UIAccess error: 0x%08X\n", dwErr);
 	g_fHasUIAccess = ERROR_SUCCESS == dwErr;
 
-	g_hInstance = hInstance;
+	m_hInstance = hInstance;
 
-	iResult = DialogBox(g_hInstance, MAKEINTRESOURCE(IDD_MAIN), NULL, DialogProc);
-	g_hdlg = NULL;
+	iResult = DialogBox(m_hInstance, MAKEINTRESOURCE(IDD_MAIN), NULL, DialogProc);
+	m_hwnd = NULL;
 
 	CoUninitialize();
 
