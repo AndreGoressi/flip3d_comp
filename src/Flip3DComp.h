@@ -242,6 +242,7 @@ private:
     //new
     bool    IsSystemFlyoutProcess(HWND hwnd) const;
     bool SetTopmostDynamic(HWND hwnd, bool topmost);
+    HMONITOR GetTargetMonitor() const;
     //
     BOOL    SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
     BOOL GetWindowBand(HWND hWnd, DWORD* pdwBand);
