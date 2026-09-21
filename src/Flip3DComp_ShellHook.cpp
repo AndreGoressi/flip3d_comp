@@ -119,7 +119,7 @@ void Flip3DComp::RestoreCompetingUIAccess()
     {
         if (IsWindow(hwnd))
         {
-			pThis->SetWindowBand(hwnd, HWND_TOPMOST, ZBID_DEFAULT);
+			SetWindowBand(hwnd, HWND_TOPMOST, ZBID_DEFAULT);
         }
     }
     s_strippedUIAccessWindows.clear();
