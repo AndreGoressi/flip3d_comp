@@ -242,6 +242,7 @@ private:
     //new
     bool    IsSystemFlyoutProcess(HWND hwnd) const;
     bool SetTopmost(HWND hwnd, bool topmost);
+     BOOL    SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
     //
     // ========================================================================
     // Member variables
