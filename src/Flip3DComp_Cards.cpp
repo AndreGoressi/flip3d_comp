@@ -74,17 +74,21 @@ bool Flip3DComp::LoadUndocApi()
     m_pfnQueryThumbSize = (DwmpQueryWindowThumbnailSourceSize_fn)
         GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(162));
 
+    m_pfnGetWindowMinimizeRect = (GetWindowMinimizeRect_fn)
+        GetProcAddress(hUser32, "GetWindowMinimizeRect");
+
+    //new
     m_pfnActivateLivePreview = (DwmpActivateLivePreview_fn)
         GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(113));
 
-    m_pfnGetWindowMinimizeRect = (GetWindowMinimizeRect_fn)
-        GetProcAddress(hUser32, "GetWindowMinimizeRect");
+    m_pfnSetWindowCompositionAttribute = (SetWindowCompositionAttribute_fn)
+        GetProcAddress(hUser32, "SetWindowCompositionAttribute"); 
 
     m_pfnCreateWindowInBand = (CreateWindowInBand_fn)
         GetProcAddress(hUser32, "CreateWindowInBand"); 
 
-    m_pfnSetWindowCompositionAttribute = (SetWindowCompositionAttribute_fn)
-        GetProcAddress(hUser32, "SetWindowCompositionAttribute"); 
+    m_pfnCreateWindowInBandEx = (CreateWindowInBandEx_fn)
+        GetProcAddress(hUser32, "CreateWindowInBandEx"); 
 
     m_SetWindowBand = (SetWindowBand_fn)
         GetProcAddress(hUser32, "SetWindowBand"); 
@@ -116,15 +120,21 @@ bool Flip3DComp::LoadUndocApi()
         UnloadUndocApi();
         return false;
     }
+    if (!m_pfnSetWindowCompositionAttribute)
+    {
+        m_initError = L"SetWindowCompositionAttribute failed to load.";
+        UnloadUndocApi();
+        return false;
+    }
     if (!m_pfnCreateWindowInBand)
     {
         m_initError = L"CreateWindowInBand failed to load.";
         UnloadUndocApi();
         return false;
     }
-    if (!m_pfnSetWindowCompositionAttribute)
+    if (!m_pfnCreateWindowInBandEx)
     {
-        m_initError = L"SetWindowCompositionAttribute failed to load.";
+        m_initError = L"CreateWindowInBandEx failed to load.";
         UnloadUndocApi();
         return false;
     }
@@ -151,11 +161,12 @@ void Flip3DComp::UnloadUndocApi()
     m_pfnQueryThumbSize                 = nullptr;
     m_pfnGetWindowMinimizeRect          = nullptr;
     m_pfnActivateLivePreview            = nullptr;
-    m_pfnCreateWindowInBand             = nullptr;
     m_pfnSetWindowCompositionAttribute  = nullptr;
+    m_pfnCreateWindowInBand             = nullptr;
+    m_pfnCreateWindowInBandEx             = nullptr;
     m_SetWindowBand                     = nullptr;
     m_NtUserEnableIAMAccess             = nullptr;
-
+    //
     if (m_dwmapi)
     {
         FreeLibrary(m_dwmapi);
