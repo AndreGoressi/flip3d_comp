@@ -6,12 +6,12 @@
 //
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
 {
+    CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
     DWORD dwErr = PrepareForUIAccess();
     if (ERROR_SUCCESS != dwErr)
     {
         //...
     }
-    CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
     Flip3DComp main;
     if (!main.Initialize(hInstance))
     {
@@ -19,7 +19,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
         return 1;
     }    
     ShowWindow(main.WindowHandle(), SW_SHOW);
-    SetForegroundWindow(main.WindowHandle());
+    //SetForegroundWindow(main.WindowHandle());
     UpdateWindow(main.WindowHandle());
     CoUninitialize();
     return main.Run();
