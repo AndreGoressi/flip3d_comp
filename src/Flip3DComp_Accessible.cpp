@@ -204,9 +204,9 @@ HWND Flip3DComp::HitTest3DScene(LONG screenX, LONG screenY) const
 
         auto project = [&](float px, float py) -> Vec2
         {
-            float x = px*MVP.m[0][0] + py*MVP.m[1][0] + MVP.m[3][0];
-            float y = px*MVP.m[0][1] + py*MVP.m[1][1] + MVP.m[3][1];
-            float w = px*MVP.m[0][3] + py*MVP.m[1][3] + MVP.m[3][3];
+            float x = px * MVP.m[0][0] + py * MVP.m[1][0] + MVP.m[3][0];
+            float y = px * MVP.m[0][1] + py * MVP.m[1][1] + MVP.m[3][1];
+            float w = px * MVP.m[0][3] + py * MVP.m[1][3] + MVP.m[3][3];
             if (fabsf(w) < 1e-6f) w = 1e-6f;
             return { x / w, y / w };
         };
@@ -234,9 +234,26 @@ HWND Flip3DComp::HitTest3DScene(LONG screenX, LONG screenY) const
         if (!inside)
             continue;
 
-        float pixZ = 0.0f*MVP.m[0][2] + 0.0f*MVP.m[1][2] + MVP.m[3][2];
-        float pixW = 0.0f*MVP.m[0][3] + 0.0f*MVP.m[1][3] + MVP.m[3][3];
-        float ndcZ = pixW != 0.0f ? pixZ / pixW : 0.0f;
+        auto get_ndc_z = [&](float px, float py) {
+            float pZ = px * MVP.m[0][2] + py * MVP.m[1][2] + MVP.m[3][2];
+            float pW = px * MVP.m[0][3] + py * MVP.m[1][3] + MVP.m[3][3];
+            return pW != 0.0f ? pZ / pW : 0.0f;
+        };
+
+        float z0 = get_ndc_z(0.0f, 0.0f);
+        float z1 = get_ndc_z(sw,   0.0f);
+        float z2 = get_ndc_z(sw,   sh);
+        float z3 = get_ndc_z(0.0f, sh);
+
+        float denomX = c1.x - c0.x;
+        float denomY = c3.y - c0.y;
+        float u = std::clamp(denomX != 0.0f ? (sx - c0.x) / denomX : 0.0f, 0.0f, 1.0f);
+        float v = std::clamp(denomY != 0.0f ? (sy - c0.y) / denomY : 0.0f, 0.0f, 1.0f);
+
+        float ndcZ = (1.0f - u) * (1.0f - v) * z0 + 
+                     u * (1.0f - v) * z1 + 
+                     u * v * z2 + 
+                     (1.0f - u) * v * z3;
 
         if (ndcZ < bestNdcZ)
         {
@@ -244,7 +261,6 @@ HWND Flip3DComp::HitTest3DScene(LONG screenX, LONG screenY) const
             bestHwnd = c.m_hwnd;
         }
     }
-
     return bestHwnd;
 }
 
