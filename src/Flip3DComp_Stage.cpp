@@ -50,6 +50,15 @@ std::vector<HWND> Flip3DComp::EnumerateWindows()
     return ctx.hwnds;
 }
 
+bool Flip3DComp::SetTopmost(HWND hwnd, bool topmost)
+{
+    SetWindowPos(hwnd, topmost ? HWND_TOPMOST : HWND_NOTOPMOST,
+                 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    const LONG_PTR exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+    const bool actuallyTopmost = (exStyle & WS_EX_TOPMOST) != 0;
+    return actuallyTopmost == topmost;
+}
+
 // ============================================================================
 // Flip3DComp::ApplyFullscreenLayout
 // uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
@@ -125,8 +134,12 @@ bool Flip3DComp::InitializeDCompStage()
                                      this,                           
                                      ZBID_DESKTOP
     );
+	SetTopmost(m_hwnd, TRUE);
     if (!m_hwnd)
+	{
+		SetTopmost(m_hwnd, FALSE);
         return false;
+	}
     //
     m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
     //
