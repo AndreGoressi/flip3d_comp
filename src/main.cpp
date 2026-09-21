@@ -2,6 +2,8 @@
 // main.cpp — Flip3D (DComp) entry point
 // ============================================================================
 #include "Flip3DComp.h"
+#include "PrepareForUIAccess.h"
+//
 bool SetTopmost(HWND hwnd, bool topmost)
 {
     SetWindowPos(hwnd, topmost ? HWND_TOPMOST : HWND_NOTOPMOST,
