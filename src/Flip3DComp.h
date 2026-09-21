@@ -242,7 +242,12 @@ private:
     //new
     bool    IsSystemFlyoutProcess(HWND hwnd) const;
     bool SetTopmost(HWND hwnd, bool topmost);
-     BOOL    SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
+    //
+    BOOL    SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
+    static std::vector<HWND> s_strippedUIAccessWindows;
+    static BOOL CALLBACK RemoveUIAccessCallback(HWND hwnd, LPARAM lParam);
+    void StripCompetingUIAccess();
+    void RestoreCompetingUIAccess();
     //
     // ========================================================================
     // Member variables
