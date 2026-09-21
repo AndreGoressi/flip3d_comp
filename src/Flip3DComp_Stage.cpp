@@ -49,6 +49,19 @@ std::vector<HWND> Flip3DComp::EnumerateWindows()
     //
     return ctx.hwnds;
 }
+
+BOOL Flip3DComp::SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand)
+{
+	if (g_iam_key)
+	{
+		m_NtUserEnableIAMAccess(g_iam_key, TRUE);
+		const auto callResult = m_SetWindowBand(hWnd, hwndInsertAfter, dwBand);
+		lSet = GetLastError();
+		m_NtUserEnableIAMAccess(g_iam_key, FALSE);
+		return callResult;
+	}
+	return FALSE;
+}
 // ============================================================================
 // Flip3DComp::ApplyFullscreenLayout
 // uDWM EnableInputHooksHelper: WS_POPUP covering m_rcVirtualScreen.
@@ -79,15 +92,6 @@ void Flip3DComp::ApplyFullscreenLayout()
     UpdateMonitorRect();
 }
 
-bool Flip3DComp::SetTopmost(HWND hwnd, bool topmost)
-{
-    SetWindowPos(hwnd, topmost ? HWND_TOPMOST : HWND_NOTOPMOST,
-                 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-	
-    const LONG_PTR exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
-    const bool actuallyTopmost = (exStyle & WS_EX_TOPMOST) != 0;
-    return actuallyTopmost == topmost;
-}
 // ============================================================================
 // Flip3DComp::InitializeDCompStage
 // uDWM Flip3D input window: borderless popup, topmost but do not cover the taskbar.
