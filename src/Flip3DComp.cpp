@@ -33,12 +33,13 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
             m_initError = L"Failed to create the Flip3D input window.";
         return false;
     }
-    UpdateMonitorRect();
+    //UpdateMonitorRect();
 
     if (m_pfnActivateLivePreview)
     {
         m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Desktop), nullptr);
     }
+    UpdateMonitorRect();
 
     if (FAILED(InitComposition()))
     {
