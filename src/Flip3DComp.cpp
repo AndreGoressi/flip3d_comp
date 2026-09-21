@@ -27,17 +27,15 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     //
     BuildCards();
     //
+    if (m_pfnActivateLivePreview)
+    {
+        m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Desktop), nullptr);
+    }
     if (!InitializeDCompStage())
     {
         if (m_initError.empty())
             m_initError = L"Failed to create the Flip3D input window.";
         return false;
-    }
-    //UpdateMonitorRect();
-
-    if (m_pfnActivateLivePreview)
-    {
-        m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Desktop), nullptr);
     }
     UpdateMonitorRect();
 
