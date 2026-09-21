@@ -3,14 +3,13 @@
 #include "PrepareForUIAccess.h"
 #include "resource.h"
 
-static HINSTANCE g_hInstance = NULL;
+static HINSTANCE g_hInstance;
 static HWND g_hdlg = NULL;
 static BOOL g_fHasUIAccess;
 static BOOL g_fAlwaysTop = TRUE;
 
 static void SetTopmostStatus(BOOL fAlwaysTop)
 {
-	if (!g_hdlg) return;
 	DWORD dwFlags, dwExStyle;
 	HWND hwndIns;
 
@@ -20,6 +19,7 @@ static void SetTopmostStatus(BOOL fAlwaysTop)
 
 	dwExStyle = (DWORD)GetWindowLongPtr(g_hdlg, GWL_EXSTYLE);
 	g_fAlwaysTop = dwExStyle & WS_EX_TOPMOST;
+	CheckDlgButton(g_hdlg, IDC_MAIN_TOP, g_fAlwaysTop);
 }
 
 static INT_PTR CALLBACK DialogProc(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
@@ -28,8 +28,13 @@ static INT_PTR CALLBACK DialogProc(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM l
 		{
 			UINT id = LOWORD(wParam), code = HIWORD(wParam);
 			switch (id){
+			case IDOK:
+			case IDCANCEL:
+				EndDialog(hdlg, id);
+                break;
+
 			case IDC_MAIN_TOP:
-				SetTopmostStatus(g_fAlwaysTop);
+				SetTopmostStatus(!g_fAlwaysTop);
 				break;
             }
         }
@@ -37,7 +42,9 @@ static INT_PTR CALLBACK DialogProc(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM l
 
     case WM_INITDIALOG:
 		g_hdlg = hdlg;
+		CheckDlgButton(hdlg, IDC_MAIN_UIACCESS, g_fHasUIAccess);
 		SetTopmostStatus(g_fAlwaysTop);
+		SetDlgItemText(hdlg, IDC_MAIN_CMD, GetCommandLine());
         return TRUE;
     }
     return FALSE;
@@ -69,7 +76,13 @@ static int InitInstance(HINSTANCE hInstance)
 	return (int)iResult;
 }
 
-int APIENTRY _tWinMain(
+#ifdef MYTOOLCHAIN
+void main(){
+	ExitProcess(InitInstance(GetModuleHandle(NULL)));
+}
+
+#else
+int main(
 	_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPTSTR lpCmdLine,
@@ -81,3 +94,4 @@ int APIENTRY _tWinMain(
 	UNREFERENCED_PARAMETER(nCmdShow);
 	return InitInstance(hInstance);
 }
+#endif
