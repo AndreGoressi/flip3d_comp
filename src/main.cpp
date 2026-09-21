@@ -4,15 +4,6 @@
 #include "Flip3DComp.h"
 #include "PrepareForUIAccess.h"
 //
-bool SetTopmost(HWND hwnd, bool topmost)
-{
-    SetWindowPos(hwnd, topmost ? HWND_TOPMOST : HWND_NOTOPMOST,
-                 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-    const LONG_PTR exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
-    const bool actuallyTopmost = (exStyle & WS_EX_TOPMOST) != 0;
-    return actuallyTopmost == topmost;
-}
-
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
 {
     DWORD dwErr = PrepareForUIAccess();
@@ -28,9 +19,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
         return 1;
     }    
     ShowWindow(main.WindowHandle(), SW_SHOW);
-    UpdateWindow(main.WindowHandle());
-    SetTopmost(main.WindowHandle(), TRUE);
     SetForegroundWindow(main.WindowHandle());
+    UpdateWindow(main.WindowHandle());
     CoUninitialize();
     return main.Run();
 }
