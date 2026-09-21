@@ -66,26 +66,60 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     return true;
 }
 
+bool IsMonitorHorizontal(HMONITOR hMon)
+{
+    MONITORINFOEX mi = { sizeof(mi) };
+    if (!GetMonitorInfoW(hMon, (MONITORINFO*)&mi))
+        return true; 
+
+    DEVMODE dm = { sizeof(dm) };
+    dm.dmSize = sizeof(dm);
+
+    if (EnumDisplaySettingsW(mi.szDevice, ENUM_CURRENT_SETTINGS, &dm))
+    {
+        if (dm.dmDisplayOrientation == DMDO_90 || dm.dmDisplayOrientation == DMDO_270)
+        {
+            return false;
+        }
+    }
+    return true; 
+}
+
 HMONITOR Flip3DComp::GetTargetMonitor() const
 {
-    if (GetSystemMetrics(SM_CMONITORS) <= 1)
-    {
-        return MonitorFromPoint({ 0, 0 }, MONITOR_DEFAULTTOPRIMARY);
-    }
     if (m_hwnd && IsWindow(m_hwnd))
     {
         HMONITOR hMonWindow = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONULL);
-        if (hMonWindow)
+        if (hMonWindow && IsMonitorHorizontal(hMonWindow))
             return hMonWindow;
     }
     POINT ptCursor;
     if (GetCursorPos(&ptCursor))
     {
         HMONITOR hMonCursor = MonitorFromPoint(ptCursor, MONITOR_DEFAULTTONULL);
-        if (hMonCursor)
+        if (hMonCursor && IsMonitorHorizontal(hMonCursor))
             return hMonCursor;
     }
-    return MonitorFromPoint({ 0, 0 }, MONITOR_DEFAULTTOPRIMARY);
+    HMONITOR hPrimary = MonitorFromPoint({ 0, 0 }, MONITOR_DEFAULTTOPRIMARY);
+    if (IsMonitorHorizontal(hPrimary))
+    {
+        return hPrimary;
+    }
+    HMONITOR hValidHorizontal = nullptr;
+    EnumDisplayMonitors(nullptr, nullptr, [](HMONITOR hMon, HDC, LPRECT, LPARAM lParam) -> BOOL {
+        auto* pResult = reinterpret_cast<HMONITOR*>(lParam);
+        if (IsMonitorHorizontal(hMon))
+        {
+            *pResult = hMon;
+            return FALSE; 
+        }
+        return TRUE;
+    }, reinterpret_cast<LPARAM>(&hValidHorizontal));
+
+    if (hValidHorizontal)
+        return hValidHorizontal;
+    //
+    return hPrimary;
 }
 
 bool Flip3DComp::SetTopmostDynamic(HWND hwnd, bool topmost)
