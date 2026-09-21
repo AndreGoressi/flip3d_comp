@@ -1,3 +1,5 @@
+#include "resource.h"
+
 101 ICON "icons/dark.ico"
 102 ICON "icons/dark_alternate.ico"
 103 ICON "icons/dark_mica.ico"
@@ -6,3 +8,4 @@
 106 ICON "icons/light_alternate.ico"
 107 ICON "icons/light_mica.ico"
 108 ICON "icons/light_mica_alternate.ico"
+
