@@ -2,7 +2,6 @@
 #include <tchar.h>
 #include "PrepareForUIAccess.h"
 #include "resource.h"
-#include "Flip3DComp.h"
 
 static HINSTANCE g_hInstance = NULL;
 static HWND g_hdlg = NULL;
