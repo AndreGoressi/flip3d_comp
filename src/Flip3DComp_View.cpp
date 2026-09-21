@@ -15,6 +15,7 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
         return;
 
     SetTopmost(m_hwnd, FALSE);
+    RestoreCompetingUIAccess();
     if (m_pfnActivateLivePreview)
     {
         m_pfnActivateLivePreview(FALSE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Desktop), nullptr);
