@@ -248,7 +248,4 @@ using SetWindowCompositionAttribute_fn = BOOL(WINAPI*)(
 using CreateWindowInBand_fn = HWND(WINAPI*)(
     DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, 
     HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam, DWORD dwBand);
-
-using NtUserEnableIAMAccess_fn = BOOL(WINAPI*)(
-    ULONG64 key, BOOL enable);
     
