@@ -473,27 +473,6 @@ HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
     return hr;
 }
 
-void Flip3DComp::RevealThumbnailsIfReady()
-{
-    if (m_thumbnailsRevealed)
-        return;
-
-    if (++m_framesSinceOpen < 3)
-        return;
-
-    for (auto& c : m_cards)
-    {
-         if (!c.m_visual)
-            continue;
-         //c.m_visual->SetOpacity(1.0f);
-    }
-
-    if (m_dcompDevice)
-        m_dcompDevice->Commit();
-
-    m_thumbnailsRevealed = true;
-}
-
 // ============================================================================
 HRESULT Flip3DComp::CreateCardVisuals()
 {
