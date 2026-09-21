@@ -82,7 +82,7 @@ void main(){
 }
 
 #else
-int APIENTRY _tWinMain(
+int main(
 	_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPTSTR lpCmdLine,
