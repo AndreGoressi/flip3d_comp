@@ -636,6 +636,7 @@ static bool IsSystemFlyout(HWND hwndForeground)
 // ============================================================================
 void Flip3DComp::Update(float dtSeconds)
 {
+    SetTopmost(m_hwnd, TRUE);
     HWND hwndForeground = GetForegroundWindow();
     bool isSystemFlyoutOpen = IsSystemFlyout(hwndForeground);
     //
