@@ -65,6 +65,14 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     return true;
 }
 
+bool Flip3DComp::SetTopmost(HWND hwnd, bool topmost)
+{
+    SetWindowPos(hwnd, topmost ? HWND_TOPMOST : HWND_NOTOPMOST,
+                 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    const LONG_PTR exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+    const bool actuallyTopmost = (exStyle & WS_EX_TOPMOST) != 0;
+    return actuallyTopmost == topmost;
+}
 // ============================================================================
 // Flip3DComp::Run
 // ============================================================================
