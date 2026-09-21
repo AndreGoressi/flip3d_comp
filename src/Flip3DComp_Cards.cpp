@@ -305,7 +305,7 @@ void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH
 // ============================================================================
 void Flip3DComp::UpdateMonitorRect()
 {
-    HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+    HMONITOR hMon = GetTargetMonitor();
     if (!hMon)
         return;
 
