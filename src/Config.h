@@ -238,15 +238,22 @@ using GetWindowMinimizeRect_fn = BOOL (WINAPI *)(HWND, LPRECT);
 
 using DwmpUpdateDesktopThumbnail_fn = HRESULT (WINAPI *)(
     HWND hwnd, LPCRECT rcDest, LPCRECT rcSrc, BYTE opacity, DWORD dwFlags);
-
+//new
 using DwmpActivateLivePreview_fn = HRESULT(WINAPI*)(
     BOOL fEnable, HWND hPeekWindow, HWND hTopmostWindow, UINT peekType, void* reserved);
 
-using CreateWindowInBand_fn = HWND(WINAPI*)(
-    DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam, DWORD dwBand);
-
 using SetWindowCompositionAttribute_fn = BOOL(WINAPI*)(
     HWND hWnd, void* pData);
+
+using CreateWindowInBand_fn = HWND(WINAPI*)(
+    DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, 
+    HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam, DWORD dwBand);
+
+using CreateWindowInBandEx_fn = HWND(WINAPI*)(
+    DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle,
+    int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu,
+    HINSTANCE hInstance, LPVOID lpParam, DWORD dwBand, DWORD dwTypeFlags
+);
 
 using SetWindowBand_fn = BOOL(WINAPI*)(
     HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
