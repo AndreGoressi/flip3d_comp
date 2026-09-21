@@ -241,7 +241,7 @@ private:
     HRESULT AccessibleSelectIndex(int index);
     //new
     bool    IsSystemFlyoutProcess(HWND hwnd) const;
-    bool SetTopmost(bool topmost);
+    bool SetTopmost(HWND hwnd, bool topmost);
     //
     // ========================================================================
     // Member variables
