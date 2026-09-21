@@ -99,34 +99,30 @@ void Flip3DComp::SelectWindow(HWND hwndTarget)
         return;
     }
 
-    if (selIdx < 0 || selIdx >= (int)m_cards.size())
-        return;
-    
     auto& card = m_cards[(size_t)selIdx];
-    if (card.m_isMinimized && hwndTarget && IsWindow(hwndTarget))
+    if (card.m_isMinimized)
     {
         if (card.m_hThumb)
         {
             DwmUnregisterThumbnail(card.m_hThumb);
             card.m_hThumb = nullptr;
         }
-    
-        DwmInvalidateIconicBitmaps(hwndTarget);
+        //DwmInvalidateIconicBitmaps(hwndTarget);
         ShowWindowAsync(hwndTarget, SW_SHOWNOACTIVATE);
-        
-        if (m_hwnd)
+        //
+        if (m_hwnd && hwndTarget)
         {
             DwmRegisterThumbnail(m_hwnd, hwndTarget, &card.m_hThumb);
         }
         UpdateCardGeometry(card, m_monW, m_monH, true);
     }
-    
+
     m_selectedHwnd = hwndTarget;
     m_lastPaintOrder.clear();
-    
+
     FreezeCarouselVisuals();
     BeginExitView();
-    
+
     const int selIdxAfter = FindCardIndex(hwndTarget);
     if (selIdxAfter > 0)
     {
