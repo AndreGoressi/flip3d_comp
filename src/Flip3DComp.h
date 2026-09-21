@@ -245,10 +245,6 @@ private:
     //
     BOOL    SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
     BOOL GetWindowBand(HWND hWnd, DWORD* pdwBand);
-    static std::vector<HWND> s_strippedUIAccessWindows;
-    static BOOL CALLBACK RemoveUIAccessCallback(HWND hwnd, LPARAM lParam);
-    void StripCompetingUIAccess();
-    void RestoreCompetingUIAccess();
     //
     // ========================================================================
     // Member variables
