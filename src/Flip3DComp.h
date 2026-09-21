@@ -59,10 +59,6 @@ public:
     bool Initialize(HINSTANCE hInstance);
     HWND WindowHandle() const { return m_hwnd; }
     const wchar_t* InitErrorMessage() const { return m_initError.c_str(); }
-
-    // ---- Window / instance ----
-    HINSTANCE               m_hInstance     = nullptr;
-    HWND                    m_hwnd          = nullptr;
     //
     int  Run();
 
@@ -253,8 +249,8 @@ private:
     // ========================================================================
 
     // ---- Window / instance ----
-    //HINSTANCE               m_hInstance     = nullptr;
-    //HWND                    m_hwnd          = nullptr;
+    HINSTANCE               m_hInstance     = nullptr;
+    HWND                    m_hwnd          = nullptr;
 
     int                     m_framesSinceOpen   = 0;
     bool                    m_thumbnailsRevealed = false;
