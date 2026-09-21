@@ -78,7 +78,7 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     const bool actuallyTopmost = (exStyle & WS_EX_TOPMOST) != 0;
     return actuallyTopmost == topmost;
 }*/
-bool Flip3DComp::SetTopmost(HWND hwnd, bool topmost)
+bool Flip3DComp::SetTopmostDynamic(HWND hwnd, bool topmost)
 {
     if (!hwnd) 
         return false;
