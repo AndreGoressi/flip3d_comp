@@ -81,7 +81,7 @@ void Flip3DComp::ApplyFullscreenLayout()
     const int w = mi.rcWork.right - mi.rcWork.left;
     const int h = mi.rcWork.bottom - mi.rcWork.top;
     //
-    SetWindowPos(m_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+    SetWindowPos(m_hwnd, nullptr, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOZORDER);
 
     RECT client = {};
     if (GetClientRect(m_hwnd, &client))
@@ -126,16 +126,16 @@ bool Flip3DComp::InitializeDCompStage()
     const int h = mi.rcWork.bottom - mi.rcWork.top;
     //
     m_hwnd = m_pfnCreateWindowInBand(WS_EX_NOREDIRECTIONBITMAP | 
-                                       WS_EX_TOPMOST |
-                                       WS_EX_TOOLWINDOW,
-                                       (LPCWSTR)res, L"",                         
-                                       0x80000000,                     
-                                       x, y, w, h,                     
-                                       nullptr,                        
-                                       nullptr,                        
-                                       m_hInstance,                    
-                                       this,                           
-                                       ZBID_DESKTOP
+                                     //WS_EX_TOPMOST |
+                                     WS_EX_TOOLWINDOW,
+                                     (LPCWSTR)res, L"",                         
+                                     0x80000000,                     
+                                     x, y, w, h,                     
+                                     nullptr,                        
+                                     nullptr,                        
+                                     m_hInstance,                    
+                                     this,                           
+                                     ZBID_DESKTOP
     );
     if (!m_hwnd)
         return false;
