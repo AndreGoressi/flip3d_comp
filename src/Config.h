@@ -252,8 +252,7 @@ using CreateWindowInBand_fn = HWND(WINAPI*)(
 using CreateWindowInBandEx_fn = HWND(WINAPI*)(
     DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle,
     int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu,
-    HINSTANCE hInstance, LPVOID lpParam, DWORD dwBand, DWORD dwTypeFlags
-);
+    HINSTANCE hInstance, LPVOID lpParam, DWORD dwBand, DWORD dwTypeFlags);
 
 using SetWindowBand_fn = BOOL(WINAPI*)(
     HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
