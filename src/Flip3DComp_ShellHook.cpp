@@ -100,7 +100,7 @@ BOOL CALLBACK Flip3DComp::RemoveUIAccessCallback(HWND hwnd, LPARAM lParam)
         bool isUIAccess = (band == ZBID_UIACCESS);
         if (isSystemTools ^ isUIAccess) //XOR imperator
         {
-            SetWindowBand(hwnd, HWND_NOTOPMOST, ZBID_DEFAULT);
+            pThis->SetWindowBand(hwnd, HWND_NOTOPMOST, ZBID_DEFAULT);
             s_strippedUIAccessWindows.push_back(hwnd);
         }
     }
@@ -119,7 +119,7 @@ void Flip3DComp::RestoreCompetingUIAccess()
     {
         if (IsWindow(hwnd))
         {
-            SetWindowBand(hwnd, HWND_TOPMOST, ZBID_DEFAULT);
+			pThis->SetWindowBand(hwnd, HWND_TOPMOST, ZBID_DEFAULT);
         }
     }
     s_strippedUIAccessWindows.clear();
