@@ -66,18 +66,28 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     return true;
 }
 
-/*bool Flip3DComp::SetTopmost(HWND hwnd, bool topmost)
+HMONITOR Flip3DComp::GetTargetMonitor() const
 {
-    if (!hwnd) 
-        return false;
-    //
-    SetWindowPos(hwnd, topmost ? HWND_TOPMOST : HWND_NOTOPMOST,
-                 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-                 
-    const LONG_PTR exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
-    const bool actuallyTopmost = (exStyle & WS_EX_TOPMOST) != 0;
-    return actuallyTopmost == topmost;
-}*/
+    if (GetSystemMetrics(SM_CMONITORS) <= 1)
+    {
+        return MonitorFromPoint({ 0, 0 }, MONITOR_DEFAULTTOPRIMARY);
+    }
+    if (m_hwnd && IsWindow(m_hwnd))
+    {
+        HMONITOR hMonWindow = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONULL);
+        if (hMonWindow)
+            return hMonWindow;
+    }
+    POINT ptCursor;
+    if (GetCursorPos(&ptCursor))
+    {
+        HMONITOR hMonCursor = MonitorFromPoint(ptCursor, MONITOR_DEFAULTTONULL);
+        if (hMonCursor)
+            return hMonCursor;
+    }
+    return MonitorFromPoint({ 0, 0 }, MONITOR_DEFAULTTOPRIMARY);
+}
+
 bool Flip3DComp::SetTopmostDynamic(HWND hwnd, bool topmost)
 {
     if (!hwnd) 
