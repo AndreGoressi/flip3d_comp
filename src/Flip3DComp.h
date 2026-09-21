@@ -326,8 +326,9 @@ private:
     GetWindowMinimizeRect_fn              m_pfnGetWindowMinimizeRect    = nullptr;
     //new
     DwmpActivateLivePreview_fn             m_pfnActivateLivePreview = nullptr;
-    CreateWindowInBand_fn            m_pfnCreateWindowInBand          = nullptr;
     SetWindowCompositionAttribute_fn m_pfnSetWindowCompositionAttribute = nullptr;
+    CreateWindowInBand_fn            m_pfnCreateWindowInBand          = nullptr;
+    CreateWindowInBandEx_fn            m_pfnCreateWindowInBandEx          = nullptr;
     SetWindowBand_fn m_SetWindowBand = nullptr;
     NtUserEnableIAMAccess_fn m_NtUserEnableIAMAccess = nullptr;
 };
