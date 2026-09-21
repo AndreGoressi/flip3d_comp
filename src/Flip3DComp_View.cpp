@@ -17,12 +17,11 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
     if (m_pfnActivateLivePreview)
     {
         m_pfnActivateLivePreview(FALSE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Desktop), nullptr);
+        SetTopmostDynamic(m_hwnd, FALSE);
     }
     
     if (commitScroll)
         CommitCarouselScroll();
-
-    SetTopmostDynamic(m_hwnd, FALSE);
 
     m_lastPaintOrder.clear();
     m_state = ViewState::Exit;
