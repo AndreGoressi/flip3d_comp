@@ -83,45 +83,6 @@ BOOL Flip3DComp::GetWindowBand(HWND hWnd, DWORD* pdwBand)
     return result;
 }
 
-std::vector<HWND> Flip3DComp::s_strippedUIAccessWindows;
-BOOL CALLBACK Flip3DComp::RemoveUIAccessCallback(HWND hwnd, LPARAM lParam)
-{
-    auto* pThis = reinterpret_cast<Flip3DComp*>(lParam);
-    if (pThis->IsNeverHiddenWindow(hwnd))
-        return TRUE;
-
-    if (!IsWindowVisible(hwnd))
-        return TRUE;
-
-    DWORD band = 0;
-    if (pThis->GetWindowBand(hwnd, &band)) 
-    {
-        if (band == ZBID_SYSTEM_TOOLS || band == ZBID_UIACCESS)
-        {
-            pThis->SetWindowBand(hwnd, HWND_NOTOPMOST, ZBID_DEFAULT);
-            s_strippedUIAccessWindows.push_back(hwnd);
-        }
-    }
-    return TRUE;
-}
-
-void Flip3DComp::StripCompetingUIAccess()
-{
-    s_strippedUIAccessWindows.clear();
-    EnumWindows(RemoveUIAccessCallback, reinterpret_cast<LPARAM>(this));
-}
-
-void Flip3DComp::RestoreCompetingUIAccess()
-{
-    for (HWND hwnd : s_strippedUIAccessWindows)
-    {
-        if (IsWindow(hwnd))
-        {
-			SetWindowBand(hwnd, HWND_TOPMOST, ZBID_DEFAULT);
-        }
-    }
-    s_strippedUIAccessWindows.clear();
-}
 // ============================================================================
 bool Flip3DComp::IsFlip3DViewActive() const
 {
