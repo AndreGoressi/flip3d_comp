@@ -19,7 +19,6 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
     {
         m_pfnActivateLivePreview(FALSE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Desktop), nullptr);
     }
-    RestoreCompetingUIAccess();
     
     if (commitScroll)
         CommitCarouselScroll();
