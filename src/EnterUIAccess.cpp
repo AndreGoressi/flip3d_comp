@@ -4,19 +4,22 @@
 #include "resource.h"
 #include "Flip3DComp.h"
 
+static HINSTANCE g_hInstance = NULL;
+static HWND g_hdlg = NULL;
 static BOOL g_fHasUIAccess;
 static BOOL g_fAlwaysTop = TRUE;
 
 static void SetTopmostStatus(BOOL fAlwaysTop)
 {
+	if (!g_hdlg) return;
 	DWORD dwFlags, dwExStyle;
 	HWND hwndIns;
 
 	dwFlags = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE;
 	hwndIns = fAlwaysTop ? HWND_TOPMOST : HWND_NOTOPMOST;
-	SetWindowPos(m_hwnd, hwndIns, 0, 0, 0, 0, dwFlags);
+	SetWindowPos(g_hdlg, hwndIns, 0, 0, 0, 0, dwFlags);
 
-	dwExStyle = (DWORD)GetWindowLongPtr(m_hwnd, GWL_EXSTYLE);
+	dwExStyle = (DWORD)GetWindowLongPtr(g_hdlg, GWL_EXSTYLE);
 	g_fAlwaysTop = dwExStyle & WS_EX_TOPMOST;
 }
 
@@ -26,7 +29,6 @@ static INT_PTR CALLBACK DialogProc(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM l
 		{
 			UINT id = LOWORD(wParam), code = HIWORD(wParam);
 			switch (id){
-				
 			case IDC_MAIN_TOP:
 				SetTopmostStatus(g_fAlwaysTop);
 				break;
@@ -35,7 +37,7 @@ static INT_PTR CALLBACK DialogProc(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM l
 		return 0;
 
     case WM_INITDIALOG:
-		m_hwnd = hdlg;
+		g_hdlg = hdlg;
 		SetTopmostStatus(g_fAlwaysTop);
         return TRUE;
     }
@@ -56,10 +58,10 @@ static int InitInstance(HINSTANCE hInstance)
 		dbg("UIAccess error: 0x%08X\n", dwErr);
 	g_fHasUIAccess = ERROR_SUCCESS == dwErr;
 
-	m_hInstance = hInstance;
+	g_hInstance = hInstance;
 
-	iResult = DialogBox(m_hInstance, MAKEINTRESOURCE(IDD_MAIN), NULL, DialogProc);
-	m_hwnd = NULL;
+	iResult = DialogBox(g_hInstance, MAKEINTRESOURCE(IDD_MAIN), NULL, DialogProc);
+	g_hdlg = NULL;
 
 	CoUninitialize();
 
@@ -68,13 +70,7 @@ static int InitInstance(HINSTANCE hInstance)
 	return (int)iResult;
 }
 
-#ifdef MYTOOLCHAIN
-void main(){
-	ExitProcess(InitInstance(GetModuleHandle(NULL)));
-}
-
-#else
-int main(
+int APIENTRY _tWinMain(
 	_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPTSTR lpCmdLine,
@@ -86,5 +82,3 @@ int main(
 	UNREFERENCED_PARAMETER(nCmdShow);
 	return InitInstance(hInstance);
 }
-#endif
-
