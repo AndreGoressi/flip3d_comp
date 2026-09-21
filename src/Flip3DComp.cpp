@@ -33,6 +33,7 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
             m_initError = L"Failed to create the Flip3D input window.";
         return false;
     }
+    SetTopmostDynamic(m_hwnd, TRUE);
     UpdateMonitorRect();
 
     if (m_pfnActivateLivePreview)
@@ -171,7 +172,7 @@ int Flip3DComp::Run()
 // Flip3DComp::WndProc — window procedure
 // ============================================================================
 LRESULT CALLBACK Flip3DComp::WndProc(HWND hwnd, UINT msg,
-                                         WPARAM wParam, LPARAM lParam)
+                                     WPARAM wParam, LPARAM lParam)
 {
     if (msg == WM_NCCREATE)
     {
@@ -182,7 +183,6 @@ LRESULT CALLBACK Flip3DComp::WndProc(HWND hwnd, UINT msg,
             self->m_hwnd = hwnd;
         }
     }
-
     auto* self = (Flip3DComp*)GetWindowLongPtrW(hwnd, GWLP_USERDATA);
     return self
         ? self->HandleMessage(msg, wParam, lParam)
