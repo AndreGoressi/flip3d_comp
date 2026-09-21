@@ -13,6 +13,18 @@
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "gdi32.lib")
 
+
+bool Flip3DComp::SetTopmost(bool topmost)
+{
+    if (!m_hwnd) return false;
+
+    SetWindowPos(m_hwnd, topmost ? HWND_TOPMOST : HWND_NOTOPMOST,
+                 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+
+    const LONG_PTR exStyle = GetWindowLongPtr(m_hwnd, GWL_EXSTYLE);
+    const bool actuallyTopmost = (exStyle & WS_EX_TOPMOST) != 0;
+    return actuallyTopmost == topmost;
+}
 // ============================================================================
 // Flip3DComp::Initialize
 // ============================================================================
@@ -33,6 +45,7 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
             m_initError = L"Failed to create the Flip3D input window.";
         return false;
     }
+    SetTopmost(TRUE);
     UpdateMonitorRect();
 
     if (FAILED(InitComposition()))
