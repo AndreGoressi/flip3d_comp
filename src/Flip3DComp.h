@@ -241,7 +241,6 @@ private:
     HRESULT AccessibleSelectIndex(int index);
     //new
     bool    IsSystemFlyoutProcess(HWND hwnd) const;
-    BOOL    SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
     //
     // ========================================================================
     // Member variables
