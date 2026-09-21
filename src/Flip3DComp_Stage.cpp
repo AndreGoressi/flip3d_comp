@@ -79,19 +79,6 @@ void Flip3DComp::ApplyFullscreenLayout()
     UpdateMonitorRect();
 }
 
-BOOL Flip3DComp::SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand)
-{
-	if (g_iam_key)
-	{
-		m_NtUserEnableIAMAccess(g_iam_key, TRUE);
-		const auto callResult = m_SetWindowBand(hWnd, hwndInsertAfter, dwBand);
-		lSet = GetLastError();
-		m_NtUserEnableIAMAccess(g_iam_key, FALSE);
-		return callResult;
-	}
-	return FALSE;
-}
-
 bool Flip3DComp::SetTopmost(HWND hwnd, bool topmost)
 {
     SetWindowPos(hwnd, topmost ? HWND_TOPMOST : HWND_NOTOPMOST,
