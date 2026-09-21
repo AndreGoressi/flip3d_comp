@@ -91,7 +91,10 @@ bool Flip3DComp::LoadUndocApi()
         GetProcAddress(hUser32, "CreateWindowInBandEx"); 
 
     m_SetWindowBand = (SetWindowBand_fn)
-        GetProcAddress(hUser32, "SetWindowBand"); 
+        GetProcAddress(hUser32, "SetWindowBand");
+    
+    m_GetWindowBand = (GetWindowBand_fn)
+        GetProcAddress(hUser32, "GetWindowBand"); 
 
     m_NtUserEnableIAMAccess = (NtUserEnableIAMAccess_fn)
         GetProcAddress(hUser32, MAKEINTRESOURCEA(2510));
@@ -141,6 +144,12 @@ bool Flip3DComp::LoadUndocApi()
     if (!m_SetWindowBand)
     {
         m_initError = L"SetWindowBand failed to load.";
+        UnloadUndocApi();
+        return false;
+    }
+    if (!m_GetWindowBand)
+    {
+        m_initError = L"GetWindowBand failed to load.";
         UnloadUndocApi();
         return false;
     }
