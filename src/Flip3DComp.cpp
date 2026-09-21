@@ -33,8 +33,6 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
             m_initError = L"Failed to create the Flip3D input window.";
         return false;
     }
-    
-    StripCompetingUIAccess();
     UpdateMonitorRect();
 
     if (FAILED(InitComposition()))
@@ -55,6 +53,7 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     {
         m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Desktop), nullptr);
     }
+    StripCompetingUIAccess();
     SetTopmost(m_hwnd, TRUE);
     
     m_state = ViewState::Enter;
