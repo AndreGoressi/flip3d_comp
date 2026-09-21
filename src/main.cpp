@@ -5,7 +5,7 @@
 #include "PrepareForUIAccess.h"
 //
 
-bool SetTopmostTest2(HWND hwnd, bool topmost)
+bool SetAlwaysOnTop(HWND hwnd, bool topmost)
 {
     if (!hwnd) 
         return false;
@@ -34,7 +34,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
         //...
     }
     ShowWindow(main.WindowHandle(), SW_SHOW);
-    SetTopmostTest2(main.WindowHandle(), true);
+    SetAlwaysOnTop(main.WindowHandle(), true);
     UpdateWindow(main.WindowHandle());
     int exitCode = main.Run();
     CoUninitialize();
