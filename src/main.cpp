@@ -12,6 +12,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
         CoUninitialize();
         return 1;
     }
+    ShowWindow(app.WindowHandle(), SW_SHOW);
+    SetForegroundWindow(app.WindowHandle());
+    UpdateWindow(app.WindowHandle());
+    //
     int result = main.Run();
     CoUninitialize();
     return result;
