@@ -330,5 +330,6 @@ private:
     CreateWindowInBand_fn            m_pfnCreateWindowInBand          = nullptr;
     CreateWindowInBandEx_fn            m_pfnCreateWindowInBandEx          = nullptr;
     SetWindowBand_fn m_SetWindowBand = nullptr;
+    GetWindowBand_fn m_GetWindowBand = nullptr;
     NtUserEnableIAMAccess_fn m_NtUserEnableIAMAccess = nullptr;
 };
