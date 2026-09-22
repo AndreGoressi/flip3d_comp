@@ -660,8 +660,6 @@ void Flip3DComp::Update(float dtSeconds)
     if (m_thumbnailsDirty)
         OnThumbnailSourceSizeChanged();
 
-    //RefreshDesktopGroupThumbnailsIfStale();
-
     if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
         dtSeconds *= 0.05f;
 
@@ -682,6 +680,22 @@ void Flip3DComp::Update(float dtSeconds)
     RefreshDesktopGroupThumbnailsIfStale();
     
     TickSmoothScroll(dtSeconds);
+
+    if (m_aeroPeekPending && !m_aeroPeekActive)
+    {
+        auto now = std::chrono::steady_clock::now();
+        auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_aeroPeekStartTime).count();
+        if (elapsedMs >= 100) 
+        {
+            m_aeroPeekPending = false;
+            if (m_pfnActivateLivePreview)
+            {
+                m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, 3, nullptr);
+                m_aeroPeekActive = true;
+            }
+        }
+    }
+    // -------------------------------------------------------------
 
     if (m_state == ViewState::Enter && !m_animEnter.IsActive())
     {
