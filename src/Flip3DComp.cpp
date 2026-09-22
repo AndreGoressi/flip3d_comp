@@ -14,25 +14,26 @@
 #pragma comment(lib, "gdi32.lib")
 
 // ============================================================================
-// Flip3DComp::Initialize
+// Flip3DCompApp::Initialize
 // ============================================================================
-bool Flip3DComp::Initialize(HINSTANCE hInstance)
+bool Flip3DCompApp::Initialize(HINSTANCE hInstance)
 {
     m_hInstance = hInstance;
 
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
-    if (!LoadUndocApi())
+    if (!LoadThumbApi())
         return false;
-    //
+
     BuildCards();
-    //
-    if (!InitializeDCompStage())
+
+    if (!CreateAppWindow())
     {
         if (m_initError.empty())
             m_initError = L"Failed to create the Flip3D input window.";
         return false;
     }
+
     UpdateMonitorRect();
 
     if (FAILED(InitComposition()))
@@ -48,94 +49,31 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
             m_initError = L"Failed to create DWM thumbnail visuals.";
         return false;
     }
+
+    if (FAILED(CreateShellBackdrop()))
+    {
+        if (m_initError.empty())
+            m_initError = L"Failed to create the shell desktop backdrop.";
+        return false;
+    }
     
     m_state = ViewState::Enter;
     m_animEnter.Restart(0.0f, 1.0f, kEnterExitDurationSec);
     m_prevFrame = std::chrono::steady_clock::now();
 
-    if (m_pfnActivateLivePreview)
-    {
-        m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Window), nullptr);
-    }
-
     EnterFlip3DWindowMode();
-    InitAccessibility();  
+    InitAccessibility();
+
+    // First-frame layout + DComp commit before ShowWindow (avoids blank flash).
     Update(0.0f);
-    
+
     return true;
 }
 
-bool IsMonitorHorizontal(HMONITOR hMon)
-{
-    MONITORINFOEX mi = { sizeof(mi) };
-    if (!GetMonitorInfoW(hMon, (MONITORINFO*)&mi))
-        return true; 
-
-    DEVMODE dm = { sizeof(dm) };
-    dm.dmSize = sizeof(dm);
-
-    if (EnumDisplaySettingsW(mi.szDevice, ENUM_CURRENT_SETTINGS, &dm))
-    {
-        if (dm.dmDisplayOrientation == DMDO_90 || dm.dmDisplayOrientation == DMDO_270)
-        {
-            return false;
-        }
-    }
-    return true; 
-}
-
-HMONITOR Flip3DComp::GetTargetMonitor() const
-{
-    if (m_hwnd && IsWindow(m_hwnd))
-    {
-        HMONITOR hMonWindow = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONULL);
-        if (hMonWindow && IsMonitorHorizontal(hMonWindow))
-            return hMonWindow;
-    }
-    POINT ptCursor;
-    if (GetCursorPos(&ptCursor))
-    {
-        HMONITOR hMonCursor = MonitorFromPoint(ptCursor, MONITOR_DEFAULTTONULL);
-        if (hMonCursor && IsMonitorHorizontal(hMonCursor))
-            return hMonCursor;
-    }
-    HMONITOR hPrimary = MonitorFromPoint({ 0, 0 }, MONITOR_DEFAULTTOPRIMARY);
-    if (IsMonitorHorizontal(hPrimary))
-    {
-        return hPrimary;
-    }
-    HMONITOR hValidHorizontal = nullptr;
-    EnumDisplayMonitors(nullptr, nullptr, [](HMONITOR hMon, HDC, LPRECT, LPARAM lParam) -> BOOL {
-        auto* pResult = reinterpret_cast<HMONITOR*>(lParam);
-        if (IsMonitorHorizontal(hMon))
-        {
-            *pResult = hMon;
-            return FALSE; 
-        }
-        return TRUE;
-    }, reinterpret_cast<LPARAM>(&hValidHorizontal));
-
-    if (hValidHorizontal)
-        return hValidHorizontal;
-    //
-    return hPrimary;
-}
-
-bool Flip3DComp::SetTopmostDynamic(HWND hwnd, bool topmost)
-{
-    if (!hwnd) 
-        return false;
-    //
-    SetWindowPos(hwnd, topmost ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, 
-                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
-                 
-    const LONG_PTR exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
-    return ((exStyle & WS_EX_TOPMOST) != 0) == topmost;
-}
 // ============================================================================
-// Flip3DComp::Run
+// Flip3DCompApp::Run
 // ============================================================================
-int Flip3DComp::Run()
+int Flip3DCompApp::Run()
 {
     MSG msg = {};
 
@@ -163,35 +101,37 @@ int Flip3DComp::Run()
             m_prevFrame = std::chrono::steady_clock::now();
         }
     }
-    UnloadUndocApi();
+
+    UnloadThumbApi();
     return (int)msg.wParam;
 }
 
 // ============================================================================
-// Flip3DComp::WndProc — window procedure
+// Flip3DCompApp::WndProc — static window procedure
 // ============================================================================
-LRESULT CALLBACK Flip3DComp::WndProc(HWND hwnd, UINT msg,
-                                     WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK Flip3DCompApp::WndProc(HWND hwnd, UINT msg,
+                                         WPARAM wParam, LPARAM lParam)
 {
     if (msg == WM_NCCREATE)
     {
-        auto* self = (Flip3DComp*)((CREATESTRUCTW*)lParam)->lpCreateParams;
+        auto* self = (Flip3DCompApp*)((CREATESTRUCTW*)lParam)->lpCreateParams;
         if (self)
         {
             SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR)self);
             self->m_hwnd = hwnd;
         }
     }
-    auto* self = (Flip3DComp*)GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+
+    auto* self = (Flip3DCompApp*)GetWindowLongPtrW(hwnd, GWLP_USERDATA);
     return self
         ? self->HandleMessage(msg, wParam, lParam)
         : DefWindowProcW(hwnd, msg, wParam, lParam);
 }
 
 // ============================================================================
-// Flip3DComp::HandleMessage
+// Flip3DCompApp::HandleMessage
 // ============================================================================
-LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT Flip3DCompApp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {
@@ -229,31 +169,15 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         SetCursor(LoadCursorW(nullptr, m_hitHwnd ? IDC_HAND : IDC_ARROW));
         return 0;
 
-    case WM_SETCURSOR:
-        SetCursor(LoadCursorW(nullptr, m_hitHwnd ? IDC_HAND : IDC_ARROW));
-        return TRUE;
-
     case WM_LBUTTONDOWN:
         OnMouse((LONG)(short)LOWORD(lParam),
                 (LONG)(short)HIWORD(lParam), true);
         return 0;
 
     case WM_KEYDOWN:
-        if (OnKey(true, (UINT)wParam, lParam))
+        if (OnKey(true, (UINT)wParam))
             return 0;
         break;
-        
-    // new
-    case WM_ACTIVATE:
-        if (LOWORD(wParam) == WA_INACTIVE)
-        {
-            if (m_state != ViewState::Exit && m_state != ViewState::ExitRepeatedRotate)
-            {
-                ExitView();
-            }
-        }
-        return 0;
-    //close_if_focus_lost
 
     case WM_CLOSE:
         if (m_state == ViewState::Exit ||
@@ -280,7 +204,6 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
     }
 
     case WM_DESTROY:
-        //
         ShutdownAccessibility();
         LeaveFlip3DWindowMode();
         PostQuitMessage(0);

@@ -2,10 +2,13 @@
 // Flip3DComp_ShellHook.cpp — dynamic card list via RegisterShellHookWindow
 // ============================================================================
 #include "Flip3DComp.h"
+
 #include <algorithm>
-#include <vector>
-//
-bool Flip3DComp::QualifiesForView(HWND hwnd) const
+
+// ============================================================================
+// Flip3DCompApp::QualifiesForView
+// ============================================================================
+bool Flip3DCompApp::QualifiesForView(HWND hwnd) const
 {
     if (!hwnd || hwnd == m_hwnd || hwnd == GetDesktopWindow())
         return false;
@@ -47,57 +50,22 @@ bool Flip3DComp::QualifiesForView(HWND hwnd) const
             && cloaked != 0)
             return false;
     }
+
     return true;
 }
 
-BOOL Flip3DComp::SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand)
-{
-	if (g_iam_key)
-	{
-		m_NtUserEnableIAMAccess(g_iam_key, TRUE);
-		const auto callResult = m_SetWindowBand(hWnd, hwndInsertAfter, dwBand);
-		lSet = GetLastError();
-		m_NtUserEnableIAMAccess(g_iam_key, FALSE);
-		return callResult;
-	}
-	return FALSE;
-}
-
-BOOL Flip3DComp::GetWindowBand(HWND hWnd, DWORD* pdwBand)
-{
-    if (!m_GetWindowBand || !pdwBand)
-        return FALSE;
-
-    BOOL result = FALSE;
-    if (g_iam_key)
-    {
-        m_NtUserEnableIAMAccess(g_iam_key, TRUE);
-        result = m_GetWindowBand(hWnd, pdwBand);
-        lSet = GetLastError(); 
-        m_NtUserEnableIAMAccess(g_iam_key, FALSE);
-    }
-    else
-    {
-        result = m_GetWindowBand(hWnd, pdwBand);
-    }
-    return result;
-}
-
 // ============================================================================
-bool Flip3DComp::IsFlip3DViewActive() const
+bool Flip3DCompApp::IsFlip3DViewActive() const
 {
     return m_state != ViewState::Inactive;
 }
 
-bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
+bool Flip3DCompApp::IsNeverHiddenWindow(HWND hwnd) const
 {
     if (!hwnd)
         return true;
 
     if (hwnd == m_hwnd)
-        return true;
-
-    if (IsSystemFlyoutProcess(hwnd))
         return true;
 
     wchar_t cls[64] = {};
@@ -106,49 +74,11 @@ bool Flip3DComp::IsNeverHiddenWindow(HWND hwnd) const
 
     return !_wcsicmp(cls, L"Shell_TrayWnd")
         || !_wcsicmp(cls, L"Shell_SecondaryTrayWnd")
-        || !_wcsicmp(cls, L"WorkerW")
-        || !_wcsicmp(cls, L"NotifyIconOverflowWindow")
-        || !_wcsicmp(cls, L"TrayNotifyWnd")
-        || !_wcsicmp(cls, L"WindhawkCorner"); 
-}
-
-bool Flip3DComp::IsSystemFlyoutProcess(HWND hwnd) const
-{
-    if (!hwnd)
-        return false;
-    DWORD pid = 0;
-    GetWindowThreadProcessId(hwnd, &pid);
-    if (pid == 0)
-        return false;
-
-    HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
-    if (!hProcess)
-        return false;
-
-    wchar_t path[MAX_PATH] = { 0 };
-    DWORD size = MAX_PATH;
-    bool found = false;
-
-    if (QueryFullProcessImageNameW(hProcess, 0, path, &size))
-    {
-        wchar_t* exeName = wcsrchr(path, L'\\');
-        exeName = exeName ? exeName + 1 : path;
-        found = _wcsicmp(exeName, L"StartMenuExperienceHost.exe") == 0 ||
-                _wcsicmp(exeName, L"SearchHost.exe") == 0 ||
-                _wcsicmp(exeName, L"SearchUI.exe") == 0 ||
-                _wcsicmp(exeName, L"ShellExperienceHost.exe") == 0 ||
-                _wcsicmp(exeName, L"TextInputHost.exe") == 0 ||
-                _wcsicmp(exeName, L"InputApp.exe") == 0 ||
-                _wcsicmp(exeName, L"Widgets.exe") == 0 ||
-                _wcsicmp(exeName, L"TabTip.exe") == 0 ||
-                _wcsicmp(exeName, L"GameBar.exe") == 0;
-    }
-    CloseHandle(hProcess);
-    return found;
+        || !_wcsicmp(cls, L"WorkerW");
 }
 
 // ============================================================================
-void Flip3DComp::EnterFlip3DWindowMode()
+void Flip3DCompApp::EnterFlip3DWindowMode()
 {
     if (!m_hwnd || m_shellHookRegistered)
         return;
@@ -160,7 +90,7 @@ void Flip3DComp::EnterFlip3DWindowMode()
         m_shellHookRegistered = true;
 }
 
-void Flip3DComp::LeaveFlip3DWindowMode()
+void Flip3DCompApp::LeaveFlip3DWindowMode()
 {
     if (m_hwnd && m_shellHookRegistered)
     {
@@ -170,7 +100,7 @@ void Flip3DComp::LeaveFlip3DWindowMode()
 }
 
 // ============================================================================
-void Flip3DComp::OnShellHookMessage(WPARAM wParam, LPARAM lParam)
+void Flip3DCompApp::OnShellHookMessage(WPARAM wParam, LPARAM lParam)
 {
     if (!IsFlip3DViewActive())
         return;
@@ -203,7 +133,7 @@ void Flip3DComp::OnShellHookMessage(WPARAM wParam, LPARAM lParam)
 }
 
 // ============================================================================
-void Flip3DComp::OnWindowShowHide(HWND hwnd)
+void Flip3DCompApp::OnWindowShowHide(HWND hwnd)
 {
     if (!IsFlip3DViewActive() || !hwnd || !IsWindow(hwnd))
         return;
@@ -225,3 +155,119 @@ void Flip3DComp::OnWindowShowHide(HWND hwnd)
     }
 }
 
+// ============================================================================
+int Flip3DCompApp::FindCardIndex(HWND hwnd) const
+{
+    if (!hwnd)
+        return -1;
+
+    for (int i = 0; i < (int)m_cards.size(); ++i)
+    {
+        if (m_cards[(size_t)i].m_hwnd == hwnd)
+            return i;
+    }
+    return -1;
+}
+
+// ============================================================================
+HRESULT Flip3DCompApp::CreateCardVisual(CardModel& card)
+{
+    if (!m_dcompDevice || !m_sceneVisual || !card.m_hwnd)
+        return E_INVALIDARG;
+
+    DWM_THUMBNAIL_PROPERTIES tp = {};
+    tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
+                 | DWM_TNP_ENABLE3D | DWM_TNP_DISABLEFORCECVI;
+    tp.fVisible  = TRUE;
+    tp.rcDestination = { 0, 0, card.m_srcWidth, card.m_srcHeight };
+
+    void* pv = nullptr;
+    HRESULT hr = m_pfnCreateSharedThumbVisual(
+        m_hwnd,
+        card.m_hwnd,
+        DWM_TNF_DWMWINDOW,
+        &tp,
+        m_dcompDevice.Get(),
+        &pv,
+        &card.m_hThumb);
+
+    if (FAILED(hr) || !pv)
+        return FAILED(hr) ? hr : E_FAIL;
+
+    ComPtr<IDCompositionVisual> thumbBase;
+    thumbBase.Attach((IDCompositionVisual*)pv);
+    hr = thumbBase.As(&card.m_visual);
+    if (FAILED(hr))
+        return hr;
+
+    ComPtr<IDCompositionVisual2> container;
+    hr = m_dcompDevice->CreateVisual(&container);
+    if (FAILED(hr))
+        return hr;
+
+    hr = container->AddVisual(card.m_visual.Get(), FALSE, nullptr);
+    if (FAILED(hr))
+        return hr;
+
+    hr = container.As(&card.m_containerVisual);
+    if (FAILED(hr))
+        return hr;
+
+    hr = m_sceneVisual->AddVisual(container.Get(), TRUE, nullptr);
+    return hr;
+}
+
+// ============================================================================
+bool Flip3DCompApp::AddCardForWindow(HWND hwnd)
+{
+    if (!hwnd || m_cards.size() >= (size_t)kMaxCards)
+        return false;
+
+    if (FindCardIndex(hwnd) >= 0)
+        return false;
+
+    CardModel card;
+    card.m_hwnd                 = hwnd;
+    card.m_initialCarouselIndex = (int)m_cards.size();
+    UpdateCardGeometry(card, m_monW, m_monH);
+
+    if (FAILED(CreateCardVisual(card)))
+        return false;
+
+    m_cards.push_back(std::move(card));
+
+    if (m_dcompDevice)
+        m_dcompDevice->Commit();
+
+    return true;
+}
+
+// ============================================================================
+void Flip3DCompApp::RemoveCardAt(size_t index)
+{
+    if (index >= m_cards.size())
+        return;
+
+    CardModel& card = m_cards[index];
+
+    if (card.m_containerVisual && m_sceneVisual)
+    {
+        ComPtr<IDCompositionVisual> sceneBase;
+        if (SUCCEEDED(m_sceneVisual.As(&sceneBase)))
+            sceneBase->RemoveVisual(card.m_containerVisual.Get());
+    }
+
+    if (card.m_hThumb)
+    {
+        DwmUnregisterThumbnail(card.m_hThumb);
+        card.m_hThumb = nullptr;
+    }
+
+    card.m_visual.Reset();
+    card.m_containerVisual.Reset();
+
+    m_cards.erase(m_cards.begin() + (ptrdiff_t)index);
+
+    if (m_dcompDevice)
+        m_dcompDevice->Commit();
+}

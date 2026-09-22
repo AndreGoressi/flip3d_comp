@@ -19,16 +19,9 @@ using Microsoft::WRL::ComPtr;
 struct CardModel
 {
     // ---- Window identity ----
-    HWND                 m_hwnd        = nullptr;   // source window handle (für Einzelfenster)
-    int                  m_initialCarouselIndex = 0;  // order at Flip3D enter (before rotates)
-    HTHUMBNAIL           m_hThumb      = nullptr;   // DWM shared thumbnail handle
-
-    // ---- NEW: For Snap Layout / Multitasking Groups ----
-    bool                 m_isGroup     = false;     // true, if it's a combo window/card
-    std::vector<HWND>    m_groupHwnds;
-    std::vector<HTHUMBNAIL>                   m_groupSubThumbs;
-    std::vector<ComPtr<IDCompositionVisual3>> m_groupSubVisuals;
-    size_t                                    m_groupSignature = 0;
+    HWND                m_hwnd        = nullptr;   // source window handle
+    int                 m_initialCarouselIndex = 0;  // order at Flip3D enter (before rotates)
+    HTHUMBNAIL          m_hThumb      = nullptr;   // DWM shared thumbnail handle
 
     // ---- DirectComposition visuals ----
     ComPtr<IDCompositionVisual3> m_visual;          // thumbnail content visual (DWM)
@@ -49,10 +42,6 @@ struct CardModel
     float               m_occupancy    = 0.7f;       // normalized occupancy factor
     int                 m_srcWidth     = 400;        // thumbnail source width (pixels)
     int                 m_srcHeight    = 300;        // thumbnail source height (pixels)
-
-    //int                 m_nativeSrcWidth  = 400;     // queried DWM source width (pixels)
-    //int                 m_nativeSrcHeight = 300;     // queried DWM source height (pixels)
-
     bool                m_isMinimized  = false;      // window is iconic
     bool                m_isShellDesktop = false;    // Progman / GetShellWindow()
 
@@ -63,9 +52,4 @@ struct CardModel
     bool                m_displaySlotValid = false;
     CarouselWrapPhase   m_wrapPhase     = CarouselWrapPhase::None;
     float               m_wrapFadeStartListSlot = 0.0f; // list slot when EnteringBack began
-
-    float m_destX = 0.0f;
-    float m_destY = 0.0f;
-    float m_destW = 0.0f;
-    float m_destH = 0.0f;
 };
