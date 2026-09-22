@@ -247,6 +247,8 @@ private:
     BOOL    SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
     BOOL GetWindowBand(HWND hWnd, DWORD* pdwBand);
     //
+    void SetAeroPeekEnabled(bool enable, bool delayed = false, UINT delayMs = 150);
+    //
     // ========================================================================
     // Member variables
     // ========================================================================
@@ -254,7 +256,10 @@ private:
     // ---- Window / instance ----
     HINSTANCE               m_hInstance     = nullptr;
     HWND                    m_hwnd          = nullptr;
-
+    //mew
+    UINT_PTR m_aeroPeekTimerId = 0;
+    bool m_aeroPeekActive = false;
+    //
     int                     m_framesSinceOpen   = 0;
     bool                    m_thumbnailsRevealed = false;
     HHOOK                   m_mouseHook     = nullptr;
