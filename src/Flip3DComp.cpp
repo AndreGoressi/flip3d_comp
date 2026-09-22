@@ -165,42 +165,6 @@ int Flip3DComp::Run()
     return (int)msg.wParam;
 }
 
-void Flip3DComp::SetAeroPeekEnabled(bool enable, bool delayed, UINT delayMs)
-{
-    if (!m_pfnActivateLivePreview)
-        return;
-
-    if (m_aeroPeekTimerId)
-    {
-        KillTimer(m_hwnd, m_aeroPeekTimerId);
-        m_aeroPeekTimerId = 0;
-    }
-
-    if (enable)
-    {
-        if (delayed && delayMs > 0)
-        {
-            m_aeroPeekTimerId = SetTimer(m_hwnd, 9999, delayMs, nullptr);
-        }
-        else
-        {
-            if (!m_aeroPeekActive)
-            {
-                m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Window), nullptr);
-                m_aeroPeekActive = true;
-            }
-        }
-    }
-    else
-    {
-        if (m_aeroPeekActive)
-        {
-            m_pfnActivateLivePreview(FALSE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Window), nullptr);
-            m_aeroPeekActive = false;
-        }
-    }
-}
-
 // ============================================================================
 // Flip3DComp::WndProc — window procedure
 // ============================================================================
