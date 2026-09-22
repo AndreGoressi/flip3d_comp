@@ -257,8 +257,9 @@ private:
     HINSTANCE               m_hInstance     = nullptr;
     HWND                    m_hwnd          = nullptr;
     //mew
-    UINT_PTR m_aeroPeekTimerId = 0;
     bool m_aeroPeekActive = false;
+    bool m_aeroPeekPending = false;
+    std::chrono::steady_clock::time_point m_aeroPeekStartTime;
     //
     int                     m_framesSinceOpen   = 0;
     bool                    m_thumbnailsRevealed = false;
