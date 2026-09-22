@@ -5,8 +5,6 @@
 //   Visual tree layout:
 //     Root (DesktopWindowTarget)
 //       └── SceneVisual (IDCompositionVisual3)  ← 3D carousel
-//       └── WashVisual (dark overlay)
-//       └── Per-monitor shell thumbnails + wash (virtual desktop layout)
 //
 //   Thumbnails: DwmpCreateSharedThumbnailVisual (dwmapi.dll ord 147)
 //   3D carousel: parent Visual carries camera matrix; children carry model matrices.
@@ -34,6 +32,7 @@
 #include <chrono>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 #include <oleacc.h>
 
@@ -46,11 +45,10 @@
 using Microsoft::WRL::ComPtr;
 
 class Flip3DAccessible;
-
 // ============================================================================
-// Flip3DCompApp — Main application class
+// Flip3DComp — Main application class
 // ============================================================================
-class Flip3DCompApp
+class Flip3DComp
 {
     friend class Flip3DAccessible;
 
@@ -58,10 +56,10 @@ public:
     // ========================================================================
     // Public interface
     // ========================================================================
-
     bool Initialize(HINSTANCE hInstance);
     HWND WindowHandle() const { return m_hwnd; }
     const wchar_t* InitErrorMessage() const { return m_initError.c_str(); }
+    //
     int  Run();
 
 private:
@@ -76,26 +74,21 @@ private:
     // Lifecycle
     // ========================================================================
 
-    bool CreateAppWindow();
+    bool    InitializeDCompStage();
     void    ApplyFullscreenLayout();
-
     // ========================================================================
     // DWM Thumbnail API (dwmapi.dll ordinals 147, 162)
     // ========================================================================
 
-    bool    LoadThumbApi();
-    void    UnloadThumbApi();
+    bool    LoadUndocApi();
+    void    UnloadUndocApi();
 
     // ========================================================================
     // DirectComposition composition
     // ========================================================================
 
     HRESULT InitComposition();
-    HRESULT CreateShellBackdrop();
-    void    DestroyMonitorBackdrops();
-    void    UpdateBackdropLayout();
-    bool    RebuildMonitorBackdropsIfNeeded();
-
+    bool    IsDisplayExtended();
     // ========================================================================
     // Window enumeration
     // ========================================================================
@@ -114,6 +107,7 @@ private:
     void    OnWindowShowHide(HWND hwnd);
 
     int     FindCardIndex(HWND hwnd) const;
+    //
     bool    AddCardForWindow(HWND hwnd);
     void    RemoveCardAt(size_t index);
     HRESULT CreateCardVisual(CardModel& card);
@@ -124,16 +118,22 @@ private:
 
     void    BuildCards();
     void    UpdateMonitorRect();
+
     void    UpdateCardGeometry(CardModel& card, float normMonW, float normMonH,
                                bool selectedRestore = false);
+
     void    OnThumbnailSourceSizeChanged();
     void    UpdateCardThumbnailDest(CardModel& card);
+    //
     HRESULT CreateCardVisuals();
-
+    //
     // ========================================================================
     // Per-frame update
     // ========================================================================
-
+    std::vector<std::vector<HWND>> DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork);
+    void RebuildDesktopGroupThumbnails(CardModel& card);
+    void RefreshDesktopGroupThumbnailsIfStale();
+    //
     void    Update(float dtSeconds);
 
     // ========================================================================
@@ -141,9 +141,9 @@ private:
     // ========================================================================
 
     float   EnterProgress() const;
-    void    ReplayEnterAnimation();
     void    ExitView(bool commitScroll = true,
                      float exitDurationSec = kExitDurationSec);
+
     void    BeginExitView();
     void    TickSmoothScroll(float dtSeconds);
     void    TickRepeatedRotate();
@@ -153,7 +153,6 @@ private:
     float   RotationDurationForRotateList() const;
     void    SelectWindow(HWND hwndTarget);
     void    SelectFront();
-
     // ========================================================================
     // Rotation (uDWM m_leWindows linked-list model)
     // ========================================================================
@@ -188,10 +187,12 @@ private:
     // Input processing
     // ========================================================================
 
-    bool    OnKey(bool down, UINT vkCode);
+    // Was missing the LPARAM param — OnKey's own body already reads lParam
+    // (autorepeat-bit detection) but the declaration never had it, so that
+    // reference was silently resolving to nothing until it finally errored.
+    bool    OnKey(bool down, UINT vkCode, LPARAM lParam);
     bool    OnWheel(int wheelDelta);
     bool    OnMouse(LONG x, LONG y, bool pressed);
-
     // ========================================================================
     // Hit testing (3D ray-triangle intersection)
     // ========================================================================
@@ -238,7 +239,14 @@ private:
     bool    AccessiblePointInView(POINT screenPt) const;
     HRESULT AccessibleRotateToIndex(int index);
     HRESULT AccessibleSelectIndex(int index);
-
+    //new
+    bool    IsSystemFlyoutProcess(HWND hwnd) const;
+    bool SetTopmostDynamic(HWND hwnd, bool topmost);
+    HMONITOR GetTargetMonitor() const;
+    //
+    BOOL    SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
+    BOOL GetWindowBand(HWND hWnd, DWORD* pdwBand);
+    //
     // ========================================================================
     // Member variables
     // ========================================================================
@@ -246,18 +254,16 @@ private:
     // ---- Window / instance ----
     HINSTANCE               m_hInstance     = nullptr;
     HWND                    m_hwnd          = nullptr;
-    std::wstring            m_initError;
 
-    // Per-monitor shell thumbnail + dark wash (client coords = virtual desktop).
-    struct MonitorBackdrop
-    {
-        RECT                        rcMonitor = {};
-        RECT                        rcWork    = {};
-        ComPtr<IDCompositionVisual3> washVisual;
-        ComPtr<IDCompositionVisual3> shellContainer;
-        ComPtr<IDCompositionVisual3> shellThumb;
-        HTHUMBNAIL                  hShellThumb = nullptr;
-    };
+    int                     m_framesSinceOpen   = 0;
+    bool                    m_thumbnailsRevealed = false;
+    HHOOK                   m_mouseHook     = nullptr;
+    bool                    m_hookActive    = false;
+    POINT                   m_lastPolledCursorClient = { -1, -1 };
+    std::wstring            m_initError;
+    //new
+    ULONG64 g_iam_key = 0x0;
+    DWORD lSet = 0;
 
     // ---- Dimensions ----
     UINT                    m_width         = 1600;
@@ -268,8 +274,6 @@ private:
     float                   m_monOriginY    = 0.0f;   // primary rcWork.top  (screen px)
     float                   m_viewX         = 0.0f;   // primary rcWork origin in client px
     float                   m_viewY         = 0.0f;
-    std::vector<MonitorBackdrop> m_monitorBackdrops;
-    ComPtr<IDCompositionSurface> m_washSurface;
     bool                    m_minimized     = false;
     bool                    m_rtl           = false;
     bool                    m_thumbnailsDirty = false; // coalesce WM 0x327 bursts
@@ -297,6 +301,7 @@ private:
     bool                    m_rotateBackward = false;
     bool                    m_showOutgoingDuringRotation = false;
     float                   m_rRepeatedRotateRate = 0.0f;
+    int                     m_repeatedRotateStepsRemaining = 0; // was missing — used by ReplayEnterAnimation
 
     // ---- Selection ----
     HWND                    m_originalFrontHwnd = nullptr;
@@ -323,4 +328,12 @@ private:
     DwmpCreateSharedThumbnailVisual_fn    m_pfnCreateSharedThumbVisual = nullptr;
     DwmpQueryWindowThumbnailSourceSize_fn m_pfnQueryThumbSize          = nullptr;
     GetWindowMinimizeRect_fn              m_pfnGetWindowMinimizeRect    = nullptr;
+    //new
+    DwmpActivateLivePreview_fn             m_pfnActivateLivePreview = nullptr;
+    SetWindowCompositionAttribute_fn m_pfnSetWindowCompositionAttribute = nullptr;
+    CreateWindowInBand_fn            m_pfnCreateWindowInBand          = nullptr;
+    CreateWindowInBandEx_fn            m_pfnCreateWindowInBandEx          = nullptr;
+    SetWindowBand_fn m_SetWindowBand = nullptr;
+    GetWindowBand_fn m_GetWindowBand = nullptr;
+    NtUserEnableIAMAccess_fn m_NtUserEnableIAMAccess = nullptr;
 };

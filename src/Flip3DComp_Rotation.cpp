@@ -277,7 +277,7 @@ float ResolveRotationWindowOpacity(const CardRotationEntry& entry,
 } // namespace
 
 // ============================================================================
-int Flip3DCompApp::DistanceBetween(size_t sourcePos, size_t targetPos,
+int Flip3DComp::DistanceBetween(size_t sourcePos, size_t targetPos,
                                    bool forward) const
 {
     const size_t count = m_cards.size();
@@ -297,21 +297,21 @@ int Flip3DCompApp::DistanceBetween(size_t sourcePos, size_t targetPos,
     return (int)dist;
 }
 
-float Flip3DCompApp::RotationDurationForRotateList() const
+float Flip3DComp::RotationDurationForRotateList() const
 {
     if (m_state == ViewState::ExitRepeatedRotate)
         return std::max(std::abs(m_rRepeatedRotateRate), 0.005f);
     return kRotateListDurationSec;
 }
 
-void Flip3DCompApp::StartRotationStep(bool backward, float durationSec)
+void Flip3DComp::StartRotationStep(bool backward, float durationSec)
 {
     m_rotateBackward             = backward;
     m_showOutgoingDuringRotation = true;
     m_rotateTimeline.Restart(0.0f, 1.0f, durationSec, InterpolationMode::Linear);
 }
 
-void Flip3DCompApp::OnRotationTimeUpdated()
+void Flip3DComp::OnRotationTimeUpdated()
 {
     if (m_showOutgoingDuringRotation && m_rotateTimeline.IsActive()
         && m_rotateTimeline.RawProgress() > 0.5f)
@@ -320,7 +320,7 @@ void Flip3DCompApp::OnRotationTimeUpdated()
     }
 }
 
-void Flip3DCompApp::TickRepeatedRotate()
+void Flip3DComp::TickRepeatedRotate()
 {
     if (m_rotateTimeline.IsActive() || m_cards.empty())
         return;
@@ -350,7 +350,7 @@ void Flip3DCompApp::TickRepeatedRotate()
     }
 }
 
-float Flip3DCompApp::ComputeRotationDisplaySlot(int listIndex) const
+float Flip3DComp::ComputeRotationDisplaySlot(int listIndex) const
 {
     const bool isRotating = m_rotateTimeline.IsActive();
     const RotationContext ctx = BuildRotationContext(
@@ -367,7 +367,7 @@ float Flip3DCompApp::ComputeRotationDisplaySlot(int listIndex) const
     return ResolveRotationPathSlot(entry, ctx) - scrollOffset;
 }
 
-bool Flip3DCompApp::ShouldDrawRotationCard(int listIndex) const
+bool Flip3DComp::ShouldDrawRotationCard(int listIndex) const
 {
     const bool isRotating = m_rotateTimeline.IsActive();
     const RotationContext ctx = BuildRotationContext(
@@ -381,7 +381,7 @@ bool Flip3DCompApp::ShouldDrawRotationCard(int listIndex) const
     return entry.shouldDraw;
 }
 
-float Flip3DCompApp::ComputeRotationAlpha(const CardModel& card, float enterProgress,
+float Flip3DComp::ComputeRotationAlpha(const CardModel& card, float enterProgress,
                                           int listIndex, float carouselSlot) const
 {
     const bool isRotating = m_rotateTimeline.IsActive();

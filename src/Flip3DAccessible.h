@@ -10,12 +10,12 @@
 #include <oleacc.h>
 #include <oaidl.h>
 
-class Flip3DCompApp;
+class Flip3DComp;
 
 class Flip3DAccessible final : public IAccessible
 {
 public:
-    static HRESULT Create(Flip3DCompApp* app, IAccessible** ppAccessible);
+    static HRESULT Create(Flip3DComp* app, IAccessible** ppAccessible);
 
     // IUnknown
     STDMETHODIMP QueryInterface(REFIID riid, void** ppvObj) override;
@@ -61,11 +61,11 @@ public:
     STDMETHODIMP put_accValue(VARIANT varChild, BSTR szValue) override;
 
 private:
-    explicit Flip3DAccessible(Flip3DCompApp* app);
+    explicit Flip3DAccessible(Flip3DComp* app);
 
     int  GetChildrenCount() const;
     void SetChildIndex(int index, VARIANT* pvarPlace) const;
 
     ULONG           m_ref = 1;
-    Flip3DCompApp*  m_app = nullptr;
+    Flip3DComp*  m_app = nullptr;
 };

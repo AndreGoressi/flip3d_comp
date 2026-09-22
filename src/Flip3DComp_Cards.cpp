@@ -2,6 +2,8 @@
 // Flip3DComp_Cards.cpp — Card building + thumbnail visual creation + DWM API
 // ============================================================================
 #include "Flip3DComp.h"
+#include <cmath>
+#include <unordered_set>
 
 namespace {
 
@@ -18,7 +20,6 @@ MONITORINFO QueryPrimaryMonitor()
 bool FillRestoredScreenRect(HWND h, const MONITORINFO& mi, RECT& out)
 {
     bool maximized = IsZoomed(h);
-
     if (IsIconic(h))
     {
         WINDOWPLACEMENT wp = { sizeof(wp) };
@@ -34,23 +35,21 @@ bool FillRestoredScreenRect(HWND h, const MONITORINFO& mi, RECT& out)
             goto leave;
         }
     }
-
     DwmGetWindowAttribute(h, DWMWA_EXTENDED_FRAME_BOUNDS, &out, sizeof(out));
 leave:
     if (maximized)
     {
         OffsetRect(&out, mi.rcWork.left - out.left, mi.rcWork.top - out.top);
     }
-
     return true;
 }
 
 } // namespace
 
 // ============================================================================
-// Flip3DCompApp::LoadThumbApi
+// Flip3DComp::LoadThumbApi
 // ============================================================================
-bool Flip3DCompApp::LoadThumbApi()
+bool Flip3DComp::LoadUndocApi()
 {
     m_initError.clear();
 
@@ -61,44 +60,122 @@ bool Flip3DCompApp::LoadThumbApi()
         return false;
     }
 
+    HMODULE hUser32 = GetModuleHandleW(L"user32.dll");
+    if (!hUser32)
+    {
+        m_initError = L"Failed to get user32.dll handle.";
+        UnloadUndocApi();
+        return false;
+    }
+
     m_pfnCreateSharedThumbVisual = (DwmpCreateSharedThumbnailVisual_fn)
         GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(147));
+    
     m_pfnQueryThumbSize = (DwmpQueryWindowThumbnailSourceSize_fn)
         GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(162));
+
     m_pfnGetWindowMinimizeRect = (GetWindowMinimizeRect_fn)
-        GetProcAddress(GetModuleHandleW(L"user32.dll"), "GetWindowMinimizeRect");
+        GetProcAddress(hUser32, "GetWindowMinimizeRect");
+
+    //new
+    m_pfnActivateLivePreview = (DwmpActivateLivePreview_fn)
+        GetProcAddress(m_dwmapi, MAKEINTRESOURCEA(113));
+
+    m_pfnSetWindowCompositionAttribute = (SetWindowCompositionAttribute_fn)
+        GetProcAddress(hUser32, "SetWindowCompositionAttribute"); 
+
+    m_pfnCreateWindowInBand = (CreateWindowInBand_fn)
+        GetProcAddress(hUser32, "CreateWindowInBand"); 
+
+    m_pfnCreateWindowInBandEx = (CreateWindowInBandEx_fn)
+        GetProcAddress(hUser32, "CreateWindowInBandEx"); 
+
+    m_SetWindowBand = (SetWindowBand_fn)
+        GetProcAddress(hUser32, "SetWindowBand");
+    
+    m_GetWindowBand = (GetWindowBand_fn)
+        GetProcAddress(hUser32, "GetWindowBand"); 
+
+    m_NtUserEnableIAMAccess = (NtUserEnableIAMAccess_fn)
+        GetProcAddress(hUser32, MAKEINTRESOURCEA(2510));
 
     if (!m_pfnCreateSharedThumbVisual)
     {
         m_initError = L"DwmpCreateSharedThumbnailVisual (dwmapi ord 147) is required.";
-        UnloadThumbApi();
+        UnloadUndocApi();
         return false;
     }
     if (!m_pfnQueryThumbSize)
     {
         m_initError = L"DwmpQueryWindowThumbnailSourceSize (dwmapi ord 162) is required.";
-        UnloadThumbApi();
+        UnloadUndocApi();
         return false;
     }
     if (!m_pfnGetWindowMinimizeRect)
     {
         m_initError = L"GetWindowMinimizeRect (user32) is required.";
-        UnloadThumbApi();
+        UnloadUndocApi();
         return false;
     }
-
+    if (!m_pfnActivateLivePreview)
+    {
+        m_initError = L"DwmpActivateLivePreview (dwmapi ord 113) failed to load.";
+        UnloadUndocApi();
+        return false;
+    }
+    if (!m_pfnSetWindowCompositionAttribute)
+    {
+        m_initError = L"SetWindowCompositionAttribute failed to load.";
+        UnloadUndocApi();
+        return false;
+    }
+    if (!m_pfnCreateWindowInBand)
+    {
+        m_initError = L"CreateWindowInBand failed to load.";
+        UnloadUndocApi();
+        return false;
+    }
+    if (!m_pfnCreateWindowInBandEx)
+    {
+        m_initError = L"CreateWindowInBandEx failed to load.";
+        UnloadUndocApi();
+        return false;
+    }
+    if (!m_SetWindowBand)
+    {
+        m_initError = L"SetWindowBand failed to load.";
+        UnloadUndocApi();
+        return false;
+    }
+    if (!m_GetWindowBand)
+    {
+        m_initError = L"GetWindowBand failed to load.";
+        UnloadUndocApi();
+        return false;
+    }
+    if (!m_NtUserEnableIAMAccess)
+    {
+        m_initError = L"NtUserEnableIAMAccess failed to load.";
+        UnloadUndocApi();
+        return false;
+    }
     return true;
 }
-
 // ============================================================================
-// Flip3DCompApp::UnloadThumbApi
+// Flip3DComp::UnloadDwmApi
 // ============================================================================
-void Flip3DCompApp::UnloadThumbApi()
+void Flip3DComp::UnloadUndocApi()
 {
-    m_pfnCreateSharedThumbVisual = nullptr;
-    m_pfnQueryThumbSize          = nullptr;
-    m_pfnGetWindowMinimizeRect     = nullptr;
-
+    m_pfnCreateSharedThumbVisual        = nullptr;
+    m_pfnQueryThumbSize                 = nullptr;
+    m_pfnGetWindowMinimizeRect          = nullptr;
+    m_pfnActivateLivePreview            = nullptr;
+    m_pfnSetWindowCompositionAttribute  = nullptr;
+    m_pfnCreateWindowInBand             = nullptr;
+    m_pfnCreateWindowInBandEx             = nullptr;
+    m_SetWindowBand                     = nullptr;
+    m_NtUserEnableIAMAccess             = nullptr;
+    //
     if (m_dwmapi)
     {
         FreeLibrary(m_dwmapi);
@@ -107,13 +184,13 @@ void Flip3DCompApp::UnloadThumbApi()
 }
 
 // ============================================================================
-// Flip3DCompApp::UpdateCardGeometry
+// Flip3DComp::UpdateCardGeometry
 // uDWM Flip3DWindow::OnOriginalRectUpdated:
 //   - flatBounds in screen pixels (per-window monitor for taskbar/minimize)
 //   - NormalizeWindowSize + world mapping via shared PRIMARY rcWork (normMon*)
 //   - GetMonitorToWorldTransform on primary m_rcMonitor for all cards
 // ============================================================================
-void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
+void Flip3DComp::UpdateCardGeometry(CardModel& c, float normMonW, float normMonH,
                                        bool selectedRestore)
 {
     HWND h = c.m_hwnd;
@@ -123,7 +200,7 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
     normMonW = std::max(normMonW, 1.0f);
     normMonH = std::max(normMonH, 1.0f);
 
-    c.m_isMinimized    = !!IsIconic(h) && !selectedRestore;
+    c.m_isMinimized    = IsIconic(h) && !selectedRestore;
     c.m_isShellDesktop = (h == GetShellWindow());
 
     HMONITOR mon = MonitorFromWindow(h, MONITOR_DEFAULTTONEAREST);
@@ -149,7 +226,6 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
 
     if (c.m_isShellDesktop)
     {
-        // uDWM shell: relative origin {0,0} on primary - use primary rcWork.
         MONITORINFO primaryMi = QueryPrimaryMonitor();
         flatBounds = primaryMi.rcWork;
     }
@@ -160,6 +236,7 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
         if (m_pfnGetWindowMinimizeRect(h, &minRect) && !IsRectEmpty(&minRect))
             flatBounds = Math::BuildFinalMinRect(minRect, thumbAspect);
     }
+    //
     else if (!FillRestoredScreenRect(h, mi, flatBounds))
     {
         flatBounds = mi.rcWork;
@@ -170,6 +247,15 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
 
     c.m_srcWidth  = (int)thumbW;
     c.m_srcHeight = (int)thumbH;
+    //
+    float maxResW = normMonW * 0.5f;
+    float maxResH = normMonH * 0.5f;
+    float scale = std::min(maxResW / thumbW, maxResH / thumbH);
+    scale = std::min(scale, 1.0f); 
+
+    c.m_srcWidth  = std::max(1, (int)(thumbW * scale));
+    c.m_srcHeight = std::max(1, (int)(thumbH * scale));
+    // -------------------------------------------------------------------------------
 
     // targetSize / occupancy = 3D carousel (uDWM finalSize).
     Math::WorldSizesFromThumbPixels(
@@ -178,10 +264,15 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
 
     c.m_aspectRatio = thumbW / thumbH;
 
+    const float qualityScale = CardThumbnailQualityScale();
+    c.m_srcWidth = std::max(1, (int)std::lround(thumbW * qualityScale));
+    c.m_srcHeight = std::max(1, (int)std::lround(thumbH * qualityScale));
+
     // 2D flat: position from flatBounds; size from QueryThumbSize (restored pixels).
     // Exceptions: shell uses rcWork; iconic minimize uses taskbar tile dimensions.
     float flatW = thumbW;
     float flatH = thumbH;
+    
     if (c.m_isShellDesktop || c.m_isMinimized)
     {
         flatW = (float)std::max(1L, flatBounds.right  - flatBounds.left);
@@ -210,14 +301,11 @@ void Flip3DCompApp::UpdateCardGeometry(CardModel& c, float normMonW, float normM
 }
 
 // ============================================================================
-// Flip3DCompApp::UpdateMonitorRect
-// uDWM UpdateMonitorRect: normMon from primary rcWork; SetSize uses work-area
-// pixels. The input window covers the virtual desktop, but the 3D viewport must
-// match rcWork (size + origin), not the full client rect.
+// Flip3DComp::UpdateMonitorRect
 // ============================================================================
-void Flip3DCompApp::UpdateMonitorRect()
+void Flip3DComp::UpdateMonitorRect()
 {
-    HMONITOR hMon = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
+    HMONITOR hMon = GetTargetMonitor();
     if (!hMon)
         return;
 
@@ -251,15 +339,33 @@ void Flip3DCompApp::UpdateMonitorRect()
         for (auto& card : m_cards)
             UpdateCardGeometry(card, m_monW, m_monH);
     }
-
-    RebuildMonitorBackdropsIfNeeded();
-    UpdateBackdropLayout();
 }
 
-// ============================================================================
-// Flip3DCompApp::BuildCards
-// ============================================================================
-void Flip3DCompApp::BuildCards()
+bool Flip3DComp::AddCardForWindow(HWND hwnd)
+{
+    if (!hwnd || !IsWindow(hwnd))
+        return false;
+    // Check if a card for this window already exists
+    if (FindCardIndex(hwnd) >= 0)
+        return true;
+
+    CardModel c;
+    c.m_hwnd = hwnd;
+    c.m_isGroup = false;
+    c.m_initialCarouselIndex = (int)m_cards.size();
+    
+    UpdateCardGeometry(c, m_monW, m_monH);
+
+    if (SUCCEEDED(CreateCardVisual(c)))
+    {
+        m_cards.push_back(std::move(c));
+        return true;
+    }
+
+    return false;
+}
+
+void Flip3DComp::BuildCards()
 {
     m_cards.clear();
 
@@ -281,9 +387,7 @@ void Flip3DCompApp::BuildCards()
                 &m_d3dDevice, nullptr, nullptr);
         }
     }
-
     auto hwnds = EnumerateWindows();
-
     MONITORINFO primaryMi = QueryPrimaryMonitor();
     m_monW       = (float)std::max(1L, primaryMi.rcWork.right  - primaryMi.rcWork.left);
     m_monH       = (float)std::max(1L, primaryMi.rcWork.bottom - primaryMi.rcWork.top);
@@ -295,59 +399,178 @@ void Flip3DCompApp::BuildCards()
     {
         CardModel c;
         c.m_hwnd                 = h;
+        c.m_isGroup             =  false;
         c.m_initialCarouselIndex = carouselIndex++;
         UpdateCardGeometry(c, m_monW, m_monH);
         m_cards.push_back(std::move(c));
     }
-
     m_originalFrontHwnd = m_cards.empty() ? nullptr : m_cards[0].m_hwnd;
 }
 
 // ============================================================================
-// Flip3DCompApp::CreateCardVisuals
+int Flip3DComp::FindCardIndex(HWND hwnd) const
+{
+    if (!hwnd)
+        return -1;
+
+    for (int i = 0; i < (int)m_cards.size(); ++i)
+    {
+        if (m_cards[(size_t)i].m_hwnd == hwnd)
+            return i;
+    }
+    return -1;
+}
+
+HRESULT Flip3DComp::CreateCardVisual(CardModel& card)
+{
+    if (!m_dcompDevice || !m_sceneVisual)
+        return E_INVALIDARG;
+
+    if (!card.m_isGroup && !card.m_hwnd && !card.m_isShellDesktop)
+        return E_INVALIDARG;
+
+    if (card.m_isGroup && card.m_groupHwnds.empty())
+        return E_INVALIDARG;
+
+    // Create container visual for the card
+    ComPtr<IDCompositionVisual2> container;
+    HRESULT hr = m_dcompDevice->CreateVisual(&container);
+    // 1. Render the primary source (either the single window or the desktop background)
+    HWND primarySourceHwnd = card.m_isGroup ? nullptr : card.m_hwnd;
+    if (primarySourceHwnd)
+    {
+        DWM_THUMBNAIL_PROPERTIES tp = {};
+        tp.dwFlags     = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
+        tp.fVisible    = TRUE;
+        tp.rcDestination = { 0, 0, card.m_srcWidth, card.m_srcHeight };
+
+        void* pv = nullptr;
+        hr = m_pfnCreateSharedThumbVisual(
+            m_hwnd, primarySourceHwnd, DWM_TNF_DWMWINDOW, &tp,
+            m_dcompDevice.Get(), &pv, &card.m_hThumb);
+
+        if (SUCCEEDED(hr) && pv)
+        {
+            ComPtr<IDCompositionVisual> thumbBase;
+            thumbBase.Attach((IDCompositionVisual*)pv);
+            if (SUCCEEDED(thumbBase.As(&card.m_visual)))
+            {
+                container->SetBorderMode(DCOMPOSITION_BORDER_MODE_SOFT);
+                container->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+                container->AddVisual(card.m_visual.Get(), FALSE, nullptr);
+            }
+        }
+    }
+    if (card.m_isShellDesktop)
+    {
+        RebuildDesktopGroupThumbnails(card);
+    }
+    
+    ComPtr<IDCompositionRectangleClip> clip;
+    if (SUCCEEDED(m_dcompDevice->CreateRectangleClip(&clip)))
+    {
+        float radius = 12.f / 2.f;
+        clip->SetLeft(0.f);
+        clip->SetTop(0.f);
+        clip->SetRight((float)card.m_srcWidth);
+        clip->SetBottom((float)card.m_srcHeight);
+        clip->SetTopLeftRadiusX(radius);
+        clip->SetTopLeftRadiusY(radius);
+        clip->SetTopRightRadiusX(radius);
+        clip->SetTopRightRadiusY(radius);
+        clip->SetBottomLeftRadiusX(radius);
+        clip->SetBottomLeftRadiusY(radius);
+        clip->SetBottomRightRadiusX(radius);
+        clip->SetBottomRightRadiusY(radius);
+        container->SetClip(clip.Get());
+    }
+    
+    hr = container.As(&card.m_containerVisual);    
+    hr = m_sceneVisual->AddVisual(container.Get(), TRUE, nullptr);
+    if (FAILED(hr))
+        return hr;
+    //
+    return hr;
+}
+
 // ============================================================================
-HRESULT Flip3DCompApp::CreateCardVisuals()
+HRESULT Flip3DComp::CreateCardVisuals()
 {
     if (!m_dcompDevice || !m_sceneVisual)
         return E_FAIL;
 
     for (auto& card : m_cards)
     {
-        if (!card.m_hwnd || card.m_containerVisual)
+        // Skip if already initialized, but allow cards that either have a single hwnd OR are a group with hwnds
+        if (card.m_containerVisual)
+            continue;
+
+        if (!card.m_isGroup && !card.m_hwnd)
+            continue;
+
+        if (card.m_isGroup && card.m_groupHwnds.empty())
             continue;
 
         if (FAILED(CreateCardVisual(card)))
             continue;
     }
-
     return S_OK;
 }
 
+void Flip3DComp::RemoveCardAt(size_t index)
+{
+    if (index >= m_cards.size())
+        return;
+
+    CardModel& card = m_cards[index];
+
+    if (card.m_containerVisual && m_sceneVisual)
+    {
+        ComPtr<IDCompositionVisual> sceneBase;
+        if (SUCCEEDED(m_sceneVisual.As(&sceneBase)))
+            sceneBase->RemoveVisual(card.m_containerVisual.Get());
+    }
+
+    if (card.m_hThumb)
+    {
+        DwmUnregisterThumbnail(card.m_hThumb);
+        card.m_hThumb = nullptr;
+    }
+
+    card.m_visual.Reset();
+    card.m_containerVisual.Reset();
+
+    m_cards.erase(m_cards.begin() + (ptrdiff_t)index);
+
+    if (m_dcompDevice)
+        m_dcompDevice->Commit();
+}
+
 // ============================================================================
-// Flip3DCompApp::UpdateCardThumbnailDest
+// Flip3DComp::UpdateCardThumbnailDest
 // Sync DWM thumbnail rcDestination to the current source pixel size.
 // ============================================================================
-void Flip3DCompApp::UpdateCardThumbnailDest(CardModel& card)
+void Flip3DComp::UpdateCardThumbnailDest(CardModel& card)
 {
     if (!card.m_hThumb || card.m_srcWidth <= 0 || card.m_srcHeight <= 0)
         return;
 
     DWM_THUMBNAIL_PROPERTIES tp = {};
     tp.dwFlags   = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION
-                    | DWM_TNP_ENABLE3D | DWM_TNP_DISABLEFORCECVI;
+                 | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
     tp.fVisible  = TRUE;
-    tp.rcDestination   = { 0, 0, card.m_srcWidth, card.m_srcHeight };
+    tp.rcDestination = { 0, 0, card.m_srcWidth, card.m_srcHeight };
     DwmUpdateThumbnailProperties(card.m_hThumb, &tp);
 }
 
 // ============================================================================
-// Flip3DCompApp::OnThumbnailSourceSizeChanged
+// Flip3DComp::OnThumbnailSourceSizeChanged
 // uDWM CThumbnailVisual::OnSizeChanged posts WM 0x327 to hwndDestination when
 // DWM_TNF_DWMWINDOW is set and the live preview bitmap changes size. Every
 // card thumbnail posts independently, so the WndProc only sets m_thumbnailsDirty
 // and this runs once per frame, touching cards whose queried source size differs.
 // ============================================================================
-void Flip3DCompApp::OnThumbnailSourceSizeChanged()
+void Flip3DComp::OnThumbnailSourceSizeChanged()
 {
     m_thumbnailsDirty = false;
 
@@ -371,7 +594,279 @@ void Flip3DCompApp::OnThumbnailSourceSizeChanged()
         UpdateCardThumbnailDest(card);
         anyChange = true;
     }
-
     if (anyChange && m_dcompDevice)
         m_dcompDevice->Commit();
 }
+
+void Flip3DComp::RefreshDesktopGroupThumbnailsIfStale()
+{
+    if (!IsFlip3DViewActive())
+        return;
+
+    for (auto& card : m_cards)
+    {
+        if (!card.m_isShellDesktop || !card.m_containerVisual)
+            continue;
+
+        MONITORINFO primaryMi = QueryPrimaryMonitor();
+        std::vector<HWND> allHwnds = EnumerateWindows();
+        std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
+
+        size_t sig = 0;
+        auto mix = [&sig](uintptr_t v) {
+            sig ^= v + 0x9e3779b97f4a7c15ULL + (sig << 6) + (sig >> 2);
+        };
+        for (const auto& group : activeGroups)
+            for (HWND h : group)
+            {
+                mix((uintptr_t)h);
+                mix(IsIconic(h) ? 1u : 0u);
+            }
+
+        if (sig != card.m_groupSignature)
+            RebuildDesktopGroupThumbnails(card);
+
+        break; 
+    }
+}
+
+void Flip3DComp::RebuildDesktopGroupThumbnails(CardModel& card)
+{
+    if (!card.m_isShellDesktop || !card.m_containerVisual || !m_dcompDevice)
+        return;
+
+    for (auto& sub : card.m_groupSubVisuals)
+    {
+        if (sub)
+            card.m_containerVisual->RemoveVisual(sub.Get());
+    }
+    card.m_groupSubVisuals.clear();
+
+    for (auto hThumb : card.m_groupSubThumbs)
+    {
+        if (hThumb)
+            DwmUnregisterThumbnail(hThumb);
+    }
+    card.m_groupSubThumbs.clear();
+
+    MONITORINFO primaryMi = QueryPrimaryMonitor();
+    std::vector<HWND> allHwnds = EnumerateWindows();
+    std::vector<std::vector<HWND>> activeGroups = DetectActiveSnapGroups(allHwnds, primaryMi.rcWork);
+
+    size_t sig = 0;
+    auto mix = [&sig](uintptr_t v) {
+        sig ^= v + 0x9e3779b97f4a7c15ULL + (sig << 6) + (sig >> 2);
+    };
+
+    for (const auto& group : activeGroups)
+    {
+        for (HWND groupHwnd : group)
+        {
+            mix((uintptr_t)groupHwnd);
+            mix(IsIconic(groupHwnd) ? 1u : 0u);
+
+            RECT rcWin = {};
+            WINDOWPLACEMENT wp = { sizeof(wp) };
+            if (GetWindowPlacement(groupHwnd, &wp))
+            {
+                rcWin = wp.rcNormalPosition;
+            }
+            
+            if (FAILED(DwmGetWindowAttribute(groupHwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWin, sizeof(rcWin))))
+            {
+                GetWindowRect(groupHwnd, &rcWin);
+            }
+            
+            if (rcWin.right <= rcWin.left || rcWin.bottom <= rcWin.top)
+                continue;
+
+            float scaleX = card.m_srcWidth / m_monW;
+            float scaleY = card.m_srcHeight / m_monH;
+
+            float screenX = (float)(rcWin.left - m_monOriginX);
+            float screenY = (float)(rcWin.top - m_monOriginY);
+            float screenW = (float)(rcWin.right - rcWin.left);
+            float screenH = (float)(rcWin.bottom - rcWin.top);
+
+            float gutter = 160.0f;
+            bool touchesLeft   = (screenX <= 5.0f);
+            bool touchesRight  = (abs((screenX + screenW) - m_monW) <= 5.0f);
+            bool touchesTop    = (screenY <= 5.0f);
+            bool touchesBottom = (abs((screenY + screenH) - m_monH) <= 5.0f);
+
+            float adjustedX = screenX + (touchesLeft ? gutter : gutter * 0.5f);
+            float adjustedY = screenY + (touchesTop ? gutter : gutter * 0.5f);
+            float adjustedW = screenW - ((touchesLeft ? gutter : gutter * 0.5f) + (touchesRight ? gutter : gutter * 0.5f));
+            float adjustedH = screenH - ((touchesTop ? gutter : gutter * 0.5f) + (touchesBottom ? gutter : gutter * 0.5f));
+
+            int relX = (int)(adjustedX * scaleX);
+            int relY = (int)(adjustedY * scaleY);
+            int relW = (int)(adjustedW * scaleX);
+            int relH = (int)(adjustedH * scaleY);
+
+            HTHUMBNAIL subThumb = nullptr;
+            DWM_THUMBNAIL_PROPERTIES subTp = {};
+            subTp.dwFlags = DWM_TNP_VISIBLE | DWM_TNP_RECTDESTINATION | DWM_TNP_ENABLE3D | DWM_TNP_FORCECVI;
+            subTp.fVisible = TRUE;
+            subTp.rcDestination = { 0, 0, relW, relH };
+
+            void* subPv = nullptr;
+            if (SUCCEEDED(m_pfnCreateSharedThumbVisual(m_hwnd, groupHwnd, DWM_TNF_DWMWINDOW, &subTp, m_dcompDevice.Get(), &subPv, &subThumb)))
+            {
+                ComPtr<IDCompositionVisual> subThumbBase;
+                subThumbBase.Attach((IDCompositionVisual*)subPv);
+                ComPtr<IDCompositionVisual3> subVisual;
+                if (SUCCEEDED(subThumbBase.As(&subVisual)))
+                {
+                    subVisual->SetOffsetX((float)relX);
+                    subVisual->SetOffsetY((float)relY);
+
+                    card.m_containerVisual->AddVisual(subVisual.Get(), FALSE, nullptr);
+                    card.m_groupSubThumbs.push_back(subThumb);
+                    card.m_groupSubVisuals.push_back(subVisual);
+                }
+                else if (subThumb)
+                {
+                    DwmUnregisterThumbnail(subThumb);
+                }
+            }
+        }
+    }
+    card.m_groupSignature = sig;
+    m_dcompDevice->Commit();
+}
+
+std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vector<HWND>& hwnds, const RECT& rcWork)
+{
+    std::vector<std::vector<HWND>> groups;
+    auto getSafeRect = [](HWND hwnd) {
+        RECT rc = {};
+        if (IsIconic(hwnd))
+        {
+            WINDOWPLACEMENT wp = { sizeof(wp) };
+            if (GetWindowPlacement(hwnd, &wp))
+            {
+                rc = wp.rcNormalPosition;
+            }
+        }
+        else
+        {
+            if (FAILED(DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rc, sizeof(rc))))
+            {
+                GetWindowRect(hwnd, &rc);
+            }
+        }
+        return rc;
+    };
+
+    auto rectOverlapArea = [](const RECT& a, const RECT& b) -> long
+    {
+        long ix = std::max(0L, std::min(a.right, b.right) - std::max(a.left, b.left));
+        long iy = std::max(0L, std::min(a.bottom, b.bottom) - std::max(a.top, b.top));
+        return ix * iy;
+    };
+
+    std::vector<HWND> candidates;
+    for (size_t idx = 0; idx < hwnds.size(); ++idx)
+    {
+        HWND h = hwnds[idx];
+        if (!IsWindow(h) || h == GetShellWindow() || (!IsWindowVisible(h) && !IsIconic(h)))
+            continue;
+
+        RECT rc = getSafeRect(h);
+        if (rc.right <= rc.left || rc.bottom <= rc.top)
+            continue;
+
+        const long area = (long)(rc.right - rc.left) * (long)(rc.bottom - rc.top);
+        bool superseded = false;
+
+        for (size_t otherIdx = 0; otherIdx < idx; ++otherIdx)
+        {
+            HWND other = hwnds[otherIdx];
+            if (!IsWindow(other) || (!IsWindowVisible(other) && !IsIconic(other)))
+                continue;
+
+            RECT rcOther = getSafeRect(other);
+            if (rcOther.right <= rcOther.left || rcOther.bottom <= rcOther.top)
+                continue;
+
+            if (rectOverlapArea(rc, rcOther) >= (long)(area * 0.6))
+            {
+                superseded = true;
+                break;
+            }
+        }
+
+        if (superseded)
+            continue;
+
+        candidates.push_back(h);
+    }
+    std::unordered_set<HWND> groupedHwnds;
+    for (size_t i = 0; i < candidates.size(); ++i)
+    {
+        RECT rc1 = getSafeRect(candidates[i]);
+        if (rc1.right <= rc1.left || rc1.bottom <= rc1.top)
+            continue;
+
+        for (size_t j = i + 1; j < candidates.size(); ++j)
+        {
+            RECT rc2 = getSafeRect(candidates[j]);
+            if (rc2.right <= rc2.left || rc2.bottom <= rc2.top)
+                continue;
+
+            constexpr LONG kTouchTolerance = 1;
+            bool touchingHorizontally = (abs(rc1.right - rc2.left) <= kTouchTolerance || abs(rc2.right - rc1.left) <= kTouchTolerance);
+            bool verticalOverlap = (rc1.top < rc2.bottom && rc1.bottom > rc2.top);
+
+            if (touchingHorizontally && verticalOverlap)
+            {
+                groups.push_back({ candidates[i], candidates[j] });
+                groupedHwnds.insert(candidates[i]);
+                groupedHwnds.insert(candidates[j]);
+            }
+            else
+            {
+                bool touchingVertically = (abs(rc1.bottom - rc2.top) <= kTouchTolerance || abs(rc2.bottom - rc1.top) <= kTouchTolerance);
+                bool horizontalOverlap = (rc1.left < rc2.right && rc1.right > rc2.left);
+
+                if (touchingVertically && horizontalOverlap)
+                {
+                    groups.push_back({ candidates[i], candidates[j] });
+                    groupedHwnds.insert(candidates[i]);
+                    groupedHwnds.insert(candidates[j]);
+                }
+            }
+        }
+    }
+    float workW = (float)(rcWork.right - rcWork.left);
+    float workH = (float)(rcWork.bottom - rcWork.top);
+
+    for (HWND h : candidates)
+    {
+        if (groupedHwnds.count(h))
+            continue;
+
+        RECT rc = getSafeRect(h);
+        float screenX = (float)(rc.left - rcWork.left);
+        float screenY = (float)(rc.top - rcWork.top);
+        float screenW = (float)(rc.right - rc.left);
+        float screenH = (float)(rc.bottom - rc.top);
+
+        bool touchesLeft   = (screenX <= 5.0f);
+        bool touchesRight  = (abs((screenX + screenW) - workW) <= 5.0f);
+        bool touchesTop    = (screenY <= 5.0f);
+        bool touchesBottom = (abs((screenY + screenH) - workH) <= 5.0f);
+        if (touchesLeft || touchesRight || touchesTop || touchesBottom)
+        {
+            groups.push_back({ h });
+        }
+    }
+    return groups;
+}
+
+
+
+
+
+
