@@ -275,22 +275,8 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         if (OnKey(true, (UINT)wParam, lParam))
             return 0;
         break;
-
-    case WM_TIMER:
-        if (wParam == 9999)
-        {
-            KillTimer(m_hwnd, 9999);
-            m_aeroPeekTimerId = 0;
-
-            if (m_pfnActivateLivePreview && !m_aeroPeekActive)
-            {
-                m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Window), nullptr);
-                m_aeroPeekActive = true;
-            }
-            return 0;
-        }
-        break;
         
+    // new
     case WM_ACTIVATE:
         if (LOWORD(wParam) == WA_INACTIVE)
         {
@@ -300,6 +286,7 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
             }
         }
         return 0;
+    //close_if_focus_lost
 
     case WM_CLOSE:
         if (m_state == ViewState::Exit ||
@@ -324,7 +311,9 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 
         return LresultFromObject(IID_IAccessible, wParam, pAccessible);
     }
+
     case WM_DESTROY:
+        //
         ShutdownAccessibility();
         LeaveFlip3DWindowMode();
         PostQuitMessage(0);
