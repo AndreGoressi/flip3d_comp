@@ -53,13 +53,11 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     m_animEnter.Restart(0.0f, 1.0f, kEnterExitDurationSec);
     m_prevFrame = std::chrono::steady_clock::now();
 
-    if (m_pfnActivateLivePreview)
-    {
-        m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Window), nullptr);
-    }
-
     EnterFlip3DWindowMode();
-    InitAccessibility();  
+    InitAccessibility(); 
+
+    SetAeroPeekEnabled(true, /*delayed=*/true, /*delayMs=*/500);
+    
     Update(0.0f);
     
     return true;
@@ -167,6 +165,42 @@ int Flip3DComp::Run()
     return (int)msg.wParam;
 }
 
+void Flip3DComp::SetAeroPeekEnabled(bool enable, bool delayed, UINT delayMs)
+{
+    if (!m_pfnActivateLivePreview)
+        return;
+
+    if (m_aeroPeekTimerId)
+    {
+        KillTimer(m_hwnd, m_aeroPeekTimerId);
+        m_aeroPeekTimerId = 0;
+    }
+
+    if (enable)
+    {
+        if (delayed && delayMs > 0)
+        {
+            m_aeroPeekTimerId = SetTimer(m_hwnd, 9999, delayMs, nullptr);
+        }
+        else
+        {
+            if (!m_aeroPeekActive)
+            {
+                m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Window), nullptr);
+                m_aeroPeekActive = true;
+            }
+        }
+    }
+    else
+    {
+        if (m_aeroPeekActive)
+        {
+            m_pfnActivateLivePreview(FALSE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Window), nullptr);
+            m_aeroPeekActive = false;
+        }
+    }
+}
+
 // ============================================================================
 // Flip3DComp::WndProc — window procedure
 // ============================================================================
@@ -213,7 +247,6 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
 
     case WM_DWMTHUMBNAILSOURCESIZECHANGED:
-        // Each registered thumbnail posts 0x327 independently; coalesce to one
         // refresh per frame in Update() (wParam = adapter LUID low part).
         m_thumbnailsDirty = true;
         return 0;
@@ -242,8 +275,22 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         if (OnKey(true, (UINT)wParam, lParam))
             return 0;
         break;
+
+    case WM_TIMER:
+        if (wParam == 9999)
+        {
+            KillTimer(m_hwnd, 9999);
+            m_aeroPeekTimerId = 0;
+
+            if (m_pfnActivateLivePreview && !m_aeroPeekActive)
+            {
+                m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Window), nullptr);
+                m_aeroPeekActive = true;
+            }
+            return 0;
+        }
+        break;
         
-    // new
     case WM_ACTIVATE:
         if (LOWORD(wParam) == WA_INACTIVE)
         {
@@ -253,7 +300,6 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
             }
         }
         return 0;
-    //close_if_focus_lost
 
     case WM_CLOSE:
         if (m_state == ViewState::Exit ||
@@ -278,9 +324,7 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 
         return LresultFromObject(IID_IAccessible, wParam, pAccessible);
     }
-
     case WM_DESTROY:
-        //
         ShutdownAccessibility();
         LeaveFlip3DWindowMode();
         PostQuitMessage(0);
@@ -292,6 +336,5 @@ LRESULT Flip3DComp::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         OnShellHookMessage(wParam, lParam);
         return 0;
     }
-
     return DefWindowProcW(m_hwnd, msg, wParam, lParam);
 }
