@@ -83,6 +83,39 @@ BOOL Flip3DComp::GetWindowBand(HWND hWnd, DWORD* pdwBand)
     return result;
 }
 
+void Flip3DComp::SetAeroPeekEnabled(bool enable, bool delayed, UINT delayMs)
+{
+    if (!m_pfnActivateLivePreview)
+        return;
+
+    if (enable)
+    {
+        if (delayed && delayMs > 0)
+        {
+            m_aeroPeekPending = true;
+            m_aeroPeekStartTime = std::chrono::steady_clock::now();
+        }
+        else
+        {
+            m_aeroPeekPending = false;
+            if (!m_aeroPeekActive)
+            {
+                m_pfnActivateLivePreview(TRUE, m_hwnd, nullptr, 3, nullptr);
+                m_aeroPeekActive = true;
+            }
+        }
+    }
+    else
+    {
+        m_aeroPeekPending = false;
+        if (m_aeroPeekActive)
+        {
+            m_pfnActivateLivePreview(FALSE, m_hwnd, nullptr, 3, nullptr);
+            m_aeroPeekActive = false;
+        }
+    }
+}
+
 // ============================================================================
 bool Flip3DComp::IsFlip3DViewActive() const
 {
