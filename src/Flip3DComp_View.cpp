@@ -14,12 +14,10 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
     if (m_state == ViewState::Exit || m_state == ViewState::ExitRepeatedRotate)
         return;
 
-    if (m_pfnActivateLivePreview)
-    {
-        m_pfnActivateLivePreview(FALSE, m_hwnd, nullptr, static_cast<UINT>(PeekTypes::Window), nullptr);
-        SetTopmostDynamic(m_hwnd, FALSE);
-    }
-    
+    SetAeroPeekEnabled(false, /*delayed=*/false);
+    //
+    SetTopmostDynamic(m_hwnd, FALSE);
+
     if (commitScroll)
         CommitCarouselScroll();
 
