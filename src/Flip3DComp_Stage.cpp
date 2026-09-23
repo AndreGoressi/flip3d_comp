@@ -130,8 +130,6 @@ bool Flip3DComp::InitializeDCompStage()
     if (!m_hwnd)
         return false;
     //
-    m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
-    //
     BOOL exclude = TRUE;
     DwmSetWindowAttribute(m_hwnd, DWMWA_EXCLUDED_FROM_PEEK, &exclude, sizeof(exclude));
     //
@@ -139,12 +137,15 @@ bool Flip3DComp::InitializeDCompStage()
     accent.AccentState =  ACCENT_ENABLE_ACRYLICBLURBEHIND;
     accent.AccentFlags = 2;
     accent.GradientColor = 0x73190F0F; /*gradientColor*/
+	//
     WINDOWCOMPOSITIONATTRIBDATA data = {};
     data.Attrib = WCA_ACCENT_POLICY;
     data.pvData = &accent;
     data.cbData = sizeof(accent);    
     m_pfnSetWindowCompositionAttribute(m_hwnd, &data);
     //
+	m_rtl = (GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) & WS_EX_LAYOUTRTL) != 0;
+	//
     RECT client = {};
     if (GetClientRect(m_hwnd, &client))
     {
