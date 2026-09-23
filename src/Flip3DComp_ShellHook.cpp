@@ -83,7 +83,7 @@ BOOL Flip3DComp::GetWindowBand(HWND hWnd, DWORD* pdwBand)
     return result;
 }
 
-void Flip3DComp::SetAeroPeekEnabled(bool enable, bool delayed, UINT delayMs)
+void Flip3DComp::SetPeekLivePreview(bool enable, bool delayed, UINT delayMs)
 {
     if (!m_pfnActivateLivePreview)
         return;
