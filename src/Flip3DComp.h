@@ -241,7 +241,7 @@ private:
     HRESULT AccessibleSelectIndex(int index);
     //new
     bool    IsSystemFlyoutProcess(HWND hwnd) const;
-    bool SetTopmostDynamic(HWND hwnd, bool topmost);
+    bool SetTopmostAsync(HWND hwnd, bool topmost);
     HMONITOR GetTargetMonitor() const;
     //
     BOOL    SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
