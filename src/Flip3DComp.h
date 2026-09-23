@@ -247,7 +247,7 @@ private:
     BOOL    SetWindowBand(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
     BOOL GetWindowBand(HWND hWnd, DWORD* pdwBand);
     //
-    void SetPeekLivePreview(bool enable, bool delayed = false, UINT delayMs = 50);
+    void SetPeekLivePreview(bool enable, bool delayed = false, UINT delayMs = 0);
     //
     // ========================================================================
     // Member variables
