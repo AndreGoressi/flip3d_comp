@@ -119,7 +119,7 @@ HMONITOR Flip3DComp::GetTargetMonitor() const
     return hPrimary;
 }
 
-bool Flip3DComp::SetTopmostDynamic(HWND hwnd, bool topmost)
+bool Flip3DComp::SetTopmostAsync(HWND hwnd, bool topmost)
 {
     if (!hwnd) 
         return false;
