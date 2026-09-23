@@ -56,7 +56,7 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     EnterFlip3DWindowMode();
     InitAccessibility(); 
 
-    SetPeekLivePreview(true, /*delayed=*/false);
+    SetPeekLivePreview(true, /*delayed=*/true);
     
     Update(0.0f);
     
