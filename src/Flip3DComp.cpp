@@ -56,7 +56,7 @@ bool Flip3DComp::Initialize(HINSTANCE hInstance)
     EnterFlip3DWindowMode();
     InitAccessibility(); 
 
-    SetAeroPeekEnabled(true, /*delayed=*/true, /*delayMs=*/100);
+    SetPeekLivePreview(true, /*delayed=*/true, /*delayMs=*/100);
     
     Update(0.0f);
     
