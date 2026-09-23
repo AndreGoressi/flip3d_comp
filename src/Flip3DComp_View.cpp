@@ -14,7 +14,7 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
     if (m_state == ViewState::Exit || m_state == ViewState::ExitRepeatedRotate)
         return;
 
-    SetAeroPeekEnabled(false, /*delayed=*/false);
+    SetPeekLivePreview(false, /*delayed=*/false);
     //
     SetTopmostAsync(m_hwnd, FALSE);
 
