@@ -16,7 +16,7 @@ void Flip3DComp::ExitView(bool commitScroll, float exitDurationSec)
 
     SetAeroPeekEnabled(false, /*delayed=*/false);
     //
-    SetTopmostDynamic(m_hwnd, FALSE);
+    SetTopmostAsync(m_hwnd, FALSE);
 
     if (commitScroll)
         CommitCarouselScroll();
