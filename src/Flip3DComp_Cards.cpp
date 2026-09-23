@@ -847,16 +847,23 @@ std::vector<std::vector<HWND>> Flip3DComp::DetectActiveSnapGroups(const std::vec
         if (groupedHwnds.count(h))
             continue;
 
+        if (IsZoomed(h))
+            continue;
+
         RECT rc = getSafeRect(h);
         float screenX = (float)(rc.left - rcWork.left);
         float screenY = (float)(rc.top - rcWork.top);
         float screenW = (float)(rc.right - rc.left);
         float screenH = (float)(rc.bottom - rc.top);
 
+        if (screenW >= workW - 10.0f && screenH >= workH - 10.0f)
+            continue;
+
         bool touchesLeft   = (screenX <= 5.0f);
         bool touchesRight  = (abs((screenX + screenW) - workW) <= 5.0f);
         bool touchesTop    = (screenY <= 5.0f);
         bool touchesBottom = (abs((screenY + screenH) - workH) <= 5.0f);
+        
         if (touchesLeft || touchesRight || touchesTop || touchesBottom)
         {
             groups.push_back({ h });
